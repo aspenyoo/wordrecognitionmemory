@@ -29,8 +29,8 @@ else % if a optimal or heuristic model
     dOld = nan(Nold,nX,nS);
     d_new = nan(Nnew,nS);
     dNew = nan(Nold,nX,nS);
-    dist_new = nan(Nnew,nS);
-    distNew = nan(Nold,nX,nS);
+    dist_new_X = nan(Nnew,nS); dist_new_old = dist_new_X;
+    distNewX = nan(Nold,nX,nS); distNewOld = distNewX;
     distOld = nan(Nold,nS,nS);
     for iX = 1:nX;
         X = randn(Nold, M)*sqrt(sigma^2+1);
@@ -45,17 +45,17 @@ else % if a optimal or heuristic model
                         sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1]) - repmat(X/J/sigma^2,[1,1,Nnew])).^2,2)))));
                     dOld(:,iX,iS) = M/2*log(1+sigs^2/sigma^2) + 0.5*sum(SOld.^2,2) + log(squeeze(mean(exp(-0.5*J*...
                         sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1]) - repmat(X/J/sigma^2,[1,1,Nold])).^2,2)))));
-                    dist_new(:,iS) = sqrt(squeeze(min(sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nnew])).^2,2),[],1))); % distance bewteen new words and the closest noisy memory
-                    distOld(:,iX,iS) = sqrt(squeeze(min(sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nnew])).^2,2),[],1))); % distance old words and the closest noisy memory
-%                     dist_new(:,iS) = sqrt(squeeze(min(sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1])-repmat(SOld,[1,1,Nnew])).^2,2),[],1))); % distance from the closest old word
-%                     distOld(:,iX,iS) = sqrt(squeeze(min(sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1])-repmat(SOld,[1,1,Nnew])).^2,2),[],1))); % distance from the closest old word
+                    dist_new_X(:,iS) = sqrt(squeeze(min(sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nnew])).^2,2),[],1))); % distance bewteen new words and the closest noisy memory
+                    distOld(:,iX,iS) = sqrt(squeeze(min(sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nnew])).^2,2),[],1))); % distance between old words and the closest noisy memory
+                    dist_new_old(:,iS) = sqrt(squeeze(min(sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1])-repmat(SOld,[1,1,Nnew])).^2,2),[],1))); % distance bewteen new words and the closest old word
                 case 'FPheurs'
-                    d_new(:,iS) = squeeze(-min(sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nnew])).^2,2),[],1));
-                    dOld(:,iX,iS) = squeeze(-min(sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nold])).^2,2),[],1));
+                    d_new(:,iS) = squeeze(-min(sqrt(sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nnew])).^2,2)),[],1));
+                    dOld(:,iX,iS) = squeeze(-min(sqrt(sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nold])).^2,2)),[],1));
             end
         end
         dNew(:,iX,:) = d_new;
-        distNew(:,iX,:) = dist_new;
+        distNewX(:,iX,:) = dist_new_X;
+        distNewOld(:,iX,:) = dist_new_old;
     end
 
     
@@ -69,40 +69,66 @@ else % if a optimal or heuristic model
     end
     
     % statistics: correlation
-    [rho_new, pvalue_new] = corr([distNew confNew]); % new word: distance by confidence
-    [rho_old, pvalue_old] = corr([distOld confOld]); % old word: distance by confidence
-    [rho_newlpr, pvalue_newlpr] = corr([distNew dNew]); % new word: distance by LPR
+    [rho_newX, pvalue_newX] = corr([distNewX confNew]); % new word: distance from noisy memory by confidence
+    [rho_old, pvalue_old] = corr([distOld confOld]); % old word: distance from noisy memory by confidence
+    [rho_newOld, pvalue_newOld] = corr([distNewOld confNew]); % new word: distance from old word by confidence
+    [rho_newlpr, pvalue_newlpr] = corr([distNewX dNew]); % new word: distance by LPR
     [rho_oldlpr, pvalue_oldlpr] = corr([distOld dOld]); % old word: distance by LPR
-    rho_new = rho_new(2); rho_old = rho_old(2); rho_newlpr = rho_newlpr(2); rho_oldlpr = rho_oldlpr(2);
-    pvalue_new = pvalue_new(2); pvalue_old = pvalue_old(2);
+    rho_newX = rho_newX(2); rho_old = rho_old(2); rho_newlpr = rho_newlpr(2); rho_oldlpr = rho_oldlpr(2);
+    rho_newOld = rho_newOld(2); pvalue_newOld = pvalue_newOld(2);
+    pvalue_newX = pvalue_newX(2); pvalue_old = pvalue_old(2);
     pvalue_newlpr = pvalue_newlpr(2); pvalue_oldlpr = pvalue_oldlpr(2);
 
     % statistics: regression
-    [b_new,~,~,~,stats_new] = regress(confNew,[ones(length(confNew),1) distNew]);
-    [b_newlpr,~,~,~,stats_newlpr] = regress(dNew,[ones(length(dNew),1) distNew]);
-    bestfitline_new = [1 min(distNew); 1 max(distNew)]*b_new; %[ones(length(confNew),1) distNew]*b_new;
-    bestfitline_newlpr = [1 min(distNew); 1 max(distNew)]*b_newlpr; %[ones(length(confNew),1) distNew]*b_new;
+    [b_newX,~,~,~,stats_newX] = regress(confNew,[ones(length(confNew),1) distNewX]);
+    [b_newlpr,~,~,~,stats_newlpr] = regress(dNew,[ones(length(dNew),1) distNewX]);
+    [b_newOld,~,~,~,stats_newOld] = regress(confNew,[ones(length(confNew),1) distNewOld]);
+    bestfitline_newX = [1 min(distNewX); 1 max(distNewX)]*b_newX; %[ones(length(confNew),1) distNew]*b_new;
+    bestfitline_newlpr = [1 min(distNewX); 1 max(distNewX)]*b_newlpr; %[ones(length(confNew),1) distNew]*b_new;
+    bestfitline_newOld = [1 min(distNewOld); 1 max(distNewOld)]*b_newOld; %[ones(length(confNew),1) distNew]*b_new;
     
     % ========== PLOTTING STUFF ==========
     % plotting distance as a function of distance from closest noisy memory
     
     grey = 0.7*ones(1,3);
     
-    % new word: confidence rating by distance to closest old word
+    % new word: confidence rating by distance to closest noisy memory
     figure; 
-    plot(distNew,confNew,'.','Color',aspencolors('greyblue'),'MarkerSize',12); hold on
-    plot([min(distNew) max(distNew)],bestfitline_new,'Color',grey);
-    xlabel('distance from closest old word')
+    plot(distNewX,confNew,'.','Color',aspencolors('greyblue'),'MarkerSize',12); hold on
+    plot([min(distNewX) max(distNewX)],bestfitline_newX,'Color',grey);
+    xlabel('distance from closest noisy memory')
     ylabel('confidence rating')
-    if pvalue_new < 0.001;
+    if pvalue_newX < 0.001;
         signn = '<';
-        pvalue_new = 0.001;
+        pvalue_newX = 0.001;
     else
         signn = '=';
     end
     tt = annotation('textbox',[.6 .8 .3 .1],...
-               'String', sprintf('\\rho = %2.3f, p %c %2.3f, \nR^2 = %2.3f', rho_new, ...
-               signn, pvalue_new, stats_new(1)));
+               'String', sprintf('\\rho = %2.3f, p %c %2.3f, \nR^2 = %2.3f', rho_newX, ...
+               signn, pvalue_newX, stats_newX(1)));
+           set(tt,'LineStyle','none')
+    defaultplot
+    axis([3 7 1 20])
+    ax = gca;
+    ax.YTick = [ 1 10 20];
+    ax.XTick = [3 4 5 6 7];
+    
+    % new word: confidence rating by distance to closest old word
+    figure; 
+    plot(distNewOld,confNew,'.','Color',aspencolors('greyblue'),'MarkerSize',12); hold on
+    plot([min(distNewOld) max(distNewOld)],bestfitline_newOld,'Color',grey);
+    xlabel('distance from closest old word')
+    ylabel('confidence rating')
+    if pvalue_newOld < 0.001;
+        signn = '<';
+        pvalue_newOld = 0.001;
+    else
+        signn = '=';
+    end
+    tt = annotation('textbox',[.6 .8 .3 .1],...
+               'String', sprintf('\\rho = %2.3f, p %c %2.3f, \nR^2 = %2.3f', rho_newOld, ...
+               signn, pvalue_newOld, stats_newOld(1)));
            set(tt,'LineStyle','none')
     defaultplot
     axis([3 7 1 20])
