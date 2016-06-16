@@ -20,7 +20,7 @@ defaultplot
 
 
 % plotting zROC length effect
-criteria = linspace(-4,4,6);
+criteria = linspace(-3,3,6);
 zFA_SN = norminv(1-normcdf(criteria,-strongM,strongSD));
 zFA_WN = norminv(1-normcdf(criteria,-weakM,weakSD));
 zH_WO = norminv(1-normcdf(criteria,weakM,weakSD));
@@ -29,4 +29,6 @@ zH_SO = norminv(1-normcdf(criteria,strongM,strongSD));
 figure;
 plot(zFA_SN,zH_SO,'k-'); hold on;
 plot(zFA_WN,zH_WO,'Color',0.3*ones(1,3))
+axis equal
+axis([-6 6 -6 6])
 defaultplot
