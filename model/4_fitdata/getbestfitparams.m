@@ -23,5 +23,5 @@ nLL_est = bestdata(:,5);
 % startTheta = bestdata(:,6:9);
 nLL_SD = bestdata(:,10);
 
-matfilename = ['4_fitdata/paramfit_patternbayes_' modelname '.mat'];
+matfilename = ['model/4_fitdata/paramfit_patternbayes_' modelname '.mat'];
 save(matfilename,'bestFitParam','nLL_est','nLL_SD');
