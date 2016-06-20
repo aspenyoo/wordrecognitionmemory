@@ -5,9 +5,9 @@
 % increased M and are defined in THETAMAT
 
 
-modelname = 'FPheurs';
-thetaMat = [10 1 4 -5;     % lower encoding strength
-            15 1 4 -5];      % higher encoding strength
+modelname = 'FP';
+thetaMat = [20 1 4 0;     % lower encoding strength
+            30 1 4 0];      % higher encoding strength
 islogbinning = 1; 
 nX = 10; 
 nS = 10;
@@ -37,17 +37,22 @@ end
 
 figure;
 clf
-newsimcolors = aspencolors(nCond+1,'blue');
-oldsimcolors = [0.9 0.9 0.7; aspencolors('dustygold')];
+colorss = [0.7*ones(1,3); zeros(1,3)];
+% newsimcolors = aspencolors(nCond+1,'blue');
+% oldsimcolors = [0.9 0.9 0.7; aspencolors('dustygold')];
 for icond = 1:nCond;
-    plot(1:20,mean_nnew(icond,:),'Color',newsimcolors(icond+1,:)); hold on;
-    plot(1:20,mean_nold(icond,:),'Color',oldsimcolors(icond,:));
+    plot(1:20,mean_nnew(icond,:),'Color',colorss(icond,:)); hold on;
+    plot(1:20,mean_nold(icond,:),'Color',colorss(icond,:));
 end
 hold off
 defaultplot
-legend('weak new','weak old','strong new','strong old')
+% legend('weak new','weak old','strong new','strong old')
 xlabel('confidence report')
 ylabel('probability density')
+ax = gca;
+xlim([1 20])
+ax.XTick = [1 10 20];
+ax.YTick = [0 0.1 0.2];
 
 % MIRROR EFFECT: FA_SN < FA_WN < H_WO < H_SO
 FA_SN = sum(mean_nnew(2,11:20));
@@ -94,8 +99,10 @@ else
 end
 
 figure;
-plot(zSN,zSO,'Color',zeros(1,3));hold on
-plot(zWN,zWO,'Color',0.7*ones(1,3)); % plot both zROCs
+plot(zSN,zSO,'Color',colorss(1,:));hold on
+plot(zWN,zWO,'Color',colorss(2,:)); % plot both zROCs
 defaultplot; xlabel('zFA'); ylabel('zHit')
 legend('strong condition','weak condition')
 title('zROC')
+axis([-3 1 -1 3])
+ax = gca; ax.XTick = -3;1; ax.YTick = -1:3;
