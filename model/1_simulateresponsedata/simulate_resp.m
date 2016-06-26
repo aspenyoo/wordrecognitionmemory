@@ -42,6 +42,7 @@ switch modelname
     case 'VP'; nParams = 5;
     case 'VPheurs'; nParams = 5;
     case 'uneqVar'; nParams = 4;
+    case 'REM'; nParams = 7;
 end
 
 % setting variable sizes
@@ -65,6 +66,7 @@ for isimsubj = 1:nSubj;
             case 'FPheurs'; theta = [randi(50) rand*3];
             case 'VPheurs'; theta = [randi(50) rand*3 rand*3];
             case 'uneqVar'; theta = [rand*3-.5 rand*3+.5];
+            case 'REM'; theta = [5+randi(45) rand(1,3) randi(10)];
         end
         
         if (islogbinning)
