@@ -1,11 +1,11 @@
 #!/bin/bash
 #PBS -l nodes=1:ppn=14
-#PBS -l walltime=24:00:00
+#PBS -l walltime=48:00:00
 #PBS -j oe
 #PBS -M aspen.yoo@nyu.edu
 #PBS -l mem=30GB
 #PBS -m abe
-#PBS -N paramfit
+#PBS -N paramfit_wrapper
 
 index=${PBS_ARRAYID}
 job=${PBS_JOBID}
@@ -19,9 +19,9 @@ cat<<EOF | matlab -nodisplay
 addpath('/home/ay963/job-scripts')
 addpath(genpath('/home/ay963/matlab-scripts'))
 
-modelname = 'FPheurs';
+modelname = 'FP';
 
-cluster_wrapper(modelname, $index)
+cluster_wrapper(modelname, $index+1)
 
 EOF
 

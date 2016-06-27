@@ -92,9 +92,6 @@ switch modelname
         
         newHist = nan(nX,nConf);
         d_old = nan(Nold*nS,nX);
-        %         d_old = nan(Nold,nX,nS);
-        %         d_new = nan(Nnew,nS);
-        %         dNew = nan(Nold,nX,nS);
         for iX = 1:nX;
             X = binornd(1,1-p0,[Nold M]).*(geornd(g,[Nold M])+1);
             Xrepp = repmat(X,[nS 1]);
@@ -114,15 +111,6 @@ switch modelname
             matmat(idxmatch) = mismatchoddsVec(Xrep(idxmatch));
             d_new = -log(Nnew) + log(sum((1-c).^mismatch.*prod(matmat,2),1));   % log odds
             
-            %                 % trying other ways
-            %                 permXrep = permute(Xrep,[2 1 3]);
-            %                 idxmatch = find(permute(repmat(SNew,[1 1 Nold]),[2 3 1]) == permXrep); % indices in which new words match X
-            %                 cnts = hist(idxmatch,1:M:prod([Nold M Nnew*nS]));
-            %                 blah = mat2cell(mismatchoddsVec(permXrep(idxmatch))',cnts);
-            %                 blah = cell2mat(cellfun(@(x) prod(x),blah,'UniformOutput',false));
-            % %                 [i1,~,i3] = ind2sub([Nold M Nnew*nS],idxmatch);
-            % %                 bleh = accumarray([i1 i3],mismatchoddsVec(Xrep(idxmatch)),[],@prod);
-            
             % decision variable values for old words
             Xrep = repmat(X,[1 1 Nold*nS]);
             idxmatch = permute(repmat(SOld,[1 1 Nold]),[3 2 1]) == Xrep;
@@ -132,40 +120,7 @@ switch modelname
             matmat(idxmatch) = mismatchoddsVec(Xrep(idxmatch));
             
             d_old(:,iX) = -log(Nold) + log(sum((1-c).^mismatch.*prod(matmat,2),1));   % log odds
-            
-            %             for iS = 1:nS;
-            %                 SNew = geornd(g,[Nnew M])+1; % new words
-            %
-            %                 % old words
-            %                 idx = logical(binornd(1,pQ,[Nold M]) + (X == 0)); % indices of randomly drawn features
-            %                 SOld = (1-idx).*X + idx.*(geornd(g,[Nold M]) + 1); % old words from noisy memories
-            %
-            %                 % decision variable values for new words
-            %                 Xrep = repmat(X,[1 1 Nnew]);            % expanded X
-            %                 mismatch = sum(permute(repmat(SNew, [1 1 Nold]),[3 2 1]) ~= Xrep & repmat(X~= 0, [1 1 Nnew]),2); % number of mismatching features
-            %
-            %                 idxmatch = permute(repmat(SNew,[1 1 Nold]),[3 2 1]) == Xrep; % indices in which new words match X
-            %                 matmat = ones(Nold, M, Nold);
-            %                 matmat(idxmatch) = mismatchoddsVec(Xrep(idxmatch));
-            %                 d_new(:,iS) = -log(Nnew) + log(sum((1-c).^mismatch.*prod(matmat,2),1));   % log odds
-            %
-            % %                 % trying second way
-            % %                 idxmatch = find(permute(repmat(SNew,[1 1 Nold]),[3 2 1]) == Xrep); % indices in which new words match X
-            % %                 [i1,~,i3] = ind2sub([Nold M Nnew],idxmatch);
-            % %                 bleh = accumarray([i1 i3],mismatchoddsVec(Xrep(idxmatch)),[],@prod);
-            %
-            %                 % decision variable values for old words
-            %                 Xrep = repmat(X,[1 1 Nold]);
-            %                 idxmatch = permute(repmat(SOld,[1 1 Nold]),[3 2 1]) == Xrep;
-            %                 mismatch = sum(permute(repmat(SOld, [1 1 Nold]),[3 2 1]) ~= Xrep & repmat(X~= 0, [1 1 Nnew]),2);
-            %
-            %                 matmat = ones(Nold, M, Nold);
-            %                 matmat(idxmatch) = mismatchoddsVec(Xrep(idxmatch));
-            %
-            %                 d_old(:,iX,iS) = -log(Nold) + log(sum((1-c).^mismatch.*prod(matmat,2),1));   % log odds
-            %             end
-            %             dNew(:,iX,:) = d_new;
-            
+
             % binning new words.
             if (islogbinning)
                 newHisttemp = min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf);
@@ -192,7 +147,6 @@ end
 
 
 % % ========== PLOTTING STUFF ==========
-% ===== PLOTS =====
 
 if plotstuff(2) == 1;
     if plotstuff(1) ==1;
@@ -214,61 +168,3 @@ if plotstuff(1) == 1;
     end
     confdistplot(nnew_part/N(1), nold_part/N(2))
 end
-
-% nHist = 40;
-% if plotstuff(1) == 1;
-%     gold = aspencolors('gold');
-%     greyblue = aspencolors('greyblue');
-%     if cplot == 1;
-%         figure;
-%         subplot(2,1,1)
-%     end
-%     lb = min([-3.5 mu_old-3.5*sigma_old]);
-%     ub = max([3.5 mu_old+3.5*sigma_old]);
-%     binbounds2 = linspace(lb,ub,nHist);
-%     hold on;
-%
-%     centers = (binbounds2(1:end-1) + binbounds2(2:end))/2;
-%     nelemnew = N* (normcdf(binbounds2(2:end)) - normcdf(binbounds2(1:end-1)));
-%     nelemold = N*(normcdf(binbounds2(2:end),mu_old,sigma_old) - normcdf(binbounds2(1:end-1),mu_old,sigma_old));
-%     histcount = [nelemold nelemnew];
-%
-%     maxx = max(histcount) + mod(-max(histcount),30);
-%     for j = 1:length(ratingBounds);
-%         hLine = plot([confBounds(j) confBounds(j)], [0 maxx],'Color',[.85 .85 .85]);
-%         set(get(get(hLine,'Annotation'),'LegendInformation'),...
-%             'IconDisplayStyle','off'); % Exclude line from legend
-%     end
-%
-%     plot(centers,nelemold,'-','LineWidth',2,'Color',gold);
-%     plot(centers,nelemnew,'-','LineWidth',2,'Color',greyblue);
-%
-%     ylim([0 maxx])
-%     defaultplot
-%
-%         set(  gca                         ,...
-%           'YTick'         , []        ,...
-%           'YColor'        ,'w'        );
-% end
-%
-%
-%
-% if plotstuff(2) == 1;
-%     if plotstuff(1) == 1;
-%         subplot(2,1,2)
-%     else
-%         figure;
-%     end
-%     confdistplot(nnew_part/N(1), nold_part/N(2))
-% end
-% %
-% %
-% % % if plotstuff(1)  % plot confidence distribution
-% % %
-% % %
-% % % end
-% % %
-% % %
-% % % if plotstuff(2) % plot memory distribution
-% % %     memdistplot(d_old(:), dNew(:), theta(3:end), islogbinning);
-% % % end

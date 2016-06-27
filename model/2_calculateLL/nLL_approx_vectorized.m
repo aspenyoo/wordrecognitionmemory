@@ -70,6 +70,7 @@ switch modelname
             b = 1.5-m*c1;               % y-intercept
         end
         
+        LL_new = nan(1,nX);
         d_old = nan(Nold*nS,nX);
         for iX = 1:nX;
             
@@ -147,40 +148,39 @@ switch modelname
         pM = (1-p0)*geocdf(m-1,c);      % probability of x_ij = s_ij (match)
         pQ = 1 - p0 - pM;               % probability drawn randomly (mismatch)
         
+        % precalculated odds for mismatches with different X
+        mismatchoddsVec = (c+(1-c).*(g.*(1-g).^(0:20)))./(g.*(1-g).^(0:20));
         
-        d_old = nan(Nold,nX,nS);
-        d_new = nan(Nnew,nS);
-        dNew = nan(Nold,nX,nS);
+        LL_new = nan(1,nX);
+        d_old = nan(Nold*nS,nX);
         for iX = 1:nX;
             X = binornd(1,1-p0,[Nold M]).*(geornd(g,[Nold M])+1);
+            Xrepp = repmat(X,[nS 1]);
             
-            for iS = 1:nS;
-                SNew = geornd(g,[Nnew M])+1; % new words
-                
-                % old words
-                idx = binornd(1,pQ,[Nold M]) + (X == 0); % indices of randomly drawn features
-                SOld = (1-idx).*X + idx.*(geornd(g,[Nold M]) + 1); % old words from noisy memories
-                
-                % decision variable values for new words
-                Xrep = repmat(X,[1 1 Nnew]);            % expanded X
-                idxmatch = permute(repmat(SNew,[1 1 Nold]),[3 2 1]) == Xrep; % indices in which new words match X
-                idxmismatch = permute(repmat(SNew, [1 1 Nold]),[3 2 1]) ~= Xrep & Xrep~= 0; % indices of mismatching features
-
-                matmat = ones(Nnew, M, Nold);
-                matmat(idxmatch) = (c+(1-c).*geopdf(Xrep(idxmatch)-1,g))./geopdf(Xrep(idxmatch)-1,g); % odds for each 
-                d_new(:,iS) = -log(Nnew) + log(sum((1-c).^sum(idxmismatch,2).*prod(matmat,2),1));   % log odds
-                
-                
-                % decision variable values for old words
-                Xrep = repmat(X,[1 1 Nold]);  
-                idxmatch = permute(repmat(SOld,[1 1 Nold]),[3 2 1]) == Xrep;
-                idxmismatch = permute(repmat(SOld, [1 1 Nold]),[3 2 1]) ~= Xrep & Xrep ~= 0;
-                
-                matmat = ones(Nold, M, Nold);
-                matmat(idxmatch) = (c+(1-c).*geopdf(Xrep(idxmatch)-1,g))./geopdf(Xrep(idxmatch)-1,g); % odds for each 
-                d_old(:,iX,iS) = -log(Nold) + log(sum((1-c).^sum(idxmismatch,2).*prod(matmat,2),1));   % log odds
-            end
-            dNew(:,iX,:) = d_new;
+            SNew = geornd(g,[Nnew*nS M])+1; % new words
+            
+            % old words
+            idx = logical(binornd(1,pQ,[Nold*nS M]) + repmat((X == 0),[nS 1])); % indices of randomly drawn features
+            SOld = (1-idx).*Xrepp + idx.*(geornd(g,[Nold*nS M]) + 1); % old words from noisy memories
+            
+            % decision variable values for new words
+            Xrep = repmat(X,[1 1 Nnew*nS]);            % expanded X
+            mismatch = sum(permute(repmat(SNew, [1 1 Nold]),[3 2 1]) ~= Xrep & repmat(X~= 0, [1 1 Nnew*nS]),2); % number of mismatching features
+            
+            idxmatch = permute(repmat(SNew,[1 1 Nold]),[3 2 1]) == Xrep; % indices in which new words match X
+            matmat = ones(Nold, M, Nold*nS);
+            matmat(idxmatch) = mismatchoddsVec(Xrep(idxmatch));
+            d_new = -log(Nnew) + log(sum((1-c).^mismatch.*prod(matmat,2),1));   % log odds
+            
+            % decision variable values for old words
+            Xrep = repmat(X,[1 1 Nold*nS]);
+            idxmatch = permute(repmat(SOld,[1 1 Nold]),[3 2 1]) == Xrep;
+            mismatch = sum(permute(repmat(SOld, [1 1 Nold]),[3 2 1]) ~= Xrep & repmat(X~= 0, [1 1 Nnew*nS]),2);
+            
+            matmat = ones(Nold, M, Nold*nS);
+            matmat(idxmatch) = mismatchoddsVec(Xrep(idxmatch));
+            
+            d_old(:,iX) = -log(Nold) + log(sum((1-c).^mismatch.*prod(matmat,2),1));   % log odds
             
             % binning new words.
             if (islogbinning)
