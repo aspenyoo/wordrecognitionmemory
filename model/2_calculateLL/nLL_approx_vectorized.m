@@ -42,80 +42,170 @@ if ~isempty(fixparams);
 end
 
 
-if strcmp('uneqVar',modelname)
-    [pnew, pold] = responses_uneqVar(theta, islogbinning);
-    nLL = -sum(log(pnew).*nnew_part) - sum(log(pold).*nold_part);
-else
-    M = theta(1);
-    sigma = theta(2);
-    if (islogbinning); k = theta(3); else c1 = theta(3); end
-    if length(theta) < 4;
-        if (islogbinning); d0 = 0; else c2 = 0; end
-    else
-        if (islogbinning); d0 = theta(4); else c2 = theta(4); end
-    end
-    Nold = sum(nold_part); Nnew = sum(nnew_part);
-    L = nConf/2;
-    J = 1/sigma.^2+1;
-    lambda = 0.01;             % lapse rate
-    
-    if M ~= floor(M)
-        M = floor(M);
-        %     assert('M must be a whole number')
-    end
-    
-    if ~(islogbinning)
-        m =(nConf-2)/(c2-c1);       % slope
-        b = 1.5-m*c1;               % y-intercept
-    end
-    
-    d_old = nan(Nold*nS,nX);
-    for iX = 1:nX;
-        
-        X = randn(Nold, M)*sqrt(sigma^2+1);
-        Xrep = repmat(X,[nS 1]);
-        
-        SNew = randn(Nnew*nS,M);
-        SOld = (Xrep/sigma^2)/(1/sigma^2 + 1) + randn(Nold*nS,M)*(1/sqrt(1/sigma^2 + 1));
-        
-        switch modelname
-            case 'FP'
-                d_new = M/2*log(1+1/sigma^2) + 0.5*sum(SNew.^2,2) + log(squeeze(mean(exp(-0.5*J*...
-                    sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1]) - repmat(X/J/sigma^2,[1,1,Nnew*nS])).^2,2)))));
-                d_old(:,iX) = M/2*log(1+1/sigma^2) + 0.5*sum(SOld.^2,2) + log(squeeze(mean(exp(-0.5*J*...
-                    sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1]) - repmat(X/J/sigma^2,[1,1,Nold*nS])).^2,2)))));
-            case 'FPheurs'
-                d_new = squeeze(-min(sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nnew*nS])).^2,2),[],1));
-                d_old(:,iX) = squeeze(-min(sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nold*nS])).^2,2),[],1));
-        end
-        
-        % binning new words.
-        if (islogbinning)
-            newHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf); % bounds: [1 20]
+switch modelname
+    case 'uneqVar'
+        [pnew, pold] = responses_uneqVar(theta, islogbinning);
+        nLL = -sum(log(pnew).*nnew_part) - sum(log(pold).*nold_part);
+    case {'FP','FPheurs'}
+        M = theta(1);
+        sigma = theta(2);
+        if (islogbinning); k = theta(3); else c1 = theta(3); end
+        if length(theta) < 4;
+            if (islogbinning); d0 = 0; else c2 = 0; end
         else
-            newHist = min(max(round(m.*d_new(:) + b),1),20); % bounds: [1 20]
+            if (islogbinning); d0 = theta(4); else c2 = theta(4); end
         end
-        newHist = histc(newHist,1:nConf);
-        pnew = lambda/nConf + (1-lambda)*(newHist/sum(newHist));
-        LL_new(iX) = nnew_part*log(pnew);
+        Nold = sum(nold_part); Nnew = sum(nnew_part);
+        L = nConf/2;
+        J = 1/sigma.^2+1;
+        lambda = 0.01;             % lapse rate
         
-    end
-    
-    % BINNING OLD WORDS. p(conf|X0,C)
-    if (islogbinning) % log binning
-        oldHist = min(round(L.*(2./((1+exp(-(d_old(:)-d0)./k))) - 1)+10.5),nConf);
-    else % lin binning
-        oldHist = max(min(round(m.*d_old(:) + b),nConf),1);
-    end
-    oldHist = histc(oldHist,1:nConf); % histogram
-    % oldHist(oldHist==0) = 1e-3; % changing any 0 freq to 1, (prevents LL from going to -Inf)
-    pold = lambda/nConf + (1-lambda)*(oldHist/sum(oldHist)); % normalizing
-    
-    % calculating nLL
-    LL_old = nold_part*log(pold);
-    LL_new = max(LL_new) + log(mean(exp(LL_new-max(LL_new)))); % average over X
-    nLL = -LL_new-LL_old;
-    
-end
+        if M ~= floor(M)
+            M = floor(M);
+            %     assert('M must be a whole number')
+        end
+        
+        if ~(islogbinning)
+            m =(nConf-2)/(c2-c1);       % slope
+            b = 1.5-m*c1;               % y-intercept
+        end
+        
+        d_old = nan(Nold*nS,nX);
+        for iX = 1:nX;
+            
+            X = randn(Nold, M)*sqrt(sigma^2+1);
+            Xrepp = repmat(X,[nS 1]);
+            
+            SNew = randn(Nnew*nS,M);
+            SOld = (Xrepp/sigma^2)/(1/sigma^2 + 1) + randn(Nold*nS,M)*(1/sqrt(1/sigma^2 + 1));
+            
+            switch modelname
+                case 'FP'
+                    d_new = M/2*log(1+1/sigma^2) + 0.5*sum(SNew.^2,2) + log(squeeze(mean(exp(-0.5*J*...
+                        sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1]) - repmat(X/J/sigma^2,[1,1,Nnew*nS])).^2,2)))));
+                    d_old(:,iX) = M/2*log(1+1/sigma^2) + 0.5*sum(SOld.^2,2) + log(squeeze(mean(exp(-0.5*J*...
+                        sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1]) - repmat(X/J/sigma^2,[1,1,Nold*nS])).^2,2)))));
+                case 'FPheurs'
+                    d_new = squeeze(-min(sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nnew*nS])).^2,2),[],1));
+                    d_old(:,iX) = squeeze(-min(sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nold*nS])).^2,2),[],1));
+            end
+            
+            % binning new words.
+            if (islogbinning)
+                newHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf); % bounds: [1 20]
+            else
+                newHist = min(max(round(m.*d_new(:) + b),1),20); % bounds: [1 20]
+            end
+            newHist = histc(newHist,1:nConf);
+            pnew = lambda/nConf + (1-lambda)*(newHist/sum(newHist));
+            LL_new(iX) = nnew_part*log(pnew);
+            
+        end
+        
+        % BINNING OLD WORDS. p(conf|X0,C)
+        if (islogbinning) % log binning
+            oldHist = min(round(L.*(2./((1+exp(-(d_old(:)-d0)./k))) - 1)+10.5),nConf);
+        else % lin binning
+            oldHist = max(min(round(m.*d_old(:) + b),nConf),1);
+        end
+        oldHist = histc(oldHist,1:nConf); % histogram
+        % oldHist(oldHist==0) = 1e-3; % changing any 0 freq to 1, (prevents LL from going to -Inf)
+        pold = lambda/nConf + (1-lambda)*(oldHist/sum(oldHist)); % normalizing
+        
+        % calculating nLL
+        LL_old = nold_part*log(pold);
+        LL_new = max(LL_new) + log(mean(exp(LL_new-max(LL_new)))); % average over X
+        nLL = -LL_new-LL_old;
+        
+    case 'REM'
+        
+        M = theta(1);                   % number of features
+        g = theta(2);                   % probability of success (for geometric distribution
+        ustar = theta(3);               % probability of encoding something
+        c = theta(4);                   % probability of encoding correct feature value
+        m = theta(5);                   % number of storage attempts
+        L = nConf/2;
+        if (islogbinning); 
+            k = theta(6);  d0 = theta(7);
+        else c1 = theta(6); c2 = theta(7);
+        end
+        Nold = sum(nold_part); Nnew = sum(nnew_part);
+        lambda = 0.01;             % lapse rate
+        
+        if M ~= floor(M)
+            M = floor(M);
+        end
+        
+        if ~(islogbinning)
+            slope =(nConf-2)/(c2-c1);       % slope
+            b = 1.5-slope*c1;               % y-intercept
+        end
+        
+        
+        % figuring out X probabilities
+        p0 = (1-ustar)^m;               % probability of x_ij= 0
+        pM = (1-p0)*geocdf(m-1,c);      % probability of x_ij = s_ij (match)
+        pQ = 1 - p0 - pM;               % probability drawn randomly (mismatch)
+        
+        
+        d_old = nan(Nold,nX,nS);
+        d_new = nan(Nnew,nS);
+        dNew = nan(Nold,nX,nS);
+        for iX = 1:nX;
+            X = binornd(1,1-p0,[Nold M]).*(geornd(g,[Nold M])+1);
+            
+            for iS = 1:nS;
+                SNew = geornd(g,[Nnew M])+1; % new words
+                
+                % old words
+                idx = binornd(1,pQ,[Nold M]) + (X == 0); % indices of randomly drawn features
+                SOld = (1-idx).*X + idx.*(geornd(g,[Nold M]) + 1); % old words from noisy memories
+                
+                % decision variable values for new words
+                Xrep = repmat(X,[1 1 Nnew]);            % expanded X
+                idxmatch = permute(repmat(SNew,[1 1 Nold]),[3 2 1]) == Xrep; % indices in which new words match X
+                idxmismatch = permute(repmat(SNew, [1 1 Nold]),[3 2 1]) ~= Xrep & Xrep~= 0; % indices of mismatching features
 
+                matmat = ones(Nnew, M, Nold);
+                matmat(idxmatch) = (c+(1-c).*geopdf(Xrep(idxmatch)-1,g))./geopdf(Xrep(idxmatch)-1,g); % odds for each 
+                d_new(:,iS) = -log(Nnew) + log(sum((1-c).^sum(idxmismatch,2).*prod(matmat,2),1));   % log odds
+                
+                
+                % decision variable values for old words
+                Xrep = repmat(X,[1 1 Nold]);  
+                idxmatch = permute(repmat(SOld,[1 1 Nold]),[3 2 1]) == Xrep;
+                idxmismatch = permute(repmat(SOld, [1 1 Nold]),[3 2 1]) ~= Xrep & Xrep ~= 0;
+                
+                matmat = ones(Nold, M, Nold);
+                matmat(idxmatch) = (c+(1-c).*geopdf(Xrep(idxmatch)-1,g))./geopdf(Xrep(idxmatch)-1,g); % odds for each 
+                d_old(:,iX,iS) = -log(Nold) + log(sum((1-c).^sum(idxmismatch,2).*prod(matmat,2),1));   % log odds
+            end
+            dNew(:,iX,:) = d_new;
+            
+            % binning new words.
+            if (islogbinning)
+                newHisttemp = min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf);
+            else
+                newHisttemp = min(max(round(slope.*d_new(:) + b),1),nConf);
+            end
+            newHist = histc(newHisttemp,1:nConf);
+            pnew = lambda/nConf + (1-lambda)*(newHist/sum(newHist));
+            LL_new(iX) = nnew_part*log(pnew);
+        end
+        
+        
+        % binning old words
+        if (islogbinning) % log binning
+            oldHist = min(round(L.*(2./((1+exp(-(d_old(:)-d0)./k))) - 1)+10.5),nConf);
+        else % lin binning
+            oldHist = max(min(round(slope.*d_old(:) + b),nConf),1);
+        end
+        oldHist = histc(oldHist,1:nConf); % histogram
+        pold = lambda/nConf + (1-lambda)*(oldHist/sum(oldHist)); % normalizing
+        
+        % calculating nLL
+        LL_old = nold_part*log(pold);
+        LL_new = max(LL_new) + log(mean(exp(LL_new-max(LL_new)))); % average over X
+        nLL = -LL_new-LL_old;
+end
 

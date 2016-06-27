@@ -33,43 +33,33 @@ switch modelname
         newHist = nan(nX,nConf);
         d_old = nan(Nold,nX,nS);
         d_new = nan(Nnew,nS);
-        dNew = nan(Nold,nX,nS);
         for iX = 1:nX;
-            X = randn(Nold, M)*sqrt(sigma^2+1);
             
-            for iS = 1:nS;
-                SNew = randn(Nnew,M); % drawing new words
-                SOld = (X/sigma^2)/(1/sigma^2 + 1) + randn(Nold,M)*(1/sqrt(1/sigma^2 + 1)); % drawing old words from X
-                
-                switch modelname
-                    case 'FP'
-                        d_new(:,iS) = M/2*log(1+sigs^2/sigma^2) + 0.5*sum(SNew.^2,2) + log(squeeze(mean(exp(-0.5*J*...
-                            sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1]) - repmat(X/J/sigma^2,[1,1,Nnew])).^2,2)))));
-                        d_old(:,iX,iS) = M/2*log(1+sigs^2/sigma^2) + 0.5*sum(SOld.^2,2) + log(squeeze(mean(exp(-0.5*J*...
-                            sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1]) - repmat(X/J/sigma^2,[1,1,Nold])).^2,2)))));
-                    case 'FPheurs'
-                        d_new(:,iS) = squeeze(-min(sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nnew])).^2,2),[],1));
-                        d_old(:,iX,iS) = squeeze(-min(sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nold])).^2,2),[],1));
-                end
+            X = randn(Nold, M)*sqrt(sigma^2+1);
+            Xrepp = repmat(X,[nS 1]);
+            
+            SNew = randn(Nnew*nS,M);
+            SOld = (Xrepp/sigma^2)/(1/sigma^2 + 1) + randn(Nold*nS,M)*(1/sqrt(1/sigma^2 + 1));
+            
+            switch modelname
+                case 'FP'
+                    d_new = M/2*log(1+1/sigma^2) + 0.5*sum(SNew.^2,2) + log(squeeze(mean(exp(-0.5*J*...
+                        sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1]) - repmat(X/J/sigma^2,[1,1,Nnew*nS])).^2,2)))));
+                    d_old(:,iX) = M/2*log(1+1/sigma^2) + 0.5*sum(SOld.^2,2) + log(squeeze(mean(exp(-0.5*J*...
+                        sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1]) - repmat(X/J/sigma^2,[1,1,Nold*nS])).^2,2)))));
+                case 'FPheurs'
+                    d_new = squeeze(-min(sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nnew*nS])).^2,2),[],1));
+                    d_old(:,iX) = squeeze(-min(sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nold*nS])).^2,2),[],1));
             end
-            dNew(:,iX,:) = d_new;
             
             % binning new words.
             if (islogbinning)
-                newHisttemp = min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf);
+                newHisttemp= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf); % bounds: [1 20]
             else
-                newHisttemp = min(max(round(m.*d_new(:) + b),1),nConf);
+                newHisttemp = min(max(round(m.*d_new(:) + b),1),20); % bounds: [1 20]
             end
             newHist(iX,:) = histc(newHisttemp,1:nConf);
         end
-        % figure;
-        % minbound = min([d_new(:)' d_old(:)']);
-        % maxbound = max([d_new(:)' d_new(:)']);
-        % interv = linspace(minbound,maxbound,50);
-        % memDist_new = hist(d_new(:),interv);
-        % memDist_old = hist(d_old(:),interv);
-        % plot(interv,memDist_new,interv,memDist_old./(nX));
-        
         
         % binning old words
         if (islogbinning) % log binning
@@ -97,41 +87,84 @@ switch modelname
         pM = (1-p0)*geocdf(m-1,c);      % probability of x_ij = s_ij (match)
         pQ = 1 - p0 - pM;               % probability drawn randomly (mismatch)
         
+        % precalculated odds for mismatches with different X
+        mismatchoddsVec = (c+(1-c).*(g.*(1-g).^(0:20)))./(g.*(1-g).^(0:20));
         
         newHist = nan(nX,nConf);
-        d_old = nan(Nold,nX,nS);
-        d_new = nan(Nnew,nS);
-        dNew = nan(Nold,nX,nS);
+        d_old = nan(Nold*nS,nX);
+        %         d_old = nan(Nold,nX,nS);
+        %         d_new = nan(Nnew,nS);
+        %         dNew = nan(Nold,nX,nS);
         for iX = 1:nX;
             X = binornd(1,1-p0,[Nold M]).*(geornd(g,[Nold M])+1);
+            Xrepp = repmat(X,[nS 1]);
             
-            for iS = 1:nS;
-                SNew = geornd(g,[Nnew M])+1; % new words
-                
-                % old words
-                idx = binornd(1,pQ,[Nold M]) + (X == 0); % indices of randomly drawn features
-                SOld = (1-idx).*X + idx.*(geornd(g,[Nold M]) + 1); % old words from noisy memories
-                
-                % decision variable values for new words
-                Xrep = repmat(X,[1 1 Nnew]);            % expanded X
-                idxmatch = permute(repmat(SNew,[1 1 Nold]),[3 2 1]) == Xrep; % indices in which new words match X
-                idxmismatch = permute(repmat(SNew, [1 1 Nold]),[3 2 1]) ~= Xrep & Xrep~= 0; % indices of mismatching features
-
-                matmat = ones(Nnew, M, Nold);
-                matmat(idxmatch) = (c+(1-c).*geopdf(Xrep(idxmatch)-1,g))./geopdf(Xrep(idxmatch)-1,g); % odds for each 
-                d_new(:,iS) = -log(Nnew) + log(sum((1-c).^sum(idxmismatch,2).*prod(matmat,2),1));   % log odds
-                
-                
-                % decision variable values for old words
-                Xrep = repmat(X,[1 1 Nold]);  
-                idxmatch = permute(repmat(SOld,[1 1 Nold]),[3 2 1]) == Xrep;
-                idxmismatch = permute(repmat(SOld, [1 1 Nold]),[3 2 1]) ~= Xrep & Xrep ~= 0;
-                
-                matmat = ones(Nold, M, Nold);
-                matmat(idxmatch) = (c+(1-c).*geopdf(Xrep(idxmatch)-1,g))./geopdf(Xrep(idxmatch)-1,g); % odds for each 
-                d_old(:,iX,iS) = -log(Nold) + log(sum((1-c).^sum(idxmismatch,2).*prod(matmat,2),1));   % log odds
-            end
-            dNew(:,iX,:) = d_new;
+            SNew = geornd(g,[Nnew*nS M])+1; % new words
+            
+            % old words
+            idx = logical(binornd(1,pQ,[Nold*nS M]) + repmat((X == 0),[nS 1])); % indices of randomly drawn features
+            SOld = (1-idx).*Xrepp + idx.*(geornd(g,[Nold*nS M]) + 1); % old words from noisy memories
+            
+            % decision variable values for new words
+            Xrep = repmat(X,[1 1 Nnew*nS]);            % expanded X
+            mismatch = sum(permute(repmat(SNew, [1 1 Nold]),[3 2 1]) ~= Xrep & repmat(X~= 0, [1 1 Nnew*nS]),2); % number of mismatching features
+            
+            idxmatch = permute(repmat(SNew,[1 1 Nold]),[3 2 1]) == Xrep; % indices in which new words match X
+            matmat = ones(Nold, M, Nold*nS);
+            matmat(idxmatch) = mismatchoddsVec(Xrep(idxmatch));
+            d_new = -log(Nnew) + log(sum((1-c).^mismatch.*prod(matmat,2),1));   % log odds
+            
+            %                 % trying other ways
+            %                 permXrep = permute(Xrep,[2 1 3]);
+            %                 idxmatch = find(permute(repmat(SNew,[1 1 Nold]),[2 3 1]) == permXrep); % indices in which new words match X
+            %                 cnts = hist(idxmatch,1:M:prod([Nold M Nnew*nS]));
+            %                 blah = mat2cell(mismatchoddsVec(permXrep(idxmatch))',cnts);
+            %                 blah = cell2mat(cellfun(@(x) prod(x),blah,'UniformOutput',false));
+            % %                 [i1,~,i3] = ind2sub([Nold M Nnew*nS],idxmatch);
+            % %                 bleh = accumarray([i1 i3],mismatchoddsVec(Xrep(idxmatch)),[],@prod);
+            
+            % decision variable values for old words
+            Xrep = repmat(X,[1 1 Nold*nS]);
+            idxmatch = permute(repmat(SOld,[1 1 Nold]),[3 2 1]) == Xrep;
+            mismatch = sum(permute(repmat(SOld, [1 1 Nold]),[3 2 1]) ~= Xrep & repmat(X~= 0, [1 1 Nnew*nS]),2);
+            
+            matmat = ones(Nold, M, Nold*nS);
+            matmat(idxmatch) = mismatchoddsVec(Xrep(idxmatch));
+            
+            d_old(:,iX) = -log(Nold) + log(sum((1-c).^mismatch.*prod(matmat,2),1));   % log odds
+            
+            %             for iS = 1:nS;
+            %                 SNew = geornd(g,[Nnew M])+1; % new words
+            %
+            %                 % old words
+            %                 idx = logical(binornd(1,pQ,[Nold M]) + (X == 0)); % indices of randomly drawn features
+            %                 SOld = (1-idx).*X + idx.*(geornd(g,[Nold M]) + 1); % old words from noisy memories
+            %
+            %                 % decision variable values for new words
+            %                 Xrep = repmat(X,[1 1 Nnew]);            % expanded X
+            %                 mismatch = sum(permute(repmat(SNew, [1 1 Nold]),[3 2 1]) ~= Xrep & repmat(X~= 0, [1 1 Nnew]),2); % number of mismatching features
+            %
+            %                 idxmatch = permute(repmat(SNew,[1 1 Nold]),[3 2 1]) == Xrep; % indices in which new words match X
+            %                 matmat = ones(Nold, M, Nold);
+            %                 matmat(idxmatch) = mismatchoddsVec(Xrep(idxmatch));
+            %                 d_new(:,iS) = -log(Nnew) + log(sum((1-c).^mismatch.*prod(matmat,2),1));   % log odds
+            %
+            % %                 % trying second way
+            % %                 idxmatch = find(permute(repmat(SNew,[1 1 Nold]),[3 2 1]) == Xrep); % indices in which new words match X
+            % %                 [i1,~,i3] = ind2sub([Nold M Nnew],idxmatch);
+            % %                 bleh = accumarray([i1 i3],mismatchoddsVec(Xrep(idxmatch)),[],@prod);
+            %
+            %                 % decision variable values for old words
+            %                 Xrep = repmat(X,[1 1 Nold]);
+            %                 idxmatch = permute(repmat(SOld,[1 1 Nold]),[3 2 1]) == Xrep;
+            %                 mismatch = sum(permute(repmat(SOld, [1 1 Nold]),[3 2 1]) ~= Xrep & repmat(X~= 0, [1 1 Nnew]),2);
+            %
+            %                 matmat = ones(Nold, M, Nold);
+            %                 matmat(idxmatch) = mismatchoddsVec(Xrep(idxmatch));
+            %
+            %                 d_old(:,iX,iS) = -log(Nold) + log(sum((1-c).^mismatch.*prod(matmat,2),1));   % log odds
+            %             end
+            %             dNew(:,iX,:) = d_new;
             
             % binning new words.
             if (islogbinning)
