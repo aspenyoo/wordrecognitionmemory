@@ -88,7 +88,7 @@ switch modelname
         pQ = 1 - p0 - pM;               % probability drawn randomly (mismatch)
         
         % precalculated odds for mismatches with different X
-        mismatchoddsVec = (c+(1-c).*(g.*(1-g).^(0:20)))./(g.*(1-g).^(0:20));
+        mismatchoddsVec = (c+(1-c).*(g.*(1-g).^(0:30)))./(g.*(1-g).^(0:30));
         
         newHist = nan(nX,nConf);
         d_old = nan(Nold*nS,nX);

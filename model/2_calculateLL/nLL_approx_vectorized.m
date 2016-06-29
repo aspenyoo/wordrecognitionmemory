@@ -164,19 +164,31 @@ switch modelname
             SOld = (1-idx).*Xrepp + idx.*(geornd(g,[Nold*nS M]) + 1); % old words from noisy memories
             
             % decision variable values for new words
-            Xrep = repmat(X,[1 1 Nnew*nS]);            % expanded X
-            mismatch = sum(permute(repmat(SNew, [1 1 Nold]),[3 2 1]) ~= Xrep & repmat(X~= 0, [1 1 Nnew*nS]),2); % number of mismatching features
+            %             Xrep = repmat(X,[1 1 Nnew*nS]);            % expanded X
+            %             mismatch = sum(permute(repmat(SNew, [1 1 Nold]),[3 2 1]) ~= Xrep & repmat(X~= 0, [1 1 Nnew*nS]),2); % number of mismatching features
+            mismatch = sum(bsxfun(@and,bsxfun(@ne,X,0),bsxfun(@ne,permute(SNew, [3 2 1]),X)),2);
             
-            idxmatch = permute(repmat(SNew,[1 1 Nold]),[3 2 1]) == Xrep; % indices in which new words match X
+            idxmatch = bsxfun(@eq, permute(SNew, [3 2 1]), X); % indices in which new words match X
             matmat = ones(Nold, M, Nold*nS);
-            matmat(idxmatch) = mismatchoddsVec(Xrep(idxmatch));
+%             matmat(idxmatch) = mismatchoddsVec(Xrep(idxmatch));
+            all_idx = mod(find(idxmatch),Nold*M);
+            all_idx(all_idx==0) = Nold*M;
+            matmat(idxmatch) = mismatchoddsVec(X(all_idx));
+           
             d_new = -log(Nnew) + log(sum((1-c).^mismatch.*prod(matmat,2),1));   % log odds
+            
+            
+            
+            
+            
+            
             
             % decision variable values for old words
             Xrep = repmat(X,[1 1 Nold*nS]);
-            idxmatch = permute(repmat(SOld,[1 1 Nold]),[3 2 1]) == Xrep;
             mismatch = sum(permute(repmat(SOld, [1 1 Nold]),[3 2 1]) ~= Xrep & repmat(X~= 0, [1 1 Nnew*nS]),2);
-            
+%            mismatch = sum(bsxfun(@and,bsxfun(@ne,X,0),bsxfun(@ne,permute(SOld, [3 2 1]),X)),2);
+                        
+            idxmatch = permute(repmat(SOld,[1 1 Nold]),[3 2 1]) == Xrep;
             matmat = ones(Nold, M, Nold*nS);
             matmat(idxmatch) = mismatchoddsVec(Xrep(idxmatch));
             
