@@ -96,31 +96,34 @@ switch modelname
             X = binornd(1,1-p0,[Nold M]).*(geornd(g,[Nold M])+1);
             Xrepp = repmat(X,[nS 1]);
             
+            % generating new and old test words
             SNew = geornd(g,[Nnew*nS M])+1; % new words
-            
-            % old words
             idx = logical(binornd(1,pQ,[Nold*nS M]) + repmat((X == 0),[nS 1])); % indices of randomly drawn features
             SOld = (1-idx).*Xrepp + idx.*(geornd(g,[Nold*nS M]) + 1); % old words from noisy memories
             
             % decision variable values for new words
-            Xrep = repmat(X,[1 1 Nnew*nS]);            % expanded X
-            mismatch = sum(permute(repmat(SNew, [1 1 Nold]),[3 2 1]) ~= Xrep & repmat(X~= 0, [1 1 Nnew*nS]),2); % number of mismatching features
+            idxmatch = bsxfun(@eq, SNew, X); % indices in which new words match X
+            mismatchSum = sum(bsxfun(@and,bsxfun(@ne,X,0),~idxmatch),2);
+
+            matchMat = ones(Nold, M, Nold*nS);
+            all_idx = mod(find(idxmatch),Nold*M);
+            all_idx(all_idx==0) = Nold*M;
+            matchMat(idxmatch) = mismatchoddsVec(X(all_idx));
+
+            d_new = -log(Nnew) + log(sum((1-c).^mismatchSum.*prod(matchMat,2),1));   % log odds
             
-            idxmatch = permute(repmat(SNew,[1 1 Nold]),[3 2 1]) == Xrep; % indices in which new words match X
-            matmat = ones(Nold, M, Nold*nS);
-            matmat(idxmatch) = mismatchoddsVec(Xrep(idxmatch));
-            d_new = -log(Nnew) + log(sum((1-c).^mismatch.*prod(matmat,2),1));   % log odds
             
             % decision variable values for old words
-            Xrep = repmat(X,[1 1 Nold*nS]);
-            idxmatch = permute(repmat(SOld,[1 1 Nold]),[3 2 1]) == Xrep;
-            mismatch = sum(permute(repmat(SOld, [1 1 Nold]),[3 2 1]) ~= Xrep & repmat(X~= 0, [1 1 Nnew*nS]),2);
-            
-            matmat = ones(Nold, M, Nold*nS);
-            matmat(idxmatch) = mismatchoddsVec(Xrep(idxmatch));
-            
-            d_old(:,iX) = -log(Nold) + log(sum((1-c).^mismatch.*prod(matmat,2),1));   % log odds
+            idxmatch = bsxfun(@eq, permute(SOld, [3 2 1]), X); % indices in which new words match X
+            mismatchSum = sum(bsxfun(@and,bsxfun(@ne,X,0),~idxmatch),2);
 
+            matchMat = ones(Nold, M, Nold*nS);
+            all_idx = mod(find(idxmatch),Nold*M);
+            all_idx(all_idx==0) = Nold*M;
+            matchMat(idxmatch) = mismatchoddsVec(X(all_idx));
+           
+            d_old(:,iX) = -log(Nold) + log(sum((1-c).^mismatchSum.*prod(matchMat,2),1));   % log odds
+            
             % binning new words.
             if (islogbinning)
                 newHisttemp = min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf);
