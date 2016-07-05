@@ -25,7 +25,7 @@ function [ nLL ] = nLL_approx_vectorized( modelname, theta, islogbinning, nnew_p
 
 if nargin < 6; fixparams = []; end
 if nargin < 7; nX = 30; end
-if nargin < 8; nS = 20; end
+if nargin < 8; if strcmp(modelname,'REM'); nS = 20; else nS = 20; end, end
 if nargin < 9; nConf = 20; end
 
 rng('shuffle')
@@ -91,17 +91,62 @@ switch modelname
                     d_old(:,iX) = squeeze(-min(sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nold*nS])).^2,2),[],1));
             end
             
+            %             % plot so see how nS affects data
+            %             for iS = 1:nS;
+            %                 % binning new words.
+            %                 if (islogbinning)
+            %                     newHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(1:iS*Nold)-d0)./k)) - 1)),nConf); % bounds: [1 20]
+            %                 else
+            %                     newHist = min(max(round(m.*d_new(:) + b),1),20); % bounds: [1 20]
+            %                 end
+            %                 newHist = histc(newHist,1:nConf);
+            %                 pnew = lambda/nConf + (1-lambda)*(newHist/sum(newHist));
+            %                 LL_newtemp(iS) = nnew_part*log(pnew);
+            %             end
+            %             figure;
+            %             plot(1:nS,LL_newtemp,'ok')
+            %             defaultplot
+            
             % binning new words.
-            if (islogbinning)
-                newHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf); % bounds: [1 20]
-            else
-                newHist = min(max(round(m.*d_new(:) + b),1),20); % bounds: [1 20]
-            end
-            newHist = histc(newHist,1:nConf);
-            pnew = lambda/nConf + (1-lambda)*(newHist/sum(newHist));
+                if (islogbinning)
+                    newHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf); % bounds: [1 20]
+                else
+                    newHist = min(max(round(m.*d_new(:) + b),1),20); % bounds: [1 20]
+                end
+                newHist = histc(newHist,1:nConf);
+                pnew = lambda/nConf + (1-lambda)*(newHist/sum(newHist));
             LL_new(iX) = nnew_part*log(pnew);
             
         end
+        
+        
+%         % plotting for X samples
+%         for iX = 1:nX;
+%             % BINNING OLD WORDS. p(conf|X0,C)
+%             oldHist = min(round(L.*(2./((1+exp(-(d_old(:,1:iX)-d0)./k))) - 1)+10.5),nConf);
+%             oldHist = histc(oldHist,1:nConf); % histogram
+%             pold = lambda/nConf + (1-lambda)*(oldHist/sum(oldHist)); % normalizing
+%             
+%             % calculating nLL
+%             LL_oldtemp(iX) = nold_part*log(pold);
+%             LL_newtemp(iX) = max(LL_new(1:iX)) + log(mean(exp(LL_new(1:iX)-max(LL_new(1:iX))))); % average over X
+%             maxnew(iX) = max(LL_new(1:iX));
+% %             blah(iX) = max(LL_new(iX))-LL_new(1:iX);
+%         end
+%         nLLtemp = -LL_newtemp-LL_oldtemp;
+% %         figure; plot(1:nX,nLLtemp,'ko');defaultplot
+% %         hold on;
+% %         plot(1:nX,-LL_oldtemp,'bo');
+%         
+%         figure; hold on;
+%         plot(1:nX,LL_newtemp,'o','Color',aspencolors('gold'));
+%         plot(1:nX,LL_new,'*','Color',aspencolors('dustygold'));
+%         plot(1:nX,maxnew,'.')
+%         defaultplot
+%         xlabel('nX')
+%         ylabel('LL for new words')
+%         title('M = 12, \sigma = 1.02, k = 0.31, d0 = 0.1')
+%         legend('mean LL','max of samples','LL for each sample')
         
         % BINNING OLD WORDS. p(conf|X0,C)
         if (islogbinning) % log binning
@@ -156,6 +201,7 @@ switch modelname
         
         % looping over X samples
         for iX = 1:nX;
+            
             X = binornd(1,1-p0,[Nold M]).*(geornd(g,[Nold M])+1);
 
             % generating new and old test words
@@ -173,7 +219,24 @@ switch modelname
             matchMat(idxmatch) = mismatchoddsVec(X(all_idx));
 
             d_new = -log(Nnew) + log(sum((1-c).^mismatchSum.*prod(matchMat,2),1));   % log odds
-
+            
+%             % plot so see how nS affects data
+%             for iS = 1:nS;
+%                 % binning new words.
+%                 if (islogbinning)
+%                     newHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(1:iS*Nold)-d0)./k)) - 1)),nConf); % bounds: [1 20]
+%                 else
+%                     newHist = min(max(round(m.*d_new(:) + b),1),20); % bounds: [1 20]
+%                 end
+%                 newHist = squeeze(histc(newHist,1:nConf));
+%                 pnew = lambda/nConf + (1-lambda).*(newHist/sum(newHist));
+%                 LL_newtemp(iS) = nnew_part*log(pnew);
+%             end
+%             subplot(3,3,iB);
+%             plot(1:nS,LL_newtemp,'ok')
+%             defaultplot
+%             xlabel('nS')
+%             ylabel('LLnew')
             
             % decision variable values for old words
             idxmatch = bsxfun(@eq, permute(SOld, [3 2 1]), X); % indices in which new words match X
@@ -197,7 +260,34 @@ switch modelname
             LL_new(iX) = nnew_part*log(pnew);
         end
         
-        
+%         % plotting for X samples
+%         for iX = 1:nX;
+%             % BINNING OLD WORDS. p(conf|X0,C)
+%             oldHist = min(round(L.*(2./((1+exp(-(d_old(:,1:iX)-d0)./k))) - 1)+10.5),nConf);
+%             oldHist = histc(oldHist,1:nConf); % histogram
+%             pold = lambda/nConf + (1-lambda)*(oldHist/sum(oldHist)); % normalizing
+%             
+%             % calculating nLL
+%             LL_oldtemp(iX) = nold_part*log(pold);
+%             LL_newtemp(iX) = max(LL_new(1:iX)) + log(mean(exp(LL_new(1:iX)-max(LL_new(1:iX))))); % average over X
+%             maxnew(iX) = max(LL_new(1:iX));
+%             %             blah(iX) = max(LL_new(iX))-LL_new(1:iX);
+%         end
+%         nLLtemp = -LL_newtemp-LL_oldtemp;
+%                 figure; plot(1:nX,nLLtemp,'ko');defaultplot
+%         %         hold on;
+%         %         plot(1:nX,-LL_oldtemp,'bo');
+%         
+%         figure; hold on;
+%         plot(1:nX,LL_newtemp,'o','Color',aspencolors('gold'));
+%         plot(1:nX,LL_new,'*','Color',aspencolors('dustygold'));
+%         plot(1:nX,maxnew,'.')
+%         defaultplot
+%         xlabel('nX')
+%         ylabel('LL for new words')
+% %         title('M = 12, \sigma = 1.02, k = 0.31, d0 = 0.1')
+%         legend('mean LL','max of samples','LL for each sample')
+
         % binning old words
         if (islogbinning) % log binning
             oldHist = min(round(L.*(2./((1+exp(-(d_old(:)-d0)./k))) - 1)+10.5),nConf);
@@ -209,7 +299,7 @@ switch modelname
         
         % calculating nLL
         LL_old = nold_part*log(pold);
-        LL_new = max(LL_new) + log(mean(exp(LL_new-max(LL_new)))); % average over X
+        LL_new = max(LL_new) + log(mean(exp(max(LL_new)-LL_new))); % average over X
         nLL = -LL_new-LL_old;
 end
 

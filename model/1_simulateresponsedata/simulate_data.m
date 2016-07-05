@@ -94,12 +94,11 @@ switch modelname
         d_old = nan(Nold*nS,nX);
         for iX = 1:nX;
             X = binornd(1,1-p0,[Nold M]).*(geornd(g,[Nold M])+1);
-            Xrepp = repmat(X,[nS 1]);
             
             % generating new and old test words
-            SNew = geornd(g,[Nnew*nS M])+1; % new words
+            SNew = geornd(g,[1 M Nnew*nS])+1; % new words
             idx = logical(binornd(1,pQ,[Nold*nS M]) + repmat((X == 0),[nS 1])); % indices of randomly drawn features
-            SOld = (1-idx).*Xrepp + idx.*(geornd(g,[Nold*nS M]) + 1); % old words from noisy memories
+            SOld = (1-idx).*repmat(X,[nS 1]) + idx.*(geornd(g,[Nold*nS M]) + 1); % old words from noisy memories
             
             % decision variable values for new words
             idxmatch = bsxfun(@eq, SNew, X); % indices in which new words match X
