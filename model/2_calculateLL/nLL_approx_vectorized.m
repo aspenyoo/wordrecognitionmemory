@@ -187,7 +187,6 @@ switch modelname
             b = 1.5-slope*c1;               % y-intercept
         end
         
-        
         % figuring out X probabilities
         p0 = (1-ustar)^m;               % probability of x_ij= 0
         pM = (1-p0)*geocdf(m-1,c);      % probability of x_ij = s_ij (match)
@@ -211,16 +210,13 @@ switch modelname
 
             % decision variable for new words
             idxmatch = bsxfun(@eq, SNew, X); % indices in which new words match X
-            mismatchSum = sum(bsxfun(@and,bsxfun(@ne,X,0),~idxmatch),2);
 
-            matchMat = ones(Nold, M, Nold*nS);
-            all_idx = mod(find(idxmatch),Nold*M);
-            all_idx(all_idx==0) = Nold*M;
-            matchMat(idxmatch) = mismatchoddsVec(X(all_idx));
-
-            d_new = -log(Nnew) + log(sum((1-c).^mismatchSum.*prod(matchMat,2),1));   % log odds
+            LRmat = 1-c + c*(1-g)/g * bsxfun(@times,idxmatch,(1-g).^-X) ; 
+            LRmat(bsxfun(@eq,zeros(1,M,Nnew*nS),X)) = 1;
+            d_new = log(mean(prod(LRmat,2),1));   % log odds
             
-%             % plot so see how nS affects data
+            
+            %             % plot so see how nS affects data
 %             for iS = 1:nS;
 %                 % binning new words.
 %                 if (islogbinning)
@@ -240,15 +236,12 @@ switch modelname
             
             % decision variable values for old words
             idxmatch = bsxfun(@eq, permute(SOld, [3 2 1]), X); % indices in which new words match X
-            mismatchSum = sum(bsxfun(@and,bsxfun(@ne,X,0),~idxmatch),2);
-
-            matchMat = ones(Nold, M, Nold*nS);
-            all_idx = mod(find(idxmatch),Nold*M);
-            all_idx(all_idx==0) = Nold*M;
-            matchMat(idxmatch) = mismatchoddsVec(X(all_idx));
-           
-            d_old(:,iX) = -log(Nold) + log(sum((1-c).^mismatchSum.*prod(matchMat,2),1));   % log odds
             
+            LRmat = 1-c + c*(1-g)/g * bsxfun(@times,idxmatch,exp(-X.*log(1-g))); 
+            LRmat(bsxfun(@eq,zeros(1,M,Nnew*nS),X)) = 1;
+            d_old(:,iX) = log(mean(prod(LRmat,2),1));
+            
+
             % binning new words.
             if (islogbinning)
                 newHisttemp = min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf);
