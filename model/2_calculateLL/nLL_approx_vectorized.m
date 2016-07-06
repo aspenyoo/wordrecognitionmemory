@@ -1,4 +1,4 @@
-function [ nLL ] = nLL_approx_vectorized( modelname, theta, islogbinning, nnew_part, nold_part, fixparams, nX, nS, nConf )
+function [ nLL ] = nLL_approx_vectorized( modelname, theta, binningfn, nnew_part, nold_part, fixparams, nX, nS, nConf )
 % nLL_approx calculates the negative log likelihood using an approximation
 % method
 %
@@ -8,7 +8,7 @@ function [ nLL ] = nLL_approx_vectorized( modelname, theta, islogbinning, nnew_p
 % ===== INPUT VARIABLES =====
 % MODELNAME: 'FP','FPheurs','VP','VPheurs','uneqVar', 'REM'
 % THETA: parameter values
-% ISLOGBINNING: 1: logistic. 0: linear
+% BINNINGFN: 0: linear, 1: logistic, 2: log
 % NNEW_PART: 1x20 vector of responses for new distribution (total 150)
 % NOLD_PART: 1x20 vector of responses for old distribution (total 150)
 % FIXPARAMS: a 2xn matrix in which first row corresponds to index of which
@@ -44,16 +44,22 @@ end
 
 switch modelname
     case 'uneqVar'
-        [pnew, pold] = responses_uneqVar(theta, islogbinning);
+        [pnew, pold] = responses_uneqVar(theta, binningfn);
         nLL = -sum(log(pnew).*nnew_part) - sum(log(pold).*nold_part);
     case {'FP','FPheurs'}
         M = theta(1);
         sigma = theta(2);
-        if (islogbinning); k = theta(3); else c1 = theta(3); end
-        if length(theta) < 4;
-            if (islogbinning); d0 = 0; else c2 = 0; end
-        else
-            if (islogbinning); d0 = theta(4); else c2 = theta(4); end
+        switch binningfn
+            case 0 % linear
+                c1 = theta(3);
+                c2 = theta(4); 
+            case 1 % logistic
+                 k = theta(3); 
+                 d0 = theta(4); 
+            case 2 % log
+                a = theta(3);
+                b = theta(4);
+                sigma_mc = theta(5);
         end
         Nold = sum(nold_part); Nnew = sum(nnew_part);
         L = nConf/2;
@@ -65,7 +71,7 @@ switch modelname
             %     assert('M must be a whole number')
         end
         
-        if ~(islogbinning)
+        if ~(binningfn) % if linear
             m =(nConf-2)/(c2-c1);       % slope
             b = 1.5-m*c1;               % y-intercept
         end
@@ -108,13 +114,18 @@ switch modelname
             %             defaultplot
             
             % binning new words.
-                if (islogbinning)
-                    newHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf); % bounds: [1 20]
-                else
-                    newHist = min(max(round(m.*d_new(:) + b),1),20); % bounds: [1 20]
-                end
-                newHist = histc(newHist,1:nConf);
-                pnew = lambda/nConf + (1-lambda)*(newHist/sum(newHist));
+            switch binningfn
+                case 0 % linear
+                    newHist = min(max(round(m.*d_new(:) + b),1),nConf);                            % bounds: [1 20]
+                case 1 % logistic
+                    newHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf);   % bounds: [1 20]
+                case 2 % log
+                    d_new_sign = sign(d_new(:));                                                % -1 for respond new, +1 for respond old
+                    newHist = min(max(round(a.*abs(d_new(:)+b)+randn.*sigma_mc),nConf/2+1),nConf);        % confidence rating from 11 to 20
+                    newHist(d_new_sign < 0) = nConf+1 - newHist(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
+            end
+            newHist = histc(newHist,1:nConf);
+            pnew = lambda/nConf + (1-lambda)*(newHist/sum(newHist));
             LL_new(iX) = nnew_part*log(pnew);
             
         end
@@ -149,10 +160,15 @@ switch modelname
 %         legend('mean LL','max of samples','LL for each sample')
         
         % BINNING OLD WORDS. p(conf|X0,C)
-        if (islogbinning) % log binning
-            oldHist = min(round(L.*(2./((1+exp(-(d_old(:)-d0)./k))) - 1)+10.5),nConf);
-        else % lin binning
-            oldHist = max(min(round(m.*d_old(:) + b),nConf),1);
+        switch binningfn
+            case 0 % linear
+                oldHist = min(max(round(m.*d_old(:) + b),1),nConf);                            % bounds: [1 20]
+            case 1 % logistic
+                oldHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_old(:)-d0)./k)) - 1)),nConf);   % bounds: [1 20]
+            case 2 % log
+                d_old_sign = sign(d_old(:));                                                % -1 for respond new, +1 for respond old
+                oldHist = min(max(round(a.*abs(d_old(:)+b)+randn.*sigma_mc),nConf/2+1),nConf);        % confidence rating from 11 to 20
+                oldHist(d_old_sign < 0) = nConf+1 - oldHist(d_old_sign < 0);                     % changing respond "new" words back to 1 to 10
         end
         oldHist = histc(oldHist,1:nConf); % histogram
         % oldHist(oldHist==0) = 1e-3; % changing any 0 freq to 1, (prevents LL from going to -Inf)
@@ -171,7 +187,7 @@ switch modelname
         c = theta(4);                   % probability of encoding correct feature value
         m = theta(5);                   % number of storage attempts
         L = nConf/2;
-        if (islogbinning); 
+        if (binningfn); 
             k = theta(6);  d0 = theta(7);
         else c1 = theta(6); c2 = theta(7);
         end
@@ -182,7 +198,7 @@ switch modelname
             M = floor(M);
         end
         
-        if ~(islogbinning)
+        if ~(binningfn)
             slope =(nConf-2)/(c2-c1);       % slope
             b = 1.5-slope*c1;               % y-intercept
         end
@@ -243,7 +259,7 @@ switch modelname
             
 
             % binning new words.
-            if (islogbinning)
+            if (binningfn)
                 newHisttemp = min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf);
             else
                 newHisttemp = min(max(round(slope.*d_new(:) + b),1),nConf);
@@ -282,7 +298,7 @@ switch modelname
 %         legend('mean LL','max of samples','LL for each sample')
 
         % binning old words
-        if (islogbinning) % log binning
+        if (binningfn) % log binning
             oldHist = min(round(L.*(2./((1+exp(-(d_old(:)-d0)./k))) - 1)+10.5),nConf);
         else % lin binning
             oldHist = max(min(round(slope.*d_old(:) + b),nConf),1);
