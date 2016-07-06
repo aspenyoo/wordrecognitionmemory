@@ -96,11 +96,17 @@ end
                 ub = [10 10 10 50];
                 plb = [0 1e-3 1e-3 -5];
                 pub = [2 5 5 5];
+            case 'REM'
+                starttheta = [5+randi(50,nStartVals,1) rand(nStartVals,3) randi(15) 1e-3+rand(nStartVals,1).*3 rand(nStartVals,1)-.5];
+                lb = [ 1 1e-3 1e-3 1e-3 1 1e-3 -10];
+                ub = [50 1 1 1 50 10 10];
+                plb = [1 1e-3 1e-3 1e-3 1 1e-3 -5];
+                pub = [50 1 1 1 15 5 5];
         end
         
         % setting last two parameters
         if ~(islogbinning)
-            starttheta = [starttheta(:,1:end-2) -rand(nStartVals,1)*10, rand(nStartVals,1)*10];
+            starttheta = [starttheta(:,1:end-2) -rand(nStartVals,1)*10, rand(nStartVals,1)*10 ];
             lb(end-1:end) = [-Inf 0];
             ub(end-1:end) = [0 Inf];
             plb(end-1:end) = [-10 0];

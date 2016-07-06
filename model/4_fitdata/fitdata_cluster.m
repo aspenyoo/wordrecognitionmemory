@@ -16,6 +16,16 @@ end
 % OPTIMMETHOD: 'patternsearch' or 'GS'
 % FIXPARAMS: 2 x nFixparams matrix if 'patternsearch'.
 %            nParams x 3 nGridsVec matrix if 'GS'
+%            1 x (number of different Ms) if 'patternbayes'
+
+switch modelname
+    case {'FP','FPheurs','UVSD'}
+        nParams = 4;
+    case {'VP','VPheurs'}
+        nParams = 5;
+    case 'REM'
+        nParams = 7;
+end
 
 if strcmp(optimMethod,'GS'); nGridsVec = fixparams; clear fixparams; end
 
@@ -34,17 +44,8 @@ permission = 'a+'; % open or create new file for reading and writing. append dat
 
 % parameter fitting function
 iterMs = [];
-if strcmp(modelname(1),'V')
-    %             bestfitparam                         nll
-    formatSpec = ['%2.4f \t %2.4f \t %2.4f \t %4.4f \t %5.4f \t' ...
-        '%2.4f \t %2.4f \t %2.4f \t %4.4f \t %4.4f \r\n'];
-    % starttheta                        output
-else
-    %             bestfitparam                         nll
-    formatSpec = ['%2.4f \t %2.4f \t %2.4f \t %4.4f \t %5.4f \t' ...
-        '%2.4f \t %2.4f \t %2.4f \t %4.4f \t %4.4f \r\n'];
-    % starttheta                        output
-end
+formatSpec = repmat('%4.4f \t ',1,2*nParams+2);
+formatSpec = [formatSpec(1:end-3) '\r\n'];
 
 for iM = 1:nMs;
     if size(fixparams,2) >2 ;
