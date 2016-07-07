@@ -16,11 +16,10 @@ module load matlab
 
 export MATLABPATH=/home/ay963/matlab-scripts
 cat<<EOF | matlab -nodisplay
-addpath('/home/ay963/job-scripts')
 addpath(genpath('/home/ay963/matlab-scripts'))
 addpath(genpath('/home/ay963/wordrecognitionmemory'))
 
-modelname = 'FPheurs';
+modelname = 'REM';
 nStartVals = 10;
 
 % used in cluster to indicate both subject and fixed M
