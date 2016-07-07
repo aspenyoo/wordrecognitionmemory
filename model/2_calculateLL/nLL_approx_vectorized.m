@@ -121,7 +121,7 @@ switch modelname
                     newHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf);   % bounds: [1 20]
                 case 2 % log
                     d_new_sign = sign(d_new(:));                                                % -1 for respond new, +1 for respond old
-                    newHist = min(max(round(a.*abs(d_new(:)+b)+randn.*sigma_mc),nConf/2+1),nConf);        % confidence rating from 11 to 20
+                    newHist = min(max(round(a.*log(abs(d_new(:)+b))+randn.*sigma_mc),nConf/2+1),nConf);        % confidence rating from 11 to 20
                     newHist(d_new_sign < 0) = nConf+1 - newHist(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
             end
             newHist = histc(newHist,1:nConf);
