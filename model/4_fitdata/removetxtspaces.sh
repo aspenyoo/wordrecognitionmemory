@@ -5,7 +5,7 @@
 #PBS -M aspen.yoo@nyu.edu
 #PBS -l mem=2GB
 #PBS -m abe
-#PBS -N paramfit_wrapper
+#PBS -N removetxtspaces
 
 index=${PBS_ARRAYID}
 job=${PBS_JOBID}
@@ -16,13 +16,13 @@ module load matlab
 
 export MATLABPATH=/home/ay963/matlab-scripts
 cat<<EOF | matlab -nodisplay
-addpath('/home/ay963/job-scripts')
 addpath(genpath('/home/ay963/matlab-scripts'))
+addpath(genpath('/home/ay963/wordrecognitionmemory'))
 
 modelname = 'REM';
 
 for isubj = 1:14;
-	removetxtpaces(modelname,isubj)
+	removetxtpaces(modelname,isubj')
 end
 
 EOF
