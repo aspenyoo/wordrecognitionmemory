@@ -64,10 +64,6 @@ for iM = 1:nMs;
                 if isubj > 14;
                     filename = [filepath 'modelrecovery_patternbayes_' testmodelname '_' truemodelname 'subj' num2str(isubj) '.txt'];
                 end
-                testmodelname
-                nnew_part
-                nold_part
-                fixparam
                 
                 [bestFitParam, nLL_est, startTheta, outputt] = paramfit_patternbayes(testmodelname,nnew_part, nold_part, fixparam ,1);
                 fileID = fopen(filename,permission);

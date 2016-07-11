@@ -43,3 +43,14 @@ subplot(1,2,2);
 plot(xx,yy,'k',xx,yy2,'r'); defaultplot
 ylim([ 1 20])
 % blahhist = hist(yy,1:nConf)
+
+%% debugging paramfit_parforsubj.sh
+fixparam = 25;
+modelname = 'REM';
+nStartVals = 10;
+
+parfor isubj = 8:14;
+    isubj
+	fitdata_cluster(isubj,modelname,'patternbayes', [1; fixparam],[],[],nStartVals); 
+end
+exit;

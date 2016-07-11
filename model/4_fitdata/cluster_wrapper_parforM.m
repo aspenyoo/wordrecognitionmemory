@@ -22,7 +22,7 @@ for isubj = 1:length(subjVec);
         
         for iM = 1:length(MVec);
             M = MVec(iM);
-            fitdata_cluster(subjnum,modelname,'patternbayes', [1; M],[],nStartVals);
+            fitdata_cluster(subjnum,modelname,'patternbayes', [1; M],[],[],nStartVals);
         end
     end
     

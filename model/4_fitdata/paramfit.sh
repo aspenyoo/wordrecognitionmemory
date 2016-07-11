@@ -31,7 +31,7 @@ if $index > 100;
 end
 
 % fitdata_cluster(isubj, 'uneqVar','patternbayes');
-fitdata_cluster(isubj,modelname,'patternbayes', [1; fixparam],[],nStartVals); exit;
+fitdata_cluster(isubj,modelname,'patternbayes', [1; fixparam],[],[],nStartVals); exit;
 
 status = 0;
 while true

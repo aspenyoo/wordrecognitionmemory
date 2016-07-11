@@ -25,7 +25,7 @@ nStartVals = 10;
 fixparam = $index;
 
 parfor isubj = 8:14;
-	fitdata_cluster(isubj,modelname,'patternbayes', [1; fixparam],[],nStartVals); exit;
+	fitdata_cluster(isubj,modelname,'patternbayes', [1; fixparam],[],[],nStartVals); exit;
 end
 
 EOF

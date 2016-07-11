@@ -17,7 +17,7 @@ parfor isubj = 1:nSubj;
     
     for iM = 1:length(MVec);
         fixparam = MVec(iM)
-        fitdata_cluster(isubj,modelname,'patternbayes', [1; fixparam],[],nStartVals);
+        fitdata_cluster(isubj,modelname,'patternbayes', [1; fixparam],[],[],nStartVals);
     end
     
 end
