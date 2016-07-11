@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l nodes=1:ppn=1
-#PBS -l walltime=08:00:00
+#PBS -l walltime=12:00:00
 #PBS -j oe
 #PBS -M aspen.yoo@nyu.edu
 #PBS -l mem=2GB
@@ -16,11 +16,10 @@ module load matlab
 
 export MATLABPATH=/home/ay963/matlab-scripts
 cat<<EOF | matlab -nodisplay
-addpath('/home/ay963/job-scripts')
 addpath(genpath('/home/ay963/matlab-scripts'))
 addpath(genpath('/home/ay963/wordrecognitionmemory'))
 
-modelname = 'FPheurs';
+modelname = 'REM';
 nStartVals = 10;
 
 % used in cluster to indicate both subject and fixed M
