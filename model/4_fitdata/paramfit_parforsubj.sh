@@ -1,11 +1,11 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=14
-#PBS -l walltime=48:00:00
+#PBS -l nodes=1:ppn=6
+#PBS -l walltime=12:00:00
 #PBS -j oe
 #PBS -M aspen.yoo@nyu.edu
-#PBS -l mem=30GB
+#PBS -l mem=20GB
 #PBS -m abe
-#PBS -N paramfit_wrapper
+#PBS -N paramfit
 
 index=${PBS_ARRAYID}
 job=${PBS_JOBID}
@@ -20,8 +20,13 @@ addpath(genpath('/home/ay963/matlab-scripts'))
 addpath(genpath('/home/ay963/wordrecognitionmemory'))
 
 modelname = 'REM';
+nStartVals = 10;
 
-cluster_wrapper(modelname, $index+1)
+fixparam = $index;
+
+parfor isubj = 8:14;
+	fitdata_cluster(isubj,modelname,'patternbayes', [1; fixparam],[],nStartVals); exit;
+end
 
 EOF
 
