@@ -177,7 +177,7 @@ switch modelname
         % calculating nLL
         LL_old = nold_part*log(pold);
         LL_new = max(LL_new) + log(mean(exp(LL_new-max(LL_new)))); % average over X
-        nLL = -LL_new-LL_old;
+        nLL = -LL_new-LL_old
         
     case 'REM'
         
