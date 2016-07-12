@@ -1,15 +1,16 @@
-function count = countnum(modelname,isubj,M, optimMethod)
-if nargin < 4; optimMethod = 'patternbayes'; end
+function count = countnum(testmodelname,isubj,M, truemodelname, optimMethod)
+if nargin < 4; truemodelname = testmodelname; end
+if nargin < 5; optimMethod = 'patternbayes'; end
 
-% modelname = 'FP';
-% isubj = 21;
-% optimMethod = 'patternbayes';
-
-filename = ['paramfit_' optimMethod '_' modelname '_subj' num2str(isubj) '.txt'];
+filename = ['paramfit_' optimMethod '_' testmodelname '_subj' num2str(isubj) '.txt'];
+if isubj > 14;
+    filename = ['modelrecovery_patternbayes_' testmodelname '_' truemodelname 'subj' num2str(isubj) '.txt'];
+end
 
 % ensuring that there are no space in the txt to fuck up the reading of the file
-% removetxtspaces(modelname,isubj,optimMethod)
+% removetxtspaces(testmodelname,isubj,optimMethod)
 
-data = dlmread(filename);
+filepath = 'model/4_fitdata/BPSfits/';
+data = dlmread([filepath filename]);
 count = sum(data(:,1) == M);
 

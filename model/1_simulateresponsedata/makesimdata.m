@@ -16,4 +16,4 @@ if nargin < 3; nSimSubj = 20; end
     simdata.(modelname).trueparam = [nan(14,nParams); trueParam];
     
     
-    save('subjdata.mat','nNew_part','nOld_part','simdata')
+    save('model/subjdata.mat','nNew_part','nOld_part','simdata')

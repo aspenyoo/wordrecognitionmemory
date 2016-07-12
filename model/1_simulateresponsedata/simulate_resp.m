@@ -81,7 +81,9 @@ for isimsubj = 1:nSubj;
         if ~isempty(fixparams); theta(fixparams(1,:)) = fixparams(2,:); end % if some parameters are fixed
         
         % simulating number of response for each confidence value
+        try
         [nnew_part, nold_part] = simulate_data(modelname, theta, islogbinning);
+        end
     end
     
     

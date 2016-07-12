@@ -1,11 +1,11 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=14
-#PBS -l walltime=48:00:00
+#PBS -l nodes=1:ppn=1
+#PBS -l walltime=00:04:00
 #PBS -j oe
 #PBS -M aspen.yoo@nyu.edu
-#PBS -l mem=30GB
+#PBS -l mem=2GB
 #PBS -m abe
-#PBS -N paramfit_wrapper
+#PBS -N removetxtspaces
 
 index=${PBS_ARRAYID}
 job=${PBS_JOBID}
@@ -21,7 +21,9 @@ addpath(genpath('/home/ay963/wordrecognitionmemory'))
 
 modelname = 'REM';
 
-cluster_wrapper(modelname, $index+1)
+for isubj = 1:14;
+	removetxtpaces(modelname,isubj')
+end
 
 EOF
 

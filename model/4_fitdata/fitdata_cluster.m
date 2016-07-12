@@ -1,24 +1,28 @@
-function [bestFitParam, nLL_est, startTheta, outputt] = fitdata_cluster(isubj, modelname, optimMethod, fixparams, nConf, nStartVals)
+function [bestFitParam, nLL_est, startTheta, outputt] = fitdata_cluster(isubj, testmodelname, optimMethod, fixparams,truemodelname,nConf, nStartVals)
 if nargin < 4; fixparams = []; end
-if nargin < 5; nConf = 20; end
+if nargin < 5; truemodelname = []; end
+if isempty(truemodelname); truemodelname = testmodelname; end
+if nargin < 6; nConf = 20; end
 if isempty(nConf); nConf = 20; end 
 if size(fixparams,2) > 2;
     nMs = length(fixparams);
-    if nargin < 6; nStartVals = 1; end
+    if nargin < 7; nStartVals = 1; end
 else
     nMs = 1;
-    if nargin < 6; nStartVals = 10; end
+    if nargin < 7; nStartVals = 10; end
 end
 
+filepath = 'model/4_fitdata/BPSfits/';
+%
 % ===== INPUT VARIABLES =====
 % ISUBJ: number of subject fitting. can also enter isubj and fixedM as a
 % single number (for cluster) to fix M
-% OPTIMMETHOD: 'patternsearch' or 'GS'
+% OPTIMMETHOD: 'patternbayes','patternsearch' or 'GS'
 % FIXPARAMS: 2 x nFixparams matrix if 'patternsearch'.
 %            nParams x 3 nGridsVec matrix if 'GS'
 %            1 x (number of different Ms) if 'patternbayes'
 
-switch modelname
+switch testmodelname
     case {'FP','FPheurs','UVSD'}
         nParams = 4;
     case {'VP','VPheurs'}
@@ -37,7 +41,7 @@ if strcmp(optimMethod,'GS'); nGridsVec = fixparams; clear fixparams; end
 % end
 
 % loading real subject data
-[nnew_part, nold_part] = loadsubjdata(isubj,modelname,nConf);
+[nnew_part, nold_part] = loadsubjdata(isubj,truemodelname,nConf);
 
 % open txt file
 permission = 'a+'; % open or create new file for reading and writing. append data to the end of the file
@@ -57,8 +61,12 @@ for iM = 1:nMs;
     for istartval = 1:nStartVals;
         switch optimMethod
             case 'patternbayes'
-                filename = ['paramfit_patternbayes_' modelname '_subj' num2str(isubj) '.txt'];
-                [bestFitParam, nLL_est, startTheta, outputt] = paramfit_patternbayes(modelname,nnew_part, nold_part, fixparam ,1);
+                filename = [filepath 'paramfit_patternbayes_' testmodelname '_subj' num2str(isubj) '.txt'];
+                if isubj > 14;
+                    filename = [filepath 'modelrecovery_patternbayes_' testmodelname '_' truemodelname 'subj' num2str(isubj) '.txt'];
+                end
+                
+                [bestFitParam, nLL_est, startTheta, outputt] = paramfit_patternbayes(testmodelname,nnew_part, nold_part, fixparam ,1);
                 fileID = fopen(filename,permission);
                 A1 = [bestFitParam, nLL_est, startTheta, outputt.fsd];
                 fprintf(fileID, formatSpec, A1); % save stuff in txt file
