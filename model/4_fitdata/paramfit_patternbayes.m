@@ -1,7 +1,7 @@
 function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelname,nnew_part, nold_part, fixparams,nStartVals, nConf)
 % 
 % paramfit_patternbayes(MODELNAME) uses bayesian patternsearch (one of Luigi
-% Acerbi's optimization algorithm) to find the best fit parameters (and
+% Acerbi's optimization algorithms) to find the best fit parameters (and
 % coinciding negative loglikelihoods (nLLs) for MODELNAME of one subjects
 % data.
 %
