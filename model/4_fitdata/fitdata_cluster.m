@@ -51,7 +51,7 @@ formatSpec = repmat('%4.4f \t ',1,2*nParams+2);
 formatSpec = [formatSpec(1:end-3) '\r\n'];
 
 for iM = 1:nMs;
-    if size(fixparams,2) >2 ;
+    if size(fixparams,2) > 2;
         fixparam = [1; fixparams(iM)];
     else
         fixparam = fixparams;
@@ -65,7 +65,7 @@ for iM = 1:nMs;
                     filename = [filepath 'modelrecovery_patternbayes_' testmodelname '_' truemodelname 'subj' num2str(isubj) '.txt'];
                 end
                 
-                [bestFitParam, nLL_est, startTheta, outputt] = paramfit_patternbayes(testmodelname,nnew_part, nold_part, fixparam ,1);
+                [bestFitParam, nLL_est, startTheta, outputt] = paramfit_patternbayes(testmodelname, nnew_part, nold_part, fixparam ,1);
                 fileID = fopen(filename,permission);
                 A1 = [bestFitParam, nLL_est, startTheta, outputt.fsd];
                 fprintf(fileID, formatSpec, A1); % save stuff in txt file
