@@ -41,7 +41,6 @@ if ~isempty(fixparams);
     theta = tempTheta;
 end
 
-
 switch modelname
     case 'uneqVar'
         [pnew, pold] = responses_uneqVar(theta, binningfn);
@@ -68,10 +67,9 @@ switch modelname
         
         if M ~= floor(M)
             M = floor(M);
-            %     assert('M must be a whole number')
         end
         
-        if ~(binningfn) % if linear
+        if ~(binningfn) % if linear mapping
             m =(nConf-2)/(c2-c1);       % slope
             b = 1.5-m*c1;               % y-intercept
         end
@@ -177,7 +175,7 @@ switch modelname
         % calculating nLL
         LL_old = nold_part*log(pold);
         LL_new = max(LL_new) + log(mean(exp(LL_new-max(LL_new)))); % average over X
-        nLL = -LL_new-LL_old
+        nLL = -LL_new-LL_old;
         
     case 'REM'
         
@@ -186,11 +184,13 @@ switch modelname
         ustar = theta(3);               % probability of encoding something
         c = theta(4);                   % probability of encoding correct feature value
         m = theta(5);                   % number of storage attempts
-        L = nConf/2;
         if (binningfn); 
             k = theta(6);  d0 = theta(7);
-        else c1 = theta(6); c2 = theta(7);
+        else
+            c1 = theta(6); c2 = theta(7);
         end
+        
+        L = nConf/2;
         Nold = sum(nold_part); Nnew = sum(nnew_part);
         lambda = 0.01;             % lapse rate
         
@@ -208,12 +208,8 @@ switch modelname
         pM = (1-p0)*geocdf(m-1,c);      % probability of x_ij = s_ij (match)
         pQ = 1 - p0 - pM;               % probability drawn randomly (mismatch)
         
-        % precalculated odds for mismatches with different X
-        mismatchoddsVec = (c+(1-c).*(g.*(1-g).^(0:30)))./(g.*(1-g).^(0:30));
-
         d_old = nan(Nold*nS,nX);
         LL_new = nan(1,nX);     
-        
         % looping over X samples
         for iX = 1:nX;
             
@@ -298,9 +294,9 @@ switch modelname
 %         legend('mean LL','max of samples','LL for each sample')
 
         % binning old words
-        if (binningfn) % log binning
+        if (binningfn) % logistic binning
             oldHist = min(round(L.*(2./((1+exp(-(d_old(:)-d0)./k))) - 1)+10.5),nConf);
-        else % lin binning
+        else % "linear" binning
             oldHist = max(min(round(slope.*d_old(:) + b),nConf),1);
         end
         oldHist = histc(oldHist,1:nConf); % histogram
