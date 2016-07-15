@@ -12,7 +12,7 @@ else
     if nargin < 7; nStartVals = 10; end
 end
 
-filepath = 'BPSfits/';
+filepath = [];%'BPSfits/';
 
 % ===== INPUT VARIABLES =====
 % ISUBJ: number of subject fitting. can also enter isubj and fixedM as a
