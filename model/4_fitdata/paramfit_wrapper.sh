@@ -20,8 +20,9 @@ addpath(genpath('/home/ay963/matlab-scripts'))
 addpath(genpath('/home/ay963/wordrecognitionmemory'))
 
 modelname = 'REM';
+subjids = 1:7;
 
-cluster_wrapper(modelname, $index+1)
+cluster_wrapper(modelname, subjids, $index+1)
 
 EOF
 

@@ -1,4 +1,4 @@
-function cluster_wrapper(modelname, jobnum)
+function cluster_wrapper(modelname, subjids, jobnum)
 % a wrapper to fit multiple parameter values iteratively, so that the
 % length of one job will be 48 hours.
 %
@@ -8,16 +8,23 @@ nStartVals = 1;
 
 % load table with M numbers for particular job lists
 
-nSubj = 14;
+nSubj = length(subjids);
+samejoblist = 0;
 parfor isubj = 1:nSubj;
     
-    alldata = dlmread('joblist_03302016.txt');
+    subjid = subjids(isubj);
+    
+    if (samejoblist)
+        alldata = dlmread('joblist_03302016.txt');
+    else
+        alldata = dlmread(['joblist_patternbayes_subj' num2str(subjid) '_maxtime48.txt']);
+    end
     MVec = alldata(jobnum,:);
     MVec = MVec(MVec ~= 0);
     
     for iM = 1:length(MVec);
         fixparam = MVec(iM)
-        fitdata_cluster(isubj,modelname,'patternbayes', [1; fixparam],[],[],nStartVals);
+        fitdata_cluster(subjid,modelname,'patternbayes', [1; fixparam],[],[],nStartVals);
     end
     
 end
