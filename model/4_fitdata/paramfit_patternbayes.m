@@ -38,8 +38,8 @@ nS = 20;
 rng('shuffle');
 
 options = bps('defaults');              % Default options
-% options.UncertaintyHandling = 1;        % Activate noise handling
-% options.NoiseSize = 1;                  % Estimated noise magnitude
+options.UncertaintyHandling = 1;        % Activate noise handling
+options.NoiseSize = 1;                  % Estimated noise magnitude
 
 % for iM = 1:length(iterMs);
 %     M = iterMs(iM);
