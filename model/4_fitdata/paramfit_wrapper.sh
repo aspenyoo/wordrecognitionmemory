@@ -1,9 +1,9 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=14
+#PBS -l nodes=1:ppn=7
 #PBS -l walltime=48:00:00
 #PBS -j oe
 #PBS -M aspen.yoo@nyu.edu
-#PBS -l mem=30GB
+#PBS -l mem=15GB
 #PBS -m abe
 #PBS -N paramfit_wrapper
 
