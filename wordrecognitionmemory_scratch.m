@@ -45,11 +45,11 @@ ylim([ 1 20])
 % blahhist = hist(yy,1:nConf)
 
 %% debugging paramfit_parforsubj.sh
-fixparam = 25;
+fixparam = 15;
 modelname = 'REM';
-nStartVals = 10;
+nStartVals = 1;
 
-parfor isubj = 8:14;
+parfor isubj = 8:10;
     isubj
 	fitdata_cluster(isubj,modelname,'patternbayes', [1; fixparam],[],[],nStartVals); 
 end
