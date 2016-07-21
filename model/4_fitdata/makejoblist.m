@@ -1,10 +1,10 @@
-function makejoblist(testmodelname,maxtime, optimMethod,subjids,truemodelname)
+function makejoblist(testmodelname,maxtime, optimMethod,subjids,Mrange,truemodelname)
 
 if nargin < 3; optimMethod = 'patternbayes'; end
 if nargin < 4; subjids = 1:14; end
-if nargin < 5; truemodelname = []; end
+if nargin < 5; Mrange = [1 50]; end
+if nargin < 6; truemodelname = []; end
 
-Mmax = 50;
 filepath = 'model/4_fitdata/';
 jobtime = 12;
 
@@ -12,7 +12,7 @@ for isubj = 1:length(subjids);
     subjid = subjids(isubj)
     
     jobnumVec = []; esttimeVec = [];
-    for iM = 1:Mmax;
+    for iM = Mrange(1):Mrange(2);
         numM = countnum(testmodelname,subjid,iM,truemodelname);
 
         jobnumVec = [jobnumVec repmat(iM, [1 10-numM])];

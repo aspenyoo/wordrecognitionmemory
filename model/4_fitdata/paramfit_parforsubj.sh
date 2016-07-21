@@ -1,11 +1,11 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=6
-#PBS -l walltime=12:00:00
+#PBS -l nodes=1:ppn=4
+#PBS -l walltime=24:00:00
 #PBS -j oe
 #PBS -M aspen.yoo@nyu.edu
-#PBS -l mem=20GB
+#PBS -l mem=10GB
 #PBS -m abe
-#PBS -N paramfit
+#PBS -N paramfit_parforsubj
 
 index=${PBS_ARRAYID}
 job=${PBS_JOBID}
@@ -24,8 +24,9 @@ nStartVals = 10;
 
 fixparam = $index;
 
-parfor isubj = 8:14;
-	fitdata_cluster(isubj,modelname,'patternbayes', [1; fixparam],[],[],nStartVals); exit;
+parfor isubj = [1:3 5];
+	nStartVal = max([nStartVals-countnum(modelname,isubj,fixparam) 0]);
+	fitdata_cluster(isubj,modelname,'patternbayes', [1; fixparam],[],[],nStartVal); exit;
 end
 
 EOF
