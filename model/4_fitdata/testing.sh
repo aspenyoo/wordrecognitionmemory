@@ -19,16 +19,17 @@ cat<<EOF | matlab -nodisplay
 addpath(genpath('/home/ay963/matlab-scripts'))
 addpath(genpath('/home/ay963/wordrecognitionmemory'))
 
-fixparam = $index;
+
 testmodelname = 'REM';
 isubj = 1;
 
-filepath = 'BPSfits/';
-filename = [filepath 'paramfit_patternbayes_' testmodelname '_subj' num2str(isubj) '.txt'];
+filepath = ['wordrecognitionmemory/model/4_fitdata/BPSfits/'];
+filename = [filepath 'paramfit_patternbayes_' testmodelname '_subj' num2str(isubj) '.txt']
+permission = 'a+';
 
-fileID = fopen(filename,permission);
-formatSpec = '%4.4f testing \r\n';
-fprintf(fileID, formatSpec, index); % save stuff in txt file
+fileID = fopen(filename,permission)
+formatSpec = [repmat('%4.4f ',1,16)  '\r\n'];
+fprintf(fileID, formatSpec, repmat($index,1,16)) % save stuff in txt file
 fclose(fileID);
 
 EOF
