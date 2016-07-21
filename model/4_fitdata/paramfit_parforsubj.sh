@@ -24,7 +24,7 @@ nStartVals = 10;
 
 fixparam = $index;
 
-parfor isubj = [1:3 5];
+parfor isubj = 1:5;
 	nStartVal = max([nStartVals-countnum(modelname,isubj,fixparam) 0]);
 	fitdata_cluster(isubj,modelname,'patternbayes', [1; fixparam],[],[],nStartVal); exit;
 end
