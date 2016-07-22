@@ -20,13 +20,12 @@ addpath(genpath('/home/ay963/matlab-scripts'))
 addpath(genpath('/home/ay963/wordrecognitionmemory'))
 
 modelname = 'FP';
+binningfn = 2;
 nStartVals = 10;
+fixparams = [1 6; $index 0];
+optimMethod = 'patternbayes';
 
-parfor isubj = 1:14;
-fixparam = $index;
-	nStartVal = max([10-countnum('FP',isubj,fixparam) 0]);
-	fitdata_cluster(isubj,'FP',2,'patternbayes', [1 6; fixparam 0],[],[],nStartVal); exit;
-end
+clusterwrapper_parforsubj(modelname,binningfn,nStartVals,fixparams,optimMethod)
 
 EOF
 
