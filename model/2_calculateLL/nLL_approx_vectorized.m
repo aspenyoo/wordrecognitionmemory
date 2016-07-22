@@ -8,7 +8,7 @@ function [ nLL ] = nLL_approx_vectorized( modelname, theta, binningfn, nnew_part
 % ===== INPUT VARIABLES =====
 % MODELNAME: 'FP','FPheurs','VP','VPheurs','uneqVar', 'REM'
 % THETA: parameter values
-% BINNINGFN: 0: linear, 1: logistic, 2: log
+% BINNINGFN: 0: linear, 1: logistic, 2: log (NOT DONE FOR REM MODEL YET)
 % NNEW_PART: 1x20 vector of responses for new distribution (total 150)
 % NOLD_PART: 1x20 vector of responses for old distribution (total 150)
 % FIXPARAMS: a 2xn matrix in which first row corresponds to index of which
@@ -51,14 +51,15 @@ switch modelname
         switch binningfn
             case 0 % linear
                 c1 = theta(3);
-                c2 = theta(4); 
+                c2 = theta(4);
             case 1 % logistic
-                 k = theta(3); 
-                 d0 = theta(4); 
+                k = theta(3);
+                d0 = theta(4);
             case 2 % log
                 a = theta(3);
                 b = theta(4);
-                sigma_mc = theta(5);
+                d0 = theta(5);
+                sigma_mc = theta(6);
         end
         Nold = sum(nold_part); Nnew = sum(nnew_part);
         L = nConf/2;
@@ -119,7 +120,7 @@ switch modelname
                     newHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf);   % bounds: [1 20]
                 case 2 % log
                     d_new_sign = sign(d_new(:));                                                % -1 for respond new, +1 for respond old
-                    newHist = min(max(round(a.*log(abs(d_new(:)+b))+randn.*sigma_mc),nConf/2+1),nConf);        % confidence rating from 11 to 20
+                    newHist = min(max(round(a.*log(abs(d_new(:)+d0))+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
                     newHist(d_new_sign < 0) = nConf+1 - newHist(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
             end
             newHist = histc(newHist,1:nConf);
@@ -165,7 +166,7 @@ switch modelname
                 oldHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_old(:)-d0)./k)) - 1)),nConf);   % bounds: [1 20]
             case 2 % log
                 d_old_sign = sign(d_old(:));                                                % -1 for respond new, +1 for respond old
-                oldHist = min(max(round(a.*abs(d_old(:)+b)+randn.*sigma_mc),nConf/2+1),nConf);        % confidence rating from 11 to 20
+                oldHist = min(max(round(a.*abs(d_old(:)+d0)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
                 oldHist(d_old_sign < 0) = nConf+1 - oldHist(d_old_sign < 0);                     % changing respond "new" words back to 1 to 10
         end
         oldHist = histc(oldHist,1:nConf); % histogram
@@ -308,3 +309,5 @@ switch modelname
         nLL = -LL_new-LL_old;
 end
 
+theta
+nLL

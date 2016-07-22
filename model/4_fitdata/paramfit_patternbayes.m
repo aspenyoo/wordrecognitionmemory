@@ -1,4 +1,4 @@
-function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelname,nnew_part, nold_part, fixparams,nStartVals, nConf)
+function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelname, binningfn, nnew_part, nold_part, fixparams,nStartVals, nConf)
 % 
 % paramfit_patternbayes(MODELNAME) uses bayesian patternsearch (one of Luigi
 % Acerbi's optimization algorithms) to find the best fit parameters (and
@@ -27,10 +27,9 @@ function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelna
 % Aspen Yoo -- January 28, 2016
 %
 
-if nargin < 4; fixparams = []; end
-if nargin < 5; nStartVals = 1; end
-if nargin < 6; nConf = 20; end
-islogbinning = 1;
+if nargin < 5; fixparams = []; end
+if nargin < 6; nStartVals = 1; end
+if nargin < 7; nConf = 20; end
 nX = 30;
 nS = 20;
 
@@ -53,7 +52,7 @@ startTheta = genStartTheta;
 bfp = nan(size(startTheta));
 nll = nan(nStartVals,1); exitflag = nll;
 for istartval = 1:nStartVals;
-    obj_func = @(x) nLL_approx_vectorized(modelname, x, islogbinning, nnew_part, nold_part, fixparams, nX, nS, nConf );
+    obj_func = @(x) nLL_approx_vectorized(modelname, x, binningfn, nnew_part, nold_part, fixparams, nX, nS, nConf );
     [bfp(istartval,:) ,nll(istartval), exitflag(istartval), outputt{istartval}] = bps(obj_func,startTheta(istartval,:),lb,ub,plb,pub,options);
 end
 
@@ -105,12 +104,19 @@ end
         end
         
         % setting last two parameters
-        if ~(islogbinning)
-            starttheta = [starttheta(:,1:end-2) -rand(nStartVals,1)*10, rand(nStartVals,1)*10 ];
-            lb(end-1:end) = [-Inf 0];
-            ub(end-1:end) = [0 Inf];
-            plb(end-1:end) = [-10 0];
-            pub(end-1:end) = [0 10];
+        switch binningfn
+            case 0 % linear binning
+                starttheta = [starttheta(:,1:end-2) -rand(nStartVals,1)*10, rand(nStartVals,1)*10 ];
+                lb(end-1:end) = [-Inf 0];
+                ub(end-1:end) = [0 Inf];
+                plb(end-1:end) = [-10 0];
+                pub(end-1:end) = [0 10];
+            case 2 % log binning
+                starttheta = [starttheta(:,1:end-2) rand*20 -5+rand*10 -5+rand*10 rand*10];
+                lb = [lb(1:end-2) 0 -100 -100 0];
+                ub = [ub(1:end-2) 100 100 100 100];
+                plb = [plb(1:end-2) 0 -10 -10 0];
+                pub = [pub(1:end-2) 10 10 10 10];
         end
         
         %deleting fix parameter values

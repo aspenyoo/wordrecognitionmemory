@@ -44,6 +44,7 @@ switch modelname
     case 'uneqVar'; nParams = 4;
     case 'REM'; nParams = 7;
 end
+nParams = nParams +2;
 
 % setting variable sizes
 responses.new = nan(nSubj,20);

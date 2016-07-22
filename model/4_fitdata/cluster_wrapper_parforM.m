@@ -1,8 +1,9 @@
-function cluster_wrapper_parforM(modelname, jobnum)
+function cluster_wrapper_parforM(modelname, binningfn, jobnum)
 % a wrapper to fit multiple parameter values iteratively, so that the
 % length of one job will be 48 hours.
 %
 % this function is used to combat the 500 job limit in the cluster. 
+if isempty(binningfn); binningfn = 1; end % logistic is default
 
 nStartVals = 1;
 
@@ -22,7 +23,7 @@ for isubj = 1:length(subjVec);
         
         for iM = 1:length(MVec);
             M = MVec(iM);
-            fitdata_cluster(subjnum,modelname,'patternbayes', [1; M],[],[],nStartVals);
+            fitdata_cluster(subjnum,modelname, binningfn, 'patternbayes', [1; M],[],[],nStartVals);
         end
     end
     

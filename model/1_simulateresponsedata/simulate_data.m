@@ -1,7 +1,7 @@
-function [nnew_part, nold_part] = simulate_data(modelname, theta, islogbinning, nX, nS, nConf, N, plotstuff)
+function [nnew_part, nold_part] = simulate_data(modelname, theta, binningfn, nX, nS, nConf, N, plotstuff)
 % simulatefake simulates fake data
 
-if nargin < 3; islogbinning = 1; end
+if nargin < 3; binningfn = 1; end
 if nargin < 4; nX = 1; end
 if nargin < 5; nS = 1; end
 if nargin < 6; nConf = 20; end
@@ -16,7 +16,7 @@ Nnew = N(1); Nold = N(2);       % number of words
 switch modelname
     
     case 'uneqVar' % UVSD model
-        [pnew, pold] = responses_uneqVar(theta, islogbinning);
+        [pnew, pold] = responses_uneqVar(theta, binningfn);
         nnew_part = round(Nnew*pnew);
         nold_part = round(Nold*pold);
         
@@ -27,11 +27,18 @@ switch modelname
         d0 = theta(4);                  % shift of logistic binning function
         L = nConf/2;
         
+        if (binningfn == 2); 
+            a = theta(3);
+                b = theta(4);
+                d0 = theta(5);
+                sigma_mc = theta(6);
+        end
+        
         sigs = 1;                       % width of word feature distribution
         J = 1/sigs^2 + 1/sigma^2;
         
         newHist = nan(nX,nConf);
-        d_old = nan(Nold,nX,nS);
+        d_old = nan(Nold*nS,nX);
         d_new = nan(Nnew,nS);
         for iX = 1:nX;
             
@@ -53,19 +60,29 @@ switch modelname
             end
             
             % binning new words.
-            if (islogbinning)
-                newHisttemp= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf); % bounds: [1 20]
-            else
-                newHisttemp = min(max(round(m.*d_new(:) + b),1),20); % bounds: [1 20]
+            switch binningfn
+                case 0
+                    newHisttemp = min(max(round(m.*d_new(:) + b),1),20); % bounds: [1 20]
+                case 1
+                    newHisttemp= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf); % bounds: [1 20]
+                case 2
+                    d_new_sign = sign(d_new(:));                                                % -1 for respond new, +1 for respond old
+                    newHisttemp = min(max(round(a.*log(abs(d_new(:)+d0))+b+randn.*sigma_mc),1),L) + L;        % confidence rating from 11 to 20
+                    newHisttemp(d_new_sign < 0) = nConf+1 - newHisttemp(d_new_sign < 0); 
             end
             newHist(iX,:) = histc(newHisttemp,1:nConf);
         end
         
         % binning old words
-        if (islogbinning) % log binning
-            oldHist = min(round(L.*(2./((1+exp(-(d_old(:)-d0)./k))) - 1)+10.5),nConf);
-        else % lin binning
-            oldHist = max(min(round(m.*d_old(:) + b),nConf),1);
+        switch binningfn
+            case 0 % linear binning
+                oldHist = max(min(round(m.*d_old(:) + b),nConf),1);
+            case 1 % logistic binning
+                oldHist = min(round(L.*(2./((1+exp(-(d_old(:)-d0)./k))) - 1)+10.5),nConf);
+            case 2
+                d_old_sign = sign(d_old(:));                                                % -1 for respond new, +1 for respond old
+                oldHist = min(max(round(a.*log(abs(d_old(:)+d0))+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
+                oldHist(d_old_sign < 0) = nConf+1 - oldHist(d_old_sign < 0); 
         end
         oldHist = histc(oldHist,1:nConf); % histogram
         
@@ -124,7 +141,7 @@ switch modelname
             d_old(:,iX) = -log(Nold) + log(sum((1-c).^mismatchSum.*prod(matchMat,2),1));   % log odds
             
             % binning new words.
-            if (islogbinning)
+            if (binningfn)
                 newHisttemp = min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf);
             else
                 newHisttemp = min(max(round(m.*d_new(:) + b),1),nConf);
@@ -134,7 +151,7 @@ switch modelname
         
         
         % binning old words
-        if (islogbinning) % log binning
+        if (binningfn) % log binning
             oldHist = min(round(L.*(2./((1+exp(-(d_old(:)-d0)./k))) - 1)+10.5),nConf);
         else % lin binning
             oldHist = max(min(round(m.*d_old(:) + b),nConf),1);
@@ -155,10 +172,10 @@ if plotstuff(2) == 1;
         subplot(2,1,1)
     end
     if strcmp(modelname,'uneqVar')
-        responses_uneqVar( theta, islogbinning, 0, 1);
+        responses_uneqVar( theta, binningfn, 0, 1);
     else
         binningparameters = theta(3:end);
-        memdistplot(d_old(:), d_new(:), binningparameters, islogbinning);
+        memdistplot(d_old(:), d_new(:), binningparameters, binningfn);
     end
 end
 

@@ -1,15 +1,17 @@
-function [bestFitParam, nLL_est, startTheta, outputt] = fitdata_cluster(isubj, testmodelname, optimMethod, fixparams,truemodelname,nConf, nStartVals)
-if nargin < 4; fixparams = []; end
-if nargin < 5; truemodelname = []; end
+function [bestFitParam, nLL_est, startTheta, outputt] = fitdata_cluster(isubj, testmodelname, binningfn, optimMethod, fixparams, truemodelname, nConf, nStartVals)
+if nargin < 3; binningfn = 1; end
+if nargin < 4; optimMethod = 'patternbayes'; end
+if nargin < 5; fixparams = []; end
+if nargin < 6; truemodelname = []; end
 if isempty(truemodelname); truemodelname = testmodelname; end
-if nargin < 6; nConf = 20; end
+if nargin < 7; nConf = 20; end
 if isempty(nConf); nConf = 20; end 
 if size(fixparams,2) > 2;
     nMs = length(fixparams);
-    if nargin < 7; nStartVals = 1; end
+    if nargin < 8; nStartVals = 1; end
 else
     nMs = 1;
-    if nargin < 7; nStartVals = 10; end
+    if nargin < 8; nStartVals = 10; end
 end
 
 filepath = 'wordrecognitionmemory/model/4_fitdata/BPSfits/';
@@ -30,6 +32,7 @@ switch testmodelname
     case 'REM'
         nParams = 7;
 end
+if (binningfn == 2); nParams = nParams + 2; end % logistic binning has two more parameters
 
 if strcmp(optimMethod,'GS'); nGridsVec = fixparams; clear fixparams; end
 
@@ -61,12 +64,12 @@ for iM = 1:nMs;
     for istartval = 1:nStartVals;
         switch optimMethod
             case 'patternbayes'
-                filename = [filepath 'paramfit_patternbayes_' testmodelname '_subj' num2str(isubj) '.txt'];
+                filename = [filepath 'paramfit_patternbayes_' testmodelname num2str(binningfn) '_subj' num2str(isubj) '.txt'];
                 if isubj > 14;
-                    filename = [filepath 'modelrecovery_patternbayes_' testmodelname '_' truemodelname 'subj' num2str(isubj) '.txt'];
+                    filename = [filepath 'modelrecovery_patternbayes_' testmodelname num2str(binningfn) '_' truemodelname 'subj' num2str(isubj) '.txt'];
                 end
                 
-                [bestFitParam, nLL_est, startTheta, outputt] = paramfit_patternbayes(testmodelname, nnew_part, nold_part, fixparam ,1);
+                [bestFitParam, nLL_est, startTheta, outputt] = paramfit_patternbayes(testmodelname, binningfn, nnew_part, nold_part, fixparam ,1);
                 fileID = fopen(filename,permission);
                 A1 = [bestFitParam, nLL_est, startTheta, outputt.fsd];
                 fprintf(fileID, formatSpec, A1); % save stuff in txt file
