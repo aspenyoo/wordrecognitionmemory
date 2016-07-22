@@ -1,10 +1,10 @@
-function count = countnum(testmodelname,isubj,M, truemodelname, optimMethod)
-if nargin < 4; truemodelname = testmodelname; end
-if nargin < 5; optimMethod = 'patternbayes'; end
+function count = countnum(testmodelname,binningfn, isubj,M, truemodelname, optimMethod)
+if nargin < 5; truemodelname = testmodelname; end
+if nargin < 6; optimMethod = 'patternbayes'; end
 
-filename = ['paramfit_' optimMethod '_' testmodelname '_subj' num2str(isubj) '.txt'];
+filename = ['paramfit_' optimMethod '_' testmodelname num2str(binningfn) '_subj' num2str(isubj) '.txt'];
 if isubj > 14;
-    filename = ['modelrecovery_patternbayes_' testmodelname '_' truemodelname 'subj' num2str(isubj) '.txt'];
+    filename = ['modelrecovery_patternbayes_' testmodelname num2str(binningfn) '_' truemodelname 'subj' num2str(isubj) '.txt'];
 end
 
 % ensuring that there are no space in the txt to fuck up the reading of the file

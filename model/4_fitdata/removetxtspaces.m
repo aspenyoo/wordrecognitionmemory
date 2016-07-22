@@ -1,8 +1,8 @@
-function removetxtspaces(modelname,isubj,optimMethod,filepath)
-if nargin < 3; optimMethod = 'patternbayes'; end
-if nargin < 4; filepath = 'model/4_fitdata/BPSfits'; end
+function removetxtspaces(modelname,binningfn,isubj,optimMethod,filepath)
+if nargin < 4; optimMethod = 'patternbayes'; end
+if nargin < 5; filepath = 'model/4_fitdata/BPSfits/'; end
 
-filename = [filepath 'paramfit_' optimMethod '_' modelname '_subj' num2str(isubj) '.txt'];
+filename = [filepath 'paramfit_' optimMethod '_' modelname num2str(binningfn) '_subj' num2str(isubj) '.txt'];
 
 % Read the file as cell string line by line
 fid = fopen(filename,'r');
