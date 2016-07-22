@@ -1,11 +1,11 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=3
+#PBS -l nodes=1:ppn=14
 #PBS -l walltime=24:00:00
 #PBS -j oe
 #PBS -M aspen.yoo@nyu.edu
-#PBS -l mem=10GB
+#PBS -l mem=30GB
 #PBS -m abe
-#PBS -N paramfit_parforsubj
+#PBS -N paramfit_parforsubj_FP
 
 index=${PBS_ARRAYID}
 job=${PBS_JOBID}
@@ -20,16 +20,12 @@ addpath(genpath('/home/ay963/matlab-scripts'))
 addpath(genpath('/home/ay963/wordrecognitionmemory'))
 
 modelname = 'FP';
-binningfn = 2;
 nStartVals = 10;
 
-fixparam = $index;
-
 parfor isubj = 1:14;
-	nStartVal = max([nStartVals-countnum(modelname,isubj,fixparam) 0]);
-	try
-	fitdata_cluster(isubj,modelname,binningfn,'patternbayes', [1; fixparam],[],[],nStartVal); exit;
-	end
+fixparam = $index;
+	nStartVal = max([10-countnum('FP',isubj,fixparam) 0]);
+	fitdata_cluster(isubj,'FP',2,'patternbayes', [1 6; fixparam 0],[],[],nStartVal); exit;
 end
 
 EOF

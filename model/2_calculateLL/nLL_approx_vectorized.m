@@ -308,6 +308,3 @@ switch modelname
         LL_new = max(LL_new) + log(mean(exp(max(LL_new)-LL_new))); % average over X
         nLL = -LL_new-LL_old;
 end
-
-theta
-nLL
