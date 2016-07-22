@@ -11,6 +11,10 @@ end
 % removetxtspaces(testmodelname,isubj,optimMethod)
 
 filepath = 'model/4_fitdata/BPSfits/';
-data = dlmread([filepath filename]);
-count = sum(data(:,1) == M);
+try
+    data = dlmread([filepath filename]);
+    count = sum(data(:,1) == M);
+catch
+    count = 0;
+end
 
