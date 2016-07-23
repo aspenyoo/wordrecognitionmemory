@@ -14,11 +14,11 @@ filepath = 'model/4_fitdata/BPSfits/';
 try
     nFixedParams = size(fixparams,2);
     data = dlmread([filepath filename]);
-    count = zeros(size(data,1),1);
+    count = ones(size(data,1),1); % logicals
     for iparam = 1:nFixedParams;
-        count = count + data(:,fixparams(1,iparam)) == fixparams(2,iparam);
+        count = count & data(:,fixparams(1,iparam)) == fixparams(2,iparam);
     end
-    count = sum(count == nFixedParams);
+    count = sum(count);
 catch
     count = 0;
 end
