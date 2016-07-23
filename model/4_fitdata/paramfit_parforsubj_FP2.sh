@@ -5,7 +5,7 @@
 #PBS -M aspen.yoo@nyu.edu
 #PBS -l mem=30GB
 #PBS -m abe
-#PBS -N paramfit_parforsubj_FP
+#PBS -N paramfit_parforsubj_FP2
 
 index=${PBS_ARRAYID}
 job=${PBS_JOBID}
