@@ -54,3 +54,38 @@ parfor isubj = 8:10;
 	fitdata_cluster(isubj,modelname,'patternbayes', [1; fixparam],[],[],nStartVals); 
 end
 exit;
+
+%% checking which jobs need to be resubmitted
+
+subjid = 14;
+z = nan(59,2); 
+
+for i=42:59; 
+    z(i,2) = countnum2('FP',2,subjid,[1 6; i 0]);
+    z(i,1)=i; 
+end
+
+z'
+
+%% checking nLL of fit parameters with nLL given
+
+modelname
+isubj = 1;
+binningfn = 2;
+
+bestFitParam(isubj,:)
+nLL_est(isubj,:)
+
+[nnew_part, nold_part] = loadsubjdata(isubj,modelname,20);
+nLL_approx_vectorized(modelname,bestFitParam(isubj,:),binningfn,nnew_part,nold_part)
+
+%% create joblist
+
+nStartVals = 10;
+esttimeVec = repmat(linspace(.3,4,50),1,nStartVals);
+jobnumVec = repmat(1:50,1,nStartVals);
+maxTime = 36;
+
+filepath = 'model/4_fitdata/';
+jobfilename = [filepath 'joblist_07252016.txt'];
+create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);

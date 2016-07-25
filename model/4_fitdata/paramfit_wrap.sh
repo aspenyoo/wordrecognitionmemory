@@ -1,11 +1,11 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=13
+#PBS -l nodes=1:ppn=1
 #PBS -l walltime=48:00:00
 #PBS -j oe
 #PBS -M aspen.yoo@nyu.edu
-#PBS -l mem=26GB
+#PBS -l mem=4GB
 #PBS -m abe
-#PBS -N paramfit_wrapper
+#PBS -N paramfit_wrap
 
 index=${PBS_ARRAYID}
 job=${PBS_JOBID}
@@ -19,11 +19,16 @@ cat<<EOF | matlab -nodisplay
 addpath(genpath('/home/ay963/matlab-scripts'))
 addpath(genpath('/home/ay963/wordrecognitionmemory'))
 
-modelname = 'REM';
-binningfn = 1;
-subjids = 1:14;
+modelname = 'FP';
+binningfn = 3;
 
-cluster_wrapper(modelname, binningfn, subjids, $index+1)
+if $index > 100;
+    blah = num2str($index);
+    isubj = str2double(blah(1:end-2));
+    joblistnum = str2double(blah(end-1:end)); 
+end
+
+cluster_wrapper(modelname, binningfn, isubj, joblistnum)
 
 EOF
 

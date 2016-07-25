@@ -1,16 +1,26 @@
-function getbestfitparams(modelname, nSubj)
+function getbestfitparams(modelname, binningfn, subjids,filepath)
 % gets the best fitting parameters from txt file across subjects and
 % compiles it into a .mat file
 % 
 % MODELNAME: name of the model. FP, FPheurs, or uneqVar
 % NSUBJ: number of subjects (e.g., 14, 25)
+if nargin < 4; filepath = ['model' filesep '4_fitdata' filesep 'BPSfits' filesep]; end
 
-nLLcol = 5; % column corresponding to nLLs for FP, FPheurs, and uneqVar models
+switch modelname
+    case {'FP','FPheurs','uneqVar'}
+        nParams = 4;
+    case 'REM'
+        nParams = 7;
+end
 
-bestdata = nan(nSubj,10);
+if (binningfn == 2); nParams = nParams + 2; end 
+nLLcol = nParams + 1; % column corresponding to nLLs for FP, FPheurs, and uneqVar models
+nSubj = length(subjids);
+
+bestdata = nan(nSubj,nLLcol*2);
 for isubj = 1:nSubj;
-    isubj
-    filename = ['paramfit_patternbayes_' modelname '_subj' num2str(isubj) '.txt'];
+    subjid = subjids(isubj);
+    filename = [filepath 'paramfit_patternbayes_' modelname num2str(binningfn) '_subj' num2str(subjid) '.txt'];
     alldata = dlmread(filename);
     
     datasorted = sortrows(alldata,nLLcol);
@@ -18,10 +28,10 @@ for isubj = 1:nSubj;
     
 end
 
-bestFitParam = bestdata(:,1:4);
-nLL_est = bestdata(:,5);
+bestFitParam = bestdata(:,1:nParams);
+nLL_est = bestdata(:,nLLcol);
 % startTheta = bestdata(:,6:9);
-nLL_SD = bestdata(:,10);
+nLL_SD = bestdata(:,end);
 
-matfilename = ['model/4_fitdata/paramfit_patternbayes_' modelname '.mat'];
-save(matfilename,'bestFitParam','nLL_est','nLL_SD');
+matfilename = [ filepath 'paramfit_patternbayes_' modelname num2str(binningfn) '.mat'];
+save(matfilename,'subjids','modelname','binningfn','bestFitParam','nLL_est','nLL_SD');

@@ -17,13 +17,13 @@ nStartVals = 1;
 
 % load table with M numbers for particular job lists
 
-samejoblist = 0;
+samejoblist = 1;
 parfor isubj = 1:nSubj;
     
     subjid = subjids(isubj);
     
     if (samejoblist)
-        alldata = dlmread('joblist_03302016.txt');
+        alldata = dlmread('joblist_07252016.txt');
     else
         alldata = dlmread(['joblist_patternbayes_subj' num2str(subjid) '_maxtime48.txt']);
     end
