@@ -1,12 +1,10 @@
-function memdistplot(dold, dnew, binningparameters, islogbinning)
+function memdistplot(dold, dnew, binningparameters, binningfn)
 % plots memory distribution
 %
 % ========== INPUT VARIABLES ==========
 % DNEW: vector of DNEW values. if DNEW is a matrix, then MEMDISTPLOT will
 % plot the mean and SEM for each row.
 
-
-if nargin < 4; islogbinning = 1; end % default log binning
 if length(size(dold))>2; error('matrix dold too large'); end
 nX = min(size(dold));
 if nX ~= 1;
@@ -64,14 +62,20 @@ else
     set(gca,'YTick',[])
 end
 
-if (islogbinning)
-    k = binningparameters(1);
-    d0 = binningparameters(2);
-    d = -k.*log(((2*L)./(confidence - 10.5 + L)) -1) + d0;
-else
-    c1 = binningparameters(1);
-    c2 = binningparameters(2);
-    d = [-Inf linspace(c1,c2,19) Inf];
+switch binningfn
+    case 2
+        a = binningparameters(1);
+        b = binningparameters(2);
+        d0 = binningparameters(3);
+        d = [exp((confidence(1:length(confidence)/2) - b)./a)-d0 -exp((confidence(1:length(confidence)/2) - b)./a)-d0];
+    case 1
+        k = binningparameters(1);
+        d0 = binningparameters(2);
+        d = -k.*log(((2*L)./(confidence - 10.5 + L)) -1) + d0;
+    case 0
+        c1 = binningparameters(1);
+        c2 = binningparameters(2);
+        d = [-Inf linspace(c1,c2,19) Inf];
 end
 
 for j = 1:length(confidence);

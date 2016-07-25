@@ -1,4 +1,4 @@
-function plotparamfits(modelname, islogbinning, optimizationMethod, bestFitParam, nConf, isdatasave, fakedata, subjnum, selectiveplot)
+function plotparamfits(modelname, binningfn, optimizationMethod, bestFitParam, nConf, isdatasave, fakedata, subjnum, selectiveplot)
 % function that plots confdist (data and model overlaid)
 
 nSubj = size(bestFitParam,1);
@@ -8,7 +8,6 @@ if nargin < 6; isdatasave = 0; end
 if nargin < 7; fakedata = 0; end % default: real subject data
 if nargin < 8; subjnum = 1:nSubj; end
 if isempty(subjnum); subjnum = 1:nSubj; end
-if (islogbinning); linlog = 'log'; else linlog = 'lin'; end
 if nargin < 9; selectiveplot = [1 1 1 0]; end % automaticlyy plots everything
 date = clock;
 
@@ -48,27 +47,20 @@ end
 gold = aspencolors('dustygold');
 greyblue = aspencolors('greyblue');
 
+switch modelname
+    case {'FP','FPheurs','uneqVar'}
+        nParams = 4;
+    case 'REM'
+        nParams = 7;
+end
+if (binningfn == 2); nParams = nParams + 2; end 
+
 % getting simulated data
 pNew_est = nan(nSubj,20); pOld_est = pNew_est;
 for isubjnum = 1:nSubj;
     
-    switch modelname
-        case 'uneqVar'
-            nParams = 4;
-            [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = simulate_data('uneqVar',bestFitParam(isubjnum,:),islogbinning);
-        case 'FP'
-            nParams = 4;
-            [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = simulate_data('FP',bestFitParam(isubjnum,:),islogbinning,30,20);
-            %             case 'VP'
-            %                 nParams = 5;
-            %                 [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = responses_VP(bestFitParam(isubjnum,:),islogbinning);
-        case 'FPheurs'
-            nParams = 4;
-            [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = simulate_data('FPheurs',bestFitParam(isubjnum,:),islogbinning,30,20);
-            %             case 'VPheurs'
-            %                 nParams = 5;
-            %                 [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = responses_VPheurs(bestFitParam(isubjnum,:),islogbinning);
-    end
+    [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = simulate_data(modelname,bestFitParam(isubjnum,:),binningfn);
+
 end
 
 % change numbers to probabilities
@@ -183,7 +175,7 @@ if (selectiveplot(1))
         %         saveas(gcf,['paramfit_' modelname linlog '_' optimizationMethod ...
         %              '_confdist' num2str(date(2)) num2str(date(3)) num2str(date(1)) '.emf'])
         img = getframe(gcf);
-        imwrite(img.cdata, ['paramfit_' modelname linlog '_' optimizationMethod ...
+        imwrite(img.cdata, ['paramfit_' modelname num2str(binningfn) '_' optimizationMethod ...
             '_confdist_' num2str(date(2)) num2str(date(3)) num2str(date(1)) '.png']);
     end
 end
@@ -269,7 +261,7 @@ if (selectiveplot(2))
         %         saveas(gcf,['paramfit_' modelname linlog '_' optimizationMethod ...
         %              '_confdistAverage' num2str(date(2)) num2str(date(3)) num2str(date(1)) '.emf'])
         img = getframe(gcf);
-        imwrite(img.cdata, ['paramfit_' modelname linlog '_' optimizationMethod ...
+        imwrite(img.cdata, ['paramfit_' modelname num2str(binningfn) '_' optimizationMethod ...
             '_confdistAverage_' num2str(date(2)) num2str(date(3)) num2str(date(1)) '.png']);
     end
 end
@@ -285,7 +277,7 @@ if (selectiveplot(3))
         
 %         switch modelname
 %             case 'FP'
-                simulate_data(modelname,bestFitParam(isubjnum,:),islogbinning, 30, 20,20,150,[0 1]);
+                simulate_data(modelname,bestFitParam(isubjnum,:),binningfn, 30, 20,20,150,[0 1]);
 %             case 'VP'
 %                 responses_VP( bestFitParam(isubjnum,:),islogbinning, 0,1);
 %             case 'FPheurs'
@@ -308,7 +300,7 @@ if (selectiveplot(3))
         %         saveas(gcf,['paramfit_' modelname linlog '_' optimizationMethod ...
         %              '_memdist' num2str(date(2)) num2str(date(3)) num2str(date(1)) '.emf'])
         img = getframe(gcf);
-        imwrite(img.cdata, ['paramfit_' modelname linlog '_' optimizationMethod ...
+        imwrite(img.cdata, ['paramfit_' modelname num2str(binningfn) '_' optimizationMethod ...
             '_memdist_' num2str(date(2)) num2str(date(3)) num2str(date(1)) '.png']);
     end
 end
@@ -380,7 +372,7 @@ if (selectiveplot(4))
     
     if (isdatasave)
         img = getframe(gcf);
-        imwrite(img.cdata, ['paramfit_' modelname linlog '_' optimizationMethod ...
+        imwrite(img.cdata, ['paramfit_' modelname num2str(binningfn) '_' optimizationMethod ...
             '_confdistBoxplot_' num2str(date(2)) num2str(date(3)) num2str(date(1)) '.png']);
     end
 end

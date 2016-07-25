@@ -25,7 +25,7 @@ function [ nLL ] = nLL_approx_vectorized( modelname, theta, binningfn, nnew_part
 
 if nargin < 6; fixparams = []; end
 if nargin < 7; nX = 30; end
-if nargin < 8; if strcmp(modelname,'REM'); nS = 20; else nS = 20; end, end
+if nargin < 8; nS = 20; end
 if nargin < 9; nConf = 20; end
 
 rng('shuffle')
