@@ -55,7 +55,7 @@ switch modelname
             case 1 % logistic
                 k = theta(3);
                 d0 = theta(4);
-            case 2 % log
+            case {2,3} % log
                 a = theta(3);
                 b = theta(4);
                 d0 = theta(5);
@@ -122,6 +122,11 @@ switch modelname
                     d_new_sign = sign(d_new(:));                                                % -1 for respond new, +1 for respond old
                     newHist = min(max(round(a.*log(abs(d_new(:)+d0))+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
                     newHist(d_new_sign < 0) = nConf+1 - newHist(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
+                case 3 % log mapping on p(correct|evidence) instead of LPR
+                    d_new_sign = sign(d_new(:));                                                % -1 for respond new, +1 for respond old
+                    q = 1./(1+exp(-abs(d_new(:)+d0)));
+                    newHist = min(max(round(a.*log(q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
+                    newHist(d_new_sign < 0) = nConf+1 - newHist(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
             end
             newHist = histc(newHist,1:nConf);
             pnew = lambda/nConf + (1-lambda)*(newHist/sum(newHist));
@@ -166,7 +171,12 @@ switch modelname
                 oldHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_old(:)-d0)./k)) - 1)),nConf);   % bounds: [1 20]
             case 2 % log
                 d_old_sign = sign(d_old(:));                                                % -1 for respond new, +1 for respond old
-                oldHist = min(max(round(a.*abs(d_old(:)+d0)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
+                oldHist = min(max(round(a.*log(abs(d_old(:)+d0))+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
+                oldHist(d_old_sign < 0) = nConf+1 - oldHist(d_old_sign < 0);                     % changing respond "new" words back to 1 to 10
+            case 3 % log mapping on p(correct|evidence) instead of LPR
+                d_old_sign = sign(d_old(:));                                                % -1 for respond new, +1 for respond old
+                q = 1./(1+exp(-abs(d_old(:)+d0)));
+                oldHist = min(max(round(a.*log(q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
                 oldHist(d_old_sign < 0) = nConf+1 - oldHist(d_old_sign < 0);                     % changing respond "new" words back to 1 to 10
         end
         oldHist = histc(oldHist,1:nConf); % histogram

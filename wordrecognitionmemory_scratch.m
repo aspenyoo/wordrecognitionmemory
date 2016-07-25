@@ -79,3 +79,13 @@ nLL_est(isubj,:)
 [nnew_part, nold_part] = loadsubjdata(isubj,modelname,20);
 nLL_approx_vectorized(modelname,bestFitParam(isubj,:),binningfn,nnew_part,nold_part)
 
+%% create joblist
+
+nStartVals = 10;
+esttimeVec = repmat(linspace(.3,4,50),1,nStartVals);
+jobnumVec = repmat(1:50,1,nStartVals);
+maxTime = 36;
+
+filepath = 'model/4_fitdata/';
+jobfilename = [filepath 'joblist_07252016.txt'];
+create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);

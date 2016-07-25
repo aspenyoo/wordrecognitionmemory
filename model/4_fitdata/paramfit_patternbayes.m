@@ -111,7 +111,7 @@ end
                 ub(end-1:end) = [0 Inf];
                 plb(end-1:end) = [-10 0];
                 pub(end-1:end) = [0 10];
-            case 2 % log binning
+            case {2,3} % log binning
                 starttheta = [starttheta(:,1:end-2) rand*20 -5+rand*10 -5+rand*10 rand*10];
                 lb = [lb(1:end-2) 0 -100 -100 0];
                 ub = [ub(1:end-2) 100 100 100 100];
