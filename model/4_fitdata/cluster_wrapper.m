@@ -18,7 +18,7 @@ nStartVals = 1;
 % load table with M numbers for particular job lists
 
 samejoblist = 1;
-parfor isubj = 1:nSubj;
+for isubj = 1:nSubj;
     
     subjid = subjids(isubj);
     
