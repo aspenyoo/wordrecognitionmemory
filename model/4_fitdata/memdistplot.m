@@ -21,7 +21,7 @@ greyblue = aspencolors('greyblue');
 %     figure; subplot(2,1,1)
 %     figure;
 confidence = 0.5:19.5;
-hold on;
+hold on;    
 
 [~,centers] = hist([dold(:)', dnew(:)'],nHist);
 [nelemold] = hist(dold,centers);
@@ -63,6 +63,15 @@ else
 end
 
 switch binningfn
+    case 3
+        a = binningparameters(1);
+        b = binningparameters(2);
+        d0 = binningparameters(3);
+        (confidence(1:length(confidence)/2)-b)./a
+        exp((confidence(1:length(confidence)/2)-b)./a)-1
+        1./exp((confidence(1:length(confidence)/2)-b)./a)-1
+        log(1./exp((confidence(1:length(confidence)/2)-b)./a)-1)
+        d = [-log(1./exp((confidence(1:length(confidence)/2)-b)./a)-1)-d0 log(1./exp((confidence(1:length(confidence)/2)-b)./a)-1)-d0];
     case 2
         a = binningparameters(1);
         b = binningparameters(2);

@@ -27,11 +27,11 @@ switch modelname
         d0 = theta(4);                  % shift of logistic binning function
         L = nConf/2;
         
-        if (binningfn == 2); 
+        if (binningfn == 2 || binningfn == 3);
             a = theta(3);
-                b = theta(4);
-                d0 = theta(5);
-                sigma_mc = theta(6);
+            b = theta(4);
+            d0 = theta(5);
+            sigma_mc = theta(6);
         end
         
         sigs = 1;                       % width of word feature distribution
@@ -68,7 +68,12 @@ switch modelname
                 case 2
                     d_new_sign = sign(d_new(:));                                                % -1 for respond new, +1 for respond old
                     newHisttemp = min(max(round(a.*log(abs(d_new(:)+d0))+b+randn.*sigma_mc),1),L) + L;        % confidence rating from 11 to 20
-                    newHisttemp(d_new_sign < 0) = nConf+1 - newHisttemp(d_new_sign < 0); 
+                    newHisttemp(d_new_sign < 0) = nConf+1 - newHisttemp(d_new_sign < 0);
+                case 3 % log mapping on p(correct|evidence) instead of LPR
+                    d_new_sign = sign(d_new(:));                                                % -1 for respond new, +1 for respond old
+                    q = 1./(1+exp(-abs(d_new(:)+d0)));
+                    newHisttemp = min(max(round(a.*log(q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
+                    newHisttemp(d_new_sign < 0) = nConf+1 - newHisttemp(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
             end
             newHist(iX,:) = histc(newHisttemp,1:nConf);
         end
@@ -82,7 +87,12 @@ switch modelname
             case 2
                 d_old_sign = sign(d_old(:));                                                % -1 for respond new, +1 for respond old
                 oldHist = min(max(round(a.*log(abs(d_old(:)+d0))+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
-                oldHist(d_old_sign < 0) = nConf+1 - oldHist(d_old_sign < 0); 
+                oldHist(d_old_sign < 0) = nConf+1 - oldHist(d_old_sign < 0);
+            case 3 % log mapping on p(correct|evidence) instead of LPR
+                d_old_sign = sign(d_old(:));                                                % -1 for respond new, +1 for respond old
+                q = 1./(1+exp(-abs(d_old(:)+d0)));
+                oldHist = min(max(round(a.*log(q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
+                oldHist(d_old_sign < 0) = nConf+1 - oldHist(d_old_sign < 0);                     % changing respond "new" words back to 1 to 10
         end
         oldHist = histc(oldHist,1:nConf); % histogram
         
@@ -120,24 +130,24 @@ switch modelname
             % decision variable values for new words
             idxmatch = bsxfun(@eq, SNew, X); % indices in which new words match X
             mismatchSum = sum(bsxfun(@and,bsxfun(@ne,X,0),~idxmatch),2);
-
+            
             matchMat = ones(Nold, M, Nold*nS);
             all_idx = mod(find(idxmatch),Nold*M);
             all_idx(all_idx==0) = Nold*M;
             matchMat(idxmatch) = mismatchoddsVec(X(all_idx));
-
+            
             d_new = -log(Nnew) + log(sum((1-c).^mismatchSum.*prod(matchMat,2),1));   % log odds
             
             
             % decision variable values for old words
             idxmatch = bsxfun(@eq, permute(SOld, [3 2 1]), X); % indices in which new words match X
             mismatchSum = sum(bsxfun(@and,bsxfun(@ne,X,0),~idxmatch),2);
-
+            
             matchMat = ones(Nold, M, Nold*nS);
             all_idx = mod(find(idxmatch),Nold*M);
             all_idx(all_idx==0) = Nold*M;
             matchMat(idxmatch) = mismatchoddsVec(X(all_idx));
-           
+            
             d_old(:,iX) = -log(Nold) + log(sum((1-c).^mismatchSum.*prod(matchMat,2),1));   % log odds
             
             % binning new words.
