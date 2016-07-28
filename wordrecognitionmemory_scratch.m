@@ -51,21 +51,25 @@ nStartVals = 1;
 
 parfor isubj = 8:10;
     isubj
-	fitdata_cluster(isubj,modelname,'patternbayes', [1; fixparam],[],[],nStartVals); 
+    fitdata_cluster(isubj,modelname,'patternbayes', [1; fixparam],[],[],nStartVals);
 end
 exit;
 
 %% checking which jobs need to be resubmitted
 
-subjid = 14;
-z = nan(59,2); 
+modelname = 'FP';
+binningfn = 3;
+nSubj = 14;
+z = nan(59,2);
 
-for i=42:59; 
-    z(i,2) = countnum2('FP',2,subjid,[1 6; i 0]);
-    z(i,1)=i; 
+for isubj = 1:nSubj;
+    for i=1:50;
+        z(i,2) = countnum2(modelname,3,isubj,[1 6; i 0]);
+        z(i,1)=i;
+    end
+    z'
 end
 
-z'
 
 %% checking nLL of fit parameters with nLL given
 
