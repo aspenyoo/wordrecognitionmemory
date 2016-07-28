@@ -20,6 +20,7 @@ addpath(genpath('/home/ay963/matlab-scripts'))
 addpath(genpath('/home/ay963/wordrecognitionmemory'))
 
 modelname = 'REM';
+binningfn = 1;
 nStartVals = 10;
 
 % used in cluster to indicate both subject and fixed M
@@ -27,11 +28,10 @@ if $index > 100;
     blah = num2str($index);
     isubj = str2double(blah(1:end-2));
     fixparam = str2double(blah(end-1:end)); % fixing M value
-    nStartVals = max([nStartVals-countnum(modelname,isubj,fixparam) 0]); % nStartVals. used for resubmitting
+    nStartVals = max([nStartVals-countnum(modelname,binningfn,isubj,fixparam) 0]); % nStartVals. used for resubmitting
 end
 
-% fitdata_cluster(isubj, 'uneqVar','patternbayes');
-fitdata_cluster(isubj,modelname,'patternbayes', [1; fixparam],[],[],nStartVals); exit;
+fitdata_cluster(isubj,modelname,binningfn,'patternbayes', [1; fixparam],[],[],nStartVals); exit;
 
 status = 0;
 while true

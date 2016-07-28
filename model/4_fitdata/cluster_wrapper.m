@@ -32,7 +32,7 @@ for isubj = 1:nSubj;
     
     for iM = 1:length(MVec);
         fixparam = MVec(iM)
-        fitdata_cluster(subjid, modelname, binningfn, 'patternbayes', [1; fixparam],[],[],nStartVals);
+        fitdata_cluster(subjid, modelname, binningfn, 'patternbayes', [1 5; fixparam 0],[],[],nStartVals);
     end
     
 end
