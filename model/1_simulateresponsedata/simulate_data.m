@@ -129,32 +129,24 @@ switch modelname
             
             % decision variable values for new words
             idxmatch = bsxfun(@eq, SNew, X); % indices in which new words match X
-            mismatchSum = sum(bsxfun(@and,bsxfun(@ne,X,0),~idxmatch),2);
             
-            matchMat = ones(Nold, M, Nold*nS);
-            all_idx = mod(find(idxmatch),Nold*M);
-            all_idx(all_idx==0) = Nold*M;
-            matchMat(idxmatch) = mismatchoddsVec(X(all_idx));
-            
-            d_new = -log(Nnew) + log(sum((1-c).^mismatchSum.*prod(matchMat,2),1));   % log odds
-            
+            LRmat = 1-c + c*(1-g)/g * bsxfun(@times,idxmatch,(1-g).^-X) ; 
+            LRmat(bsxfun(@eq,zeros(1,M,Nold*nS),X)) = 1;
+            d_new = log(mean(prod(LRmat,2),1));   % log odds
             
             % decision variable values for old words
             idxmatch = bsxfun(@eq, permute(SOld, [3 2 1]), X); % indices in which new words match X
-            mismatchSum = sum(bsxfun(@and,bsxfun(@ne,X,0),~idxmatch),2);
             
-            matchMat = ones(Nold, M, Nold*nS);
-            all_idx = mod(find(idxmatch),Nold*M);
-            all_idx(all_idx==0) = Nold*M;
-            matchMat(idxmatch) = mismatchoddsVec(X(all_idx));
+            LRmat = 1-c + c*(1-g)/g * bsxfun(@times,idxmatch,exp(-X.*log(1-g)));
+            LRmat(bsxfun(@eq,zeros(1,M,Nold*nS),X)) = 1;
+            d_old(:,iX) = log(mean(prod(LRmat,2),1));
             
-            d_old(:,iX) = -log(Nold) + log(sum((1-c).^mismatchSum.*prod(matchMat,2),1));   % log odds
-            
+
             % binning new words.
             if (binningfn)
                 newHisttemp = min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf);
             else
-                newHisttemp = min(max(round(m.*d_new(:) + b),1),nConf);
+                newHisttemp = min(max(round(slope.*d_new(:) + b),1),nConf);
             end
             newHist(iX,:) = histc(newHisttemp,1:nConf);
         end

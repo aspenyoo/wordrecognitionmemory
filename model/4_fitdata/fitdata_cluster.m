@@ -1,4 +1,5 @@
 function [bestFitParam, nLL_est, startTheta, outputt] = fitdata_cluster(isubj, testmodelname, binningfn, optimMethod, fixparams, truemodelname, nConf, nStartVals)
+
 if nargin < 3; binningfn = 1; end
 if nargin < 4; optimMethod = 'patternbayes'; end
 if nargin < 5; fixparams = []; end

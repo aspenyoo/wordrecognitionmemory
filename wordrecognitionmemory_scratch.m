@@ -99,9 +99,9 @@ create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 
 %% get best parameter fits
 
-modelname = 'FP';
-binningfn = 3;
-subjids = 1:14;
+modelname = 'REM';
+binningfn = 1;
+subjids = [1:3 5:14];
 optimMethod = 'patternbayes';
 
 nSubj = length(subjids);
@@ -114,3 +114,13 @@ getbestfitparams(modelname,binningfn,subjids)
 
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
 plotparamfits(modelname,binningfn,optimMethod,bestFitParam,20, 0, 0, subjids, [1 1 0 0])
+
+%% looking at subject stuff
+% debugging for REM subject 4
+
+nSubj = 14;
+nnew_part = nan(nSubj,20); nold_part = nnew_part;
+for isubj = 1:nSubj;
+   [nnew_part(isubj,:), nold_part(isubj,:)] = loadsubjdata(isubj); 
+end
+
