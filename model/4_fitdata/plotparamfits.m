@@ -57,9 +57,10 @@ if (binningfn == 2); nParams = nParams + 2; end
 
 % getting simulated data
 pNew_est = nan(nSubj,20); pOld_est = pNew_est;
+nX = 30; nS = 20;
 for isubjnum = 1:nSubj;
-    
-    [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = simulate_data(modelname,bestFitParam(isubjnum,:),binningfn);
+    isubjnum
+    [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = simulate_data(modelname,bestFitParam(isubjnum,:),binningfn,nX,nS);
 
 end
 

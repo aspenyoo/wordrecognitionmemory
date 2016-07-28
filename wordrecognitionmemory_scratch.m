@@ -57,14 +57,17 @@ exit;
 
 %% checking which jobs need to be resubmitted
 
-modelname = 'FP';
-binningfn = 3;
+modelname = 'REM';
+binningfn = 1;
+optimMethod = 'patternbayes';
 nSubj = 14;
-z = nan(59,2);
+z = nan(50,2);
 
-for isubj = 1:nSubj;
+for isubj = 5:nSubj;
+    removetxtspaces(modelname,binningfn,isubj,optimMethod)
+    isubj
     for i=1:50;
-        z(i,2) = countnum2(modelname,3,isubj,[1 6; i 0]);
+        z(i,2) = countnum2(modelname,binningfn,isubj,[1; i]);
         z(i,1)=i;
     end
     z'
@@ -93,3 +96,21 @@ maxTime = 36;
 filepath = 'model/4_fitdata/';
 jobfilename = [filepath 'joblist_07252016.txt'];
 create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
+
+%% get best parameter fits
+
+modelname = 'FP';
+binningfn = 3;
+subjids = 1:14;
+optimMethod = 'patternbayes';
+
+nSubj = length(subjids);
+for isubj = 1:nSubj;
+    subjid = subjids(isubj);
+    removetxtspaces(modelname,binningfn,subjid,optimMethod);
+end
+
+getbestfitparams(modelname,binningfn,subjids)
+
+load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
+plotparamfits(modelname,binningfn,optimMethod,bestFitParam,20, 0, 0, subjids, [1 1 0 0])
