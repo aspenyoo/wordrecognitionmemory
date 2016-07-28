@@ -1,9 +1,10 @@
-function makejoblist(testmodelname,maxtime, optimMethod,subjids,Mrange,truemodelname)
+function makejoblist(testmodelname,binningfn, maxtime, optimMethod,subjids,Mrange,nJobs, truemodelname)
 
-if nargin < 3; optimMethod = 'patternbayes'; end
-if nargin < 4; subjids = 1:14; end
-if nargin < 5; Mrange = [1 50]; end
-if nargin < 6; truemodelname = []; end
+if nargin < 4; optimMethod = 'patternbayes'; end
+if nargin < 5; subjids = 1:14; end
+if nargin < 6; Mrange = [1 50]; end
+if nargin < 7; nJobs = []; end
+if nargin < 8; truemodelname = []; end
 
 filepath = 'model/4_fitdata/';
 jobtime = 12;
@@ -13,15 +14,15 @@ for isubj = 1:length(subjids);
     
     jobnumVec = []; esttimeVec = [];
     for iM = Mrange(1):Mrange(2);
-        numM = countnum(testmodelname,subjid,iM,truemodelname);
+        numM = countnum(testmodelname,binningfn,subjid,iM,truemodelname);
 
         jobnumVec = [jobnumVec repmat(iM, [1 10-numM])];
         esttimeVec = [esttimeVec repmat(jobtime/numM,[1 10-numM])];
     end
     esttimeVec(isinf(esttimeVec)) = jobtime;
-    
-    jobfilename = [filepath 'joblist_' optimMethod '_subj' num2str(subjid) '_maxtime' num2str(maxtime) '.txt'];
-    create_joblist(jobfilename, jobnumVec, esttimeVec, maxtime)
+
+    jobfilename = [filepath 'joblist_' testmodelname num2str(binningfn) '_' optimMethod '_subj' num2str(subjid) '_maxtime' num2str(maxtime) '.txt'];
+    create_joblist(jobfilename, jobnumVec, esttimeVec, maxtime, nJobs)
     
 %     % put everything in the new joblist
 %     fileID = fopen(jobfilename,permission);
