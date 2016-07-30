@@ -99,9 +99,9 @@ create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 
 %% get best parameter fits
 
-modelname = 'REM';
-binningfn = 1;
-subjids = [1:3 5:14];
+modelname = 'FP';
+binningfn = 2;
+subjids = [1:14];
 optimMethod = 'patternbayes';
 
 nSubj = length(subjids);
