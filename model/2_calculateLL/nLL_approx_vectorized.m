@@ -119,11 +119,11 @@ switch modelname
                 case 1 % logistic
                     newHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf);   % bounds: [1 20]
                 case 2 % log
-                    d_new_sign = sign(d_new(:));                                                % -1 for respond new, +1 for respond old
+                    d_new_sign = sign(d_new(:)+d0);                                                % -1 for respond new, +1 for respond old
                     newHist = min(max(round(a.*log(abs(d_new(:)+d0))+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
                     newHist(d_new_sign < 0) = nConf+1 - newHist(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
                 case 3 % log mapping on p(correct|evidence) instead of LPR
-                    d_new_sign = sign(d_new(:));                                                % -1 for respond new, +1 for respond old
+                    d_new_sign = sign(d_new(:)+d0);                                                % -1 for respond new, +1 for respond old
                     q = 1./(1+exp(-abs(d_new(:)+d0)));
                     newHist = min(max(round(a.*log(q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
                     newHist(d_new_sign < 0) = nConf+1 - newHist(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10

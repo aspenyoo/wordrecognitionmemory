@@ -18,26 +18,13 @@ if isstruct(fakedata)
     pOld_part = fakedata.old;
 else
     % load real data
-    load('mickes_rawdata.mat','Hit','FA','CR','Miss')
-    nNew_part = (CR + FA);
-    nOld_part = (Hit + Miss);
-    
-    if nConf ~= 20 && (size(nNew_part,2)==20);
-        nNew_parttemp = nan(nSubj,nConf);
-        nOld_parttemp = nNew_parttemp;
-        num = round(20/nConf);
-        for i = 1:nConf-1;
-            nNew_parttemp(:,i) = sum(nNew_part(:,num*(i-1)+1:num*i),2);
-            nOld_parttemp(:,i) = sum(nOld_part(:,num*(i-1)+1:num*i),2);
-        end
-        nNew_parttemp(:,nConf) = sum(nNew_part(:,(num*(nConf-1)+1):end),2);
-        nOld_parttemp(:,nConf) = sum(nOld_part(:,(num*(nConf-1)+1):end),2);
-        nNew_part = nNew_parttemp;
-        nOld_part = nOld_parttemp;
+    nNew_part = nan(nSubj,nConf); nOld_part = nan(nSubj,nConf);
+    for isubj = 1:nSubj;
+        subjnumm = subjnum(isubj);
+        [nNew_part(isubj,:), nOld_part(isubj,:)] = loadsubjdata(subjnumm,[], nConf);
     end
-        
-    pNew_part = bsxfun(@rdivide, nNew_part,sum(nNew_part,2));
-    pOld_part = bsxfun(@rdivide, nOld_part,sum(nOld_part,2));
+    pNew_part = nNew_part/150;
+    pOld_part = nOld_part/150;
 end
 
 % ====================================================================
@@ -59,7 +46,8 @@ if (binningfn == 2); nParams = nParams + 2; end
 pNew_est = nan(nSubj,20); pOld_est = pNew_est;
 nX = 30; nS = 20;
 for isubjnum = 1:nSubj;
-    isubjnum
+    
+    subjnum(isubjnum)
     [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = simulate_data(modelname,bestFitParam(isubjnum,:),binningfn,nX,nS);
 
 end
