@@ -33,7 +33,7 @@ switch testmodelname
     case 'REM'
         nParams = 7;
 end
-if (binningfn == 2 || binningfn == 3); nParams = nParams + 2; end % logistic binning has two more parameters
+if any(binningfun == [2 3 4]); nParams = nParams + 2; end % logistic binning has two more parameters
 
 if strcmp(optimMethod,'GS'); nGridsVec = fixparams; clear fixparams; end
 

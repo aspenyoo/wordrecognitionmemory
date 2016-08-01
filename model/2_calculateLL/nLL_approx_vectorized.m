@@ -127,6 +127,11 @@ switch modelname
                     q = 1./(1+exp(-abs(d_new(:)+d0)));
                     newHist = min(max(round(a.*log(q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
                     newHist(d_new_sign < 0) = nConf+1 - newHist(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
+                case 4 % log mapping on 1/(1-p(correct))
+                    d_new_sign = sign(d_new(:)+d0);   
+                    q = 1./(1-(1+exp(-abs(d_new(:)+d0))));
+                    newHist = min(max(round(a.*log(q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
+                    newHist(d_new_sign < 0) = nConf+1 - newHist(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
             end
             newHist = histc(newHist,1:nConf);
             pnew = lambda/nConf + (1-lambda)*(newHist/sum(newHist));
