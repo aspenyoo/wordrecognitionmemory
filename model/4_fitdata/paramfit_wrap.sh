@@ -20,7 +20,7 @@ addpath(genpath('/home/ay963/matlab-scripts'))
 addpath(genpath('/home/ay963/wordrecognitionmemory'))
 
 modelname = 'FP';
-binningfn = 2;
+binningfn = 3;
 
 if $index > 100;
     blah = num2str($index);
