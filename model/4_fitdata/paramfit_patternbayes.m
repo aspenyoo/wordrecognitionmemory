@@ -117,6 +117,12 @@ end
                 ub = [ub(1:end-2) 100 100 100 100];
                 plb = [plb(1:end-2) 0 -10 -10 0];
                 pub = [pub(1:end-2) 10 10 10 10];
+            case 4 % log binning on 1/(1-p_c)
+                lb = [lb(1:end-2) -100 -100 -100 0];
+                ub = [ub(1:end-2) 100 100 100 100];
+                plb = [plb(1:end-2) -10 -10 -1 0];
+                pub = [pub(1:end-2) 0 10 1 10];
+                starttheta = [starttheta(:,1:end-2) bsxfun(@plus,plb(end-3:end),bsxfun(@times,rand(nStartVals,4),(pub(end-3:end)-plb(end-3:end))))];
         end
         
         %deleting fix parameter values
