@@ -129,8 +129,8 @@ switch modelname
                     newHist(d_new_sign < 0) = nConf+1 - newHist(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
                 case 4 % log mapping on 1/(1-p(correct))
                     d_new_sign = sign(d_new(:)+d0);   
-                    q = 1./(1-(1+exp(-abs(d_new(:)+d0))));
-                    newHist = min(max(round(a.*log(q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
+                    q = 1./(1+exp(-abs(d_new(:)+d0)));
+                    newHist = min(max(round(a.*log(1-q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
                     newHist(d_new_sign < 0) = nConf+1 - newHist(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
             end
             newHist = histc(newHist,1:nConf);
@@ -185,8 +185,8 @@ switch modelname
                 oldHist(d_old_sign < 0) = nConf+1 - oldHist(d_old_sign < 0);                     % changing respond "new" words back to 1 to 10
             case 4 % log mapping on 1/(1-p(correct))
                 d_old_sign = sign(d_old(:)+d0);                                                % -1 for respond new, +1 for respond old
-                q = 1./(1-(1+exp(-abs(d_old(:)+d0))));
-                oldHist = min(max(round(a.*log(q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
+                q = 1./(1+exp(-abs(d_old(:)+d0)));
+                oldHist = min(max(round(a.*log(1-q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
                 oldHist(d_old_sign < 0) = nConf+1 - oldHist(d_old_sign < 0);                     % changing respond "new" words back to 1 to 10
         end
         oldHist = histc(oldHist,1:nConf); % histogram
