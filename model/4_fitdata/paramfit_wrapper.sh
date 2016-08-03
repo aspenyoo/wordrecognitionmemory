@@ -1,9 +1,9 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=13
+#PBS -l nodes=1:ppn=14
 #PBS -l walltime=48:00:00
 #PBS -j oe
 #PBS -M aspen.yoo@nyu.edu
-#PBS -l mem=26GB
+#PBS -l mem=28GB
 #PBS -m abe
 #PBS -N paramfit_wrapper
 
@@ -19,8 +19,8 @@ cat<<EOF | matlab -nodisplay
 addpath(genpath('/home/ay963/matlab-scripts'))
 addpath(genpath('/home/ay963/wordrecognitionmemory'))
 
-modelname = 'REM';
-binningfn = 1;
+modelname = 'FP';
+binningfn = 3;
 subjids = 1:14;
 
 cluster_wrapper(modelname, binningfn, subjids, $index+1)

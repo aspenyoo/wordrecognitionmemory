@@ -27,7 +27,7 @@ switch modelname
         d0 = theta(4);                  % shift of logistic binning function
         L = nConf/2;
         
-        if (binningfn == 2 || binningfn == 3);
+        if any(binningfn == [2 3 4]);
             a = theta(3);
             b = theta(4);
             d0 = theta(5);
@@ -65,14 +65,19 @@ switch modelname
                     newHisttemp = min(max(round(m.*d_new(:) + b),1),20); % bounds: [1 20]
                 case 1
                     newHisttemp= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf); % bounds: [1 20]
-                case 2
-                    d_new_sign = sign(d_new(:));                                                % -1 for respond new, +1 for respond old
+                case 2  % log mapping from LPR to confidence
+                    d_new_sign = sign(d_new(:)+d0);                                                % -1 for respond new, +1 for respond old
                     newHisttemp = min(max(round(a.*log(abs(d_new(:)+d0))+b+randn.*sigma_mc),1),L) + L;        % confidence rating from 11 to 20
                     newHisttemp(d_new_sign < 0) = nConf+1 - newHisttemp(d_new_sign < 0);
                 case 3 % log mapping on p(correct|evidence) instead of LPR
-                    d_new_sign = sign(d_new(:));                                                % -1 for respond new, +1 for respond old
+                    d_new_sign = sign(d_new(:)+d0);                                                % -1 for respond new, +1 for respond old
                     q = 1./(1+exp(-abs(d_new(:)+d0)));
                     newHisttemp = min(max(round(a.*log(q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
+                    newHisttemp(d_new_sign < 0) = nConf+1 - newHisttemp(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
+                case 4 % log mapping on 1/(1-p(correct))
+                    d_new_sign = sign(d_new(:)+d0);
+                    q = 1./(1+exp(-abs(d_new(:)+d0)));
+                    newHisttemp = min(max(round(a.*log(1-q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
                     newHisttemp(d_new_sign < 0) = nConf+1 - newHisttemp(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
             end
             newHist(iX,:) = histc(newHisttemp,1:nConf);
@@ -85,13 +90,18 @@ switch modelname
             case 1 % logistic binning
                 oldHist = min(round(L.*(2./((1+exp(-(d_old(:)-d0)./k))) - 1)+10.5),nConf);
             case 2
-                d_old_sign = sign(d_old(:));                                                % -1 for respond new, +1 for respond old
+                d_old_sign = sign(d_old(:)+d0);                                                % -1 for respond new, +1 for respond old
                 oldHist = min(max(round(a.*log(abs(d_old(:)+d0))+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
                 oldHist(d_old_sign < 0) = nConf+1 - oldHist(d_old_sign < 0);
             case 3 % log mapping on p(correct|evidence) instead of LPR
-                d_old_sign = sign(d_old(:));                                                % -1 for respond new, +1 for respond old
+                d_old_sign = sign(d_old(:)+d0);                                                % -1 for respond new, +1 for respond old
                 q = 1./(1+exp(-abs(d_old(:)+d0)));
                 oldHist = min(max(round(a.*log(q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
+                oldHist(d_old_sign < 0) = nConf+1 - oldHist(d_old_sign < 0);                     % changing respond "new" words back to 1 to 10
+            case 4 % log mapping on 1/(1-p(correct))
+                d_old_sign = sign(d_old(:)+d0);
+                q = 1./(1+exp(-abs(d_old(:)+d0)));
+                oldHist = min(max(round(a.*log(1-q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
                 oldHist(d_old_sign < 0) = nConf+1 - oldHist(d_old_sign < 0);                     % changing respond "new" words back to 1 to 10
         end
         oldHist = histc(oldHist,1:nConf); % histogram
