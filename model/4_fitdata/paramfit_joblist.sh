@@ -22,7 +22,7 @@ addpath(genpath('/home/ay963/wordrecognitionmemory'))
 if $index > 100;
     blah = num2str($index);
     model = str2double(blah(1));
-    binningfn = str2doubld(blah(2));
+    binningfn = str2double(blah(2));
     isubj = str2double(blah(3:4));
     joblistnum = str2double(blah(5:6)); 
 end
