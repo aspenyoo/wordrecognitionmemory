@@ -25,7 +25,7 @@ parfor isubj = 1:nSubj;
     if (samejoblist)
         alldata = dlmread('joblist_07252016.txt');
     else
-        alldata = dlmread(['joblist' modelname num2str(binningfn) '_subj' num2str(subjid) '.txt']);
+        alldata = dlmread(['joblist_' modelname num2str(binningfn) '_subj' num2str(subjid) '.txt']);
     end
     MVec = alldata(jobnum,:);
     MVec = MVec(MVec ~= 0);

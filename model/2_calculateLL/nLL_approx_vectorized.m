@@ -245,7 +245,7 @@ switch modelname
             idxmatch = bsxfun(@eq, SNew, X); % indices in which new words match X
 
             LRmat = 1-c + c*(1-g)/g * bsxfun(@times,idxmatch,(1-g).^-X) ; 
-            LRmat(bsxfun(@eq,zeros(1,M,Nold*nS),X)) = 1;
+            LRmat(bsxfun(@eq,zeros(1,M,Nnew*nS),X)) = 1;
             d_new = log(mean(prod(LRmat,2),1));   % log odds
             
             

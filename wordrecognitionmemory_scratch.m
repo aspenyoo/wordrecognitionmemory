@@ -117,10 +117,15 @@ nLL_approx_vectorized(modelname,bestFitParam(isubj,:),binningfn,nnew_part,nold_p
 nStartVals = 10;
 esttimeVec = repmat(linspace(.1,3,50),1,nStartVals);
 jobnumVec = repmat(1:50,1,nStartVals);
-maxTime = 50;
+maxTime = 24;
 
-filepath = 'model/4_fitdata/';
-jobfilename = [filepath 'joblist_08012016.txt'];
+% filepath = 'model/4_fitdata/';
+% for subjid = 1:14;
+%     jobfilename = [filepath 'joblist_' modelname num2str(binningfn) '_subj' num2str(subjid) '.txt' ];
+%     create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
+% end
+
+jobfilename = [filepath 'joblist_08042016.txt'];
 create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 
 %% get best parameter fits
