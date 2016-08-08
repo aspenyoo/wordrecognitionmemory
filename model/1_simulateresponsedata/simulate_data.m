@@ -183,11 +183,17 @@ if plotstuff(2) == 1;
     if plotstuff(1) ==1;
         subplot(2,1,1)
     end
-    if strcmp(modelname,'uneqVar')
-        responses_uneqVar( theta, binningfn, 0, 1);
-    else
-        binningparameters = theta(3:end);
-        memdistplot(d_old(:), d_new(:), binningparameters, binningfn);
+    switch modelname
+        case 'uneqVar'
+            responses_uneqVar( theta, binningfn, 0, 1);
+        case {'FP','FPheurs'}
+            binningparameters = theta(3:end);
+            memdistplot(d_old(:), d_new(:), binningparameters, binningfn);
+        case 'REM'
+            binningparameters = theta(3:end);
+            pcorr_new = 1./(1+exp(-abs(d_new(:))));
+            pcorr_old = 1./(1+exp(-abs(d_old(:))));
+            memdistplot(pcorr_old(:), pcorr_new(:), binningparameters, binningfn);
     end
 end
 

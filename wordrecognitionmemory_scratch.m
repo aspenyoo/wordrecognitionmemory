@@ -129,10 +129,10 @@ jobfilename = [filepath 'joblist_08042016.txt'];
 create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 
 %% get best parameter fits
+clear all
 
 modelname = 'FP';
-binningfn = 4;
-subjids = 1:14;
+binningfn = 3;
 optimMethod = 'patternbayes';
 
 
@@ -143,7 +143,30 @@ end
 getbestfitparams(modelname,binningfn,1:14)
 
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
+subjids = [1:10 12:14];
+plotparamfits(modelname,binningfn,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [1 1 1 0])
+
+
+%% saving data and model for each subject
+clear all
+
+modelname = 'FP';
+binningfn = 3;
+subjids = 1:14;
+nSubj = length(subjids);
+optimMethod = 'patternbayes';
+
+load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
+
+% do this part while on debugger
 plotparamfits(modelname,binningfn,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [1 1 0 0])
+model = [];
+model.new = round(pNew_est*150);
+model.old = round(pOld_est*150);
+data = [];
+data.new = nNew_part;
+data.old = nOld_part;
+save('datamodel_forRonald.mat','data','model');
 
 %% looking at subject stuff
 % debugging for REM subject 4
@@ -153,3 +176,48 @@ nnew_part = nan(nSubj,20); nold_part = nnew_part;
 for isubj = 1:nSubj;
    [nnew_part(isubj,:), nold_part(isubj,:)] = loadsubjdata(isubj); 
 end
+
+%% Figure 2B from Mickes et al., 2007 paper 
+% (percent correct for each confidence)
+
+clear all
+
+modelname = 'FP';
+binningfn = 3;
+optimMethod = 'patternbayes';
+nX = 100; 
+nS = 50;
+
+subjids = [1:10 12:14];
+nSubj = length(subjids);
+
+% get data for subjects
+load('subjdata.mat')
+nNew_part = sum(nNew_part(subjids,:));
+nOld_part = sum(nOld_part(subjids,:));
+
+% get number of responses for model
+load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'],'bestFitParam') % load bestFitParam
+nNew_mod = zeros(1,20); nOld_mod = nNew_mod;
+for isubj = 1:nSubj;
+    subjid = subjids(isubj)
+    theta = bestFitParam(subjid,:);
+    
+    [nnew_mod, nold_mod] = simulate_data(modelname, theta, binningfn, nX, nS);
+    nNew_mod = nnew_mod + nNew_mod;
+    nOld_mod = nold_mod + nOld_mod;
+end
+
+% plot of responses of frequencies
+figure; bar([nNew_part; nNew_mod; nOld_part; nOld_mod]'); 
+legend('data new','model new', 'data old', 'model old')
+axis([0.5 20.5 0 250]); defaultplot; defaultplot;
+xlabel('Rating')
+ylabel('Frequency')
+
+% pc for confidence
+PC_part = [nNew_part(1:10)./(nOld_part(1:10) + nNew_part(1:10)) nOld_part(11:20)./(nNew_part(11:20) + nOld_part(11:20))];
+PC_mod = [nNew_mod(1:10)./(nOld_mod(1:10) + nNew_mod(1:10)) nOld_mod(11:20)./(nNew_mod(11:20) + nOld_mod(11:20))];
+figure; bar([PC_part; PC_mod]'); axis([0.5 20.5 0.4 1]); legend('data','model'); defaultplot;
+xlabel('Rating')
+ylabel('Proportion Correct')
