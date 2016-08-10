@@ -96,21 +96,21 @@ switch modelname
                     d_old(:,iX) = squeeze(-min(sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nold*nS])).^2,2),[],1));
             end
             
-            %             % plot so see how nS affects data
-            %             for iS = 1:nS;
-            %                 % binning new words.
-            %                 if (islogbinning)
-            %                     newHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(1:iS*Nold)-d0)./k)) - 1)),nConf); % bounds: [1 20]
-            %                 else
-            %                     newHist = min(max(round(m.*d_new(:) + b),1),20); % bounds: [1 20]
-            %                 end
-            %                 newHist = histc(newHist,1:nConf);
-            %                 pnew = lambda/nConf + (1-lambda)*(newHist/sum(newHist));
-            %                 LL_newtemp(iS) = nnew_part*log(pnew);
-            %             end
-            %             figure;
-            %             plot(1:nS,LL_newtemp,'ok')
-            %             defaultplot
+%                         % plot so see how nS affects data
+%                         for iS = 1:nS;
+%                             % binning new words.
+%                             if (islogbinning)
+%                                 newHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(1:iS*Nold)-d0)./k)) - 1)),nConf); % bounds: [1 20]
+%                             else
+%                                 newHist = min(max(round(m.*d_new(:) + b),1),20); % bounds: [1 20]
+%                             end
+%                             newHist = histc(newHist,1:nConf);
+%                             pnew = lambda/nConf + (1-lambda)*(newHist/sum(newHist));
+%                             LL_newtemp(iS) = nnew_part*log(pnew);
+%                         end
+%                         figure;
+%                         plot(1:nS,LL_newtemp,'ok')
+%                         defaultplot
             
             % binning new words.
             switch binningfn
