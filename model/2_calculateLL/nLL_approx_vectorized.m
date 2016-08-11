@@ -96,55 +96,83 @@ switch modelname
                     d_old(:,iX) = squeeze(-min(sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nold*nS])).^2,2),[],1));
             end
             
-            %             % plot so see how nS affects data
-            %             for iS = 1:nS;
-            %                 % binning new words.
-            %                 if (islogbinning)
-            %                     newHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(1:iS*Nold)-d0)./k)) - 1)),nConf); % bounds: [1 20]
-            %                 else
-            %                     newHist = min(max(round(m.*d_new(:) + b),1),20); % bounds: [1 20]
-            %                 end
-            %                 newHist = histc(newHist,1:nConf);
-            %                 pnew = lambda/nConf + (1-lambda)*(newHist/sum(newHist));
-            %                 LL_newtemp(iS) = nnew_part*log(pnew);
-            %             end
-            %             figure;
-            %             plot(1:nS,LL_newtemp,'ok')
-            %             defaultplot
+%             % plot so see how nS affects data
+%             LL_newtemp = nan(1,nS);
+%             for iS = 1:nS;
+%                 % binning new words.
+%                 switch binningfn
+%                     case 0 % linear
+%                         newHist = min(max(round(m.*d_new(1:iS*Nnew) + b),1),nConf);                            % bounds: [1 20]
+%                     case 1 % logistic
+%                         newHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(1:iS*Nnew)-d0)./k)) - 1)),nConf);   % bounds: [1 20]
+%                     case 2 % log
+%                         d_new_sign = sign(d_new(1:iS*Nnew)+d0);                                                % -1 for respond new, +1 for respond old
+%                         newHist = min(max(round(a.*log(abs(d_new(1:iS*Nnew)+d0))+b+randn(length(q),1).*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
+%                         newHist(d_new_sign < 0) = nConf+1 - newHist(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
+%                     case 3 % log mapping on p(correct|evidence) instead of LPR
+%                         d_new_sign = sign(d_new(1:iS*Nnew)+d0);                                                % -1 for respond new, +1 for respond old
+%                         q = 1./(1+exp(-abs(d_new(1:iS*Nnew)+d0)));
+%                         newHist = min(max(round(a.*log(q)+b+randn(length(q),1).*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
+%                         newHist(d_new_sign < 0) = nConf+1 - newHist(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
+%                     case 4 % log mapping on 1/(1-p(correct))
+%                         d_new_sign = sign(d_new(1:iS*Nnew)+d0);
+%                         q = 1./(1+exp(-abs(d_new(1:iS*Nnew)+d0)));
+%                         newHist = min(max(round(a.*log(1-q)+b+randn(length(q),1).*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
+%                         newHist(d_new_sign < 0) = nConf+1 - newHist(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
+%                 end
+%                 newHist = histc(newHist,1:nConf);
+%                 pnew = lambda/nConf + (1-lambda)*(newHist/sum(newHist));
+%                 LL_newtemp(iS) = nnew_part*log(pnew);
+%             end
+%             figure;
+%             plot(1:nS,LL_newtemp,'ok')
+%             defaultplot
+%             pause
             
             % binning new words.
             switch binningfn
                 case 0 % linear
                     newHist = min(max(round(m.*d_new(:) + b),1),nConf);                            % bounds: [1 20]
+                    newHist = histc(newHist,1:nConf);
                 case 1 % logistic
                     newHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf);   % bounds: [1 20]
+                    newHist = histc(newHist,1:nConf);
                 case 2 % log
+                    error('not editted')                % remove after fix sigma_mc (see case 3)
                     d_new_sign = sign(d_new(:)+d0);                                                % -1 for respond new, +1 for respond old
-                    newHist = min(max(round(a.*log(abs(d_new(:)+d0))+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
+                    newHist = min(max(round(a.*log(abs(d_new(:)+d0))+b+randn(length(q),1).*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
                     newHist(d_new_sign < 0) = nConf+1 - newHist(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
+                    newHist = histc(newHist,1:nConf);
                 case 3 % log mapping on p(correct|evidence) instead of LPR
                     d_new_sign = sign(d_new(:)+d0);                                                % -1 for respond new, +1 for respond old
                     q = 1./(1+exp(-abs(d_new(:)+d0)));
-                    newHist = min(max(round(a.*log(q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
-                    newHist(d_new_sign < 0) = nConf+1 - newHist(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
+                    q(d_new_sign < 0) = nConf+1 - q(d_new_sign <0);
+                    newHist = 0.5+0.5.*erf(bsxfun(@minus,[1.5:(nConf-0.5) Inf],q)./(sigma_mc*sqrt(2))) - ...
+                        (0.5+0.5.*erf(bsxfun(@minus,[-Inf 1.5:(nConf-0.5)],q)./(sigma_mc*sqrt(2))));
+                    newHist = round(sum(newHist)./nS)';
                 case 4 % log mapping on 1/(1-p(correct))
+                    error('not editted')                % remove after fix sigma_mc (see case 3)
                     d_new_sign = sign(d_new(:)+d0);   
                     q = 1./(1+exp(-abs(d_new(:)+d0)));
-                    newHist = min(max(round(a.*log(1-q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
+                    newHist = min(max(round(a.*log(1-q)+b+randn(length(q),1).*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
                     newHist(d_new_sign < 0) = nConf+1 - newHist(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
+                    newHist = histc(newHist,1:nConf);
             end
-            newHist = histc(newHist,1:nConf);
             pnew = lambda/nConf + (1-lambda)*(newHist/sum(newHist));
             LL_new(iX) = nnew_part*log(pnew);
             
         end
         
-        
+%         
 %         % plotting for X samples
 %         for iX = 1:nX;
 %             % BINNING OLD WORDS. p(conf|X0,C)
-%             oldHist = min(round(L.*(2./((1+exp(-(d_old(:,1:iX)-d0)./k))) - 1)+10.5),nConf);
-%             oldHist = histc(oldHist,1:nConf); % histogram
+%             d_old_sign = sign(d_old(1:iX*nS*Nold)+d0);                                                % -1 for respond new, +1 for respond old
+%             q = 1./(1+exp(-abs(d_old(1:iX*nS*Nold)+d0)))';
+%             q(d_old_sign < 0) = nConf+1 - q(d_old_sign <0);
+%             oldHist = 0.5+0.5.*erf(bsxfun(@minus,[1.5:(nConf-0.5) Inf],q)./(sigma_mc*sqrt(2))) - ...
+%                     (0.5+0.5.*erf(bsxfun(@minus,[-Inf 1.5:(nConf-0.5)],q)./(sigma_mc*sqrt(2))));
+%             oldHist = round(sum(oldHist)./nS)';
 %             pold = lambda/nConf + (1-lambda)*(oldHist/sum(oldHist)); % normalizing
 %             
 %             % calculating nLL
@@ -162,35 +190,42 @@ switch modelname
 %         plot(1:nX,LL_newtemp,'o','Color',aspencolors('gold'));
 %         plot(1:nX,LL_new,'*','Color',aspencolors('dustygold'));
 %         plot(1:nX,maxnew,'.')
+%         plot(1:nX,LL_oldtemp,'o','Color',aspencolors('babyblue'));
 %         defaultplot
 %         xlabel('nX')
 %         ylabel('LL for new words')
-%         title('M = 12, \sigma = 1.02, k = 0.31, d0 = 0.1')
-%         legend('mean LL','max of samples','LL for each sample')
+%         legend('new LL','LL for each sample','max of samples','old LL')
         
         % BINNING OLD WORDS. p(conf|X0,C)
         switch binningfn
             case 0 % linear
                 oldHist = min(max(round(m.*d_old(:) + b),1),nConf);                            % bounds: [1 20]
+                oldHist = histc(oldHist,1:nConf); % histogram
             case 1 % logistic
                 oldHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_old(:)-d0)./k)) - 1)),nConf);   % bounds: [1 20]
+                oldHist = histc(oldHist,1:nConf); % histogram
             case 2 % log
+                error('not editted')                % remove after fix sigma_mc (see case 3)
                 d_old_sign = sign(d_old(:)+d0);                                                % -1 for respond new, +1 for respond old
-                oldHist = min(max(round(a.*log(abs(d_old(:)+d0))+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
+                oldHist = min(max(round(a.*log(abs(d_old(:)+d0))+b+randn(length(q),1).*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
                 oldHist(d_old_sign < 0) = nConf+1 - oldHist(d_old_sign < 0);                     % changing respond "new" words back to 1 to 10
+                oldHist = histc(oldHist,1:nConf); % histogram
             case 3 % log mapping on p(correct|evidence) instead of LPR
                 d_old_sign = sign(d_old(:)+d0);                                                % -1 for respond new, +1 for respond old
                 q = 1./(1+exp(-abs(d_old(:)+d0)));
-                oldHist = min(max(round(a.*log(q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
-                oldHist(d_old_sign < 0) = nConf+1 - oldHist(d_old_sign < 0);                     % changing respond "new" words back to 1 to 10
+                q(d_old_sign < 0) = nConf+1 - q(d_old_sign <0);
+                oldHist = 0.5+0.5.*erf(bsxfun(@minus,[1.5:(nConf-0.5) Inf],q)./(sigma_mc*sqrt(2))) - ...
+                    (0.5+0.5.*erf(bsxfun(@minus,[-Inf 1.5:(nConf-0.5)],q)./(sigma_mc*sqrt(2))));
+                oldHist = round(sum(oldHist)./nS)';
             case 4 % log mapping on 1/(1-p(correct))
+                error('not editted')                % remove after fix sigma_mc (see case 3)
                 d_old_sign = sign(d_old(:)+d0);                                                % -1 for respond new, +1 for respond old
                 q = 1./(1+exp(-abs(d_old(:)+d0)));
-                oldHist = min(max(round(a.*log(1-q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
+                oldHist = min(max(round(a.*log(1-q)+b+randn(length(q),1).*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
                 oldHist(d_old_sign < 0) = nConf+1 - oldHist(d_old_sign < 0);                     % changing respond "new" words back to 1 to 10
+                oldHist = histc(oldHist,1:nConf); % histogram
         end
-        oldHist = histc(oldHist,1:nConf); % histogram
-        % oldHist(oldHist==0) = 1e-3; % changing any 0 freq to 1, (prevents LL from going to -Inf)
+        
         pold = lambda/nConf + (1-lambda)*(oldHist/sum(oldHist)); % normalizing
         
         % calculating nLL
