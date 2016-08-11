@@ -115,17 +115,17 @@ nLL_approx_vectorized(modelname,bestFitParam(isubj,:),binningfn,nnew_part,nold_p
 %% create joblist
 
 nStartVals = 10;
-esttimeVec = repmat(linspace(.1,3,50),1,nStartVals);
+esttimeVec = repmat(linspace(0.08,4.2,50),1,nStartVals);
 jobnumVec = repmat(1:50,1,nStartVals);
-maxTime = 24;
+maxTime = 36;
+filepath = 'model/4_fitdata/';
 
-% filepath = 'model/4_fitdata/';
 % for subjid = 1:14;
 %     jobfilename = [filepath 'joblist_' modelname num2str(binningfn) '_subj' num2str(subjid) '.txt' ];
 %     create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 % end
 
-jobfilename = [filepath 'joblist_08042016.txt'];
+jobfilename = [filepath 'joblist_08112016.txt'];
 create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 
 %% get best parameter fits
@@ -223,17 +223,17 @@ xlabel('Rating')
 ylabel('Proportion Correct')
 
 %% check variance of LL estimates
-clear
+% clear
 
 nSamples = 10;
 modelname = 'FP';
 binningfn = 3;
 optimMethod = 'patternbayes';
-subjid = 4;
+subjid = 5;
 
 % get best fit parameters and subject data
 [nnew_part, nold_part] = loadsubjdata(subjid,modelname);
-load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
+% load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
 
 nLLVec = nan(1,nSamples); timeVec = nan(1,nSamples);
 for isamp = 1:nSamples;

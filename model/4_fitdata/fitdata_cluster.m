@@ -7,7 +7,7 @@ if nargin < 6; truemodelname = []; end
 if isempty(truemodelname); truemodelname = testmodelname; end
 if nargin < 7; nConf = 20; end
 if isempty(nConf); nConf = 20; end 
-if size(fixparams,2) > 2;
+if (size(fixparams,2) > 1) && (size(fixparams,1) < 2); % if it is a vector of Ms, instead of a 2 x fixed parameter things
     nMs = length(fixparams);
     if nargin < 8; nStartVals = 1; end
 else
@@ -56,7 +56,7 @@ formatSpec = repmat('%4.4f \t ',1,2*nParams+2);
 formatSpec = [formatSpec(1:end-3) '\r\n'];
 
 for iM = 1:nMs;
-    if size(fixparams,2) > 2;
+    if (size(fixparams,2) > 1) && (size(fixparams,1) < 2); % if it is a vector of Ms, instead of a 2 x fixed parameter things
         fixparam = [1; fixparams(iM)];
     else
         fixparam = fixparams;

@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l nodes=1:ppn=1
-#PBS -l walltime=38:00:00
+#PBS -l walltime=48:00:00
 #PBS -j oe
 #PBS -M aspen.yoo@nyu.edu
 #PBS -l mem=4GB
@@ -20,7 +20,7 @@ addpath(genpath('/home/ay963/matlab-scripts'))
 addpath(genpath('/home/ay963/wordrecognitionmemory'))
 
 modelname = 'FP';
-binningfn = 4;
+binningfn = 3;
 
 if $index > 100;
     blah = num2str($index);
@@ -28,7 +28,7 @@ if $index > 100;
     joblistnum = str2double(blah(end-1:end)); 
 end
 
-cluster_wrap2(modelname, binningfn, isubj, joblistnum,'joblist_08012016.txt',[1 5; nan 0])
+cluster_wrap2(modelname, binningfn, isubj, joblistnum,'joblist_08112016.txt',[1 5; nan 0])
 
 EOF
 
