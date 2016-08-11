@@ -221,3 +221,26 @@ PC_mod = [nNew_mod(1:10)./(nOld_mod(1:10) + nNew_mod(1:10)) nOld_mod(11:20)./(nN
 figure; bar([PC_part; PC_mod]'); axis([0.5 20.5 0.4 1]); legend('data','model'); defaultplot;
 xlabel('Rating')
 ylabel('Proportion Correct')
+
+%% check variance of LL estimates
+clear
+
+nSamples = 10;
+modelname = 'FP';
+binningfn = 3;
+optimMethod = 'patternbayes';
+subjid = 4;
+
+% get best fit parameters and subject data
+[nnew_part, nold_part] = loadsubjdata(subjid,modelname);
+load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
+
+nLLVec = nan(1,nSamples); timeVec = nan(1,nSamples);
+for isamp = 1:nSamples;
+    isamp
+    t0 = GetSecs;
+    nLLVec(isamp) = nLL_approx_vectorized(modelname,bestFitParam(subjid,:),binningfn,nnew_part,nold_part,[],30,50);
+    timeVec(isamp) = GetSecs - t0;
+end
+
+nLLVec
