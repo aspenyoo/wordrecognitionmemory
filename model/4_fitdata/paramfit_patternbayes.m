@@ -31,7 +31,7 @@ if nargin < 5; fixparams = []; end
 if nargin < 6; nStartVals = 1; end
 if nargin < 7; nConf = 20; end
 nX = 30;
-nS = 20;
+nS = 50;
 
 % random number generator
 rng('shuffle');
