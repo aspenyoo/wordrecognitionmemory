@@ -136,14 +136,14 @@ binningfn = 3;
 optimMethod = 'patternbayes';
 
 
-for isubj = 1:14
+for isubj = 1:10
     removetxtspaces(modelname,binningfn,isubj,optimMethod);
 end
 
-getbestfitparams(modelname,binningfn,1:14)
+getbestfitparams(modelname,binningfn,1:10)
 
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
-subjids = [1:10 12:14];
+subjids = [1:10];
 plotparamfits(modelname,binningfn,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [1 1 1 0])
 
 

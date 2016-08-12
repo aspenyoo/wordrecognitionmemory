@@ -146,10 +146,11 @@ switch modelname
                 case 3 % log mapping on p(correct|evidence) instead of LPR
                     d_new_sign = sign(d_new(:)+d0);                                                % -1 for respond new, +1 for respond old
                     q = 1./(1+exp(-abs(d_new(:)+d0)));
-                    q(d_new_sign < 0) = nConf+1 - q(d_new_sign <0);
-                    newHist = 0.5+0.5.*erf(bsxfun(@minus,[1.5:(nConf-0.5) Inf],q)./(sigma_mc*sqrt(2))) - ...
-                        (0.5+0.5.*erf(bsxfun(@minus,[-Inf 1.5:(nConf-0.5)],q)./(sigma_mc*sqrt(2))));
-                    newHist = round(sum(newHist)./nS)';
+                    conf = a.*log(q)+b;
+                    newHist = 0.5+0.5.*erf(bsxfun(@minus,[1.5:(nConf-0.5) Inf],conf)./(sigma_mc*sqrt(2))) - ...
+                        (0.5+0.5.*erf(bsxfun(@minus,[-Inf 1.5:(nConf-0.5)],conf)./(sigma_mc*sqrt(2))));
+                    newHist(d_new_sign < 0,:) = fliplr(newHist(d_new_sign < 0,:));
+                    newHist = (sum(newHist)./nS)';
                 case 4 % log mapping on 1/(1-p(correct))
                     error('not editted')                % remove after fix sigma_mc (see case 3)
                     d_new_sign = sign(d_new(:)+d0);   
@@ -213,10 +214,11 @@ switch modelname
             case 3 % log mapping on p(correct|evidence) instead of LPR
                 d_old_sign = sign(d_old(:)+d0);                                                % -1 for respond new, +1 for respond old
                 q = 1./(1+exp(-abs(d_old(:)+d0)));
-                q(d_old_sign < 0) = nConf+1 - q(d_old_sign <0);
-                oldHist = 0.5+0.5.*erf(bsxfun(@minus,[1.5:(nConf-0.5) Inf],q)./(sigma_mc*sqrt(2))) - ...
-                    (0.5+0.5.*erf(bsxfun(@minus,[-Inf 1.5:(nConf-0.5)],q)./(sigma_mc*sqrt(2))));
-                oldHist = round(sum(oldHist)./nS)';
+                conf = a.*log(q)+b;
+                oldHist = 0.5+0.5.*erf(bsxfun(@minus,[1.5:(nConf-0.5) Inf],conf)./(sigma_mc*sqrt(2))) - ...
+                    (0.5+0.5.*erf(bsxfun(@minus,[-Inf 1.5:(nConf-0.5)],conf)./(sigma_mc*sqrt(2))));
+                oldHist(d_old_sign < 0,:) = fliplr(oldHist(d_old_sign < 0,:));
+                oldHist = (sum(oldHist)./(nS*nX))';
             case 4 % log mapping on 1/(1-p(correct))
                 error('not editted')                % remove after fix sigma_mc (see case 3)
                 d_old_sign = sign(d_old(:)+d0);                                                % -1 for respond new, +1 for respond old
