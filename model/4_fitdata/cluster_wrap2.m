@@ -18,15 +18,14 @@ nStartVals = 1;
 
 % load table with M numbers for particular job lists
 
-samejoblist = 1;
 for isubj = 1:nSubj;
     
     subjid = subjids(isubj);
     
-    if (samejoblist)
+    if isempty(joblistfile)
         alldata = dlmread(joblistfile);
     else
-        alldata = dlmread(['joblist_patternbayes_subj' num2str(subjid) '_maxtime48.txt']);
+        alldata = dlmread(['joblist_' modelname num2str(binningfn) 'subj' num2str(subjid) '.txt']);
     end
     MVec = alldata(jobnum,:);
     MVec = MVec(MVec ~= 0);
