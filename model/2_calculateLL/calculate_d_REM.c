@@ -1,151 +1,141 @@
 #include "mex.h"
 #include "math.h"
+#include "matrix.h"
 
 /*
- * VestBMS_likec1qtrapz.c
+ * calculate_d_REM_mex.c
  *
- * multiplies two matrices elementwise and executes trapezoidal 
- * integration along first dimensions.
+ * calculate log odds function used as a basis for Luigi to code up C code!
+ * 
+ * ================ INPUT VARIABLES ====================
+ * M: number of features. [scalar] (integer)
+ * G: deometric distribution parameter, used for feature valuws. [scalar] (double)
+ * C: probability of encoding correct feature value. [scalar] (double)
+ * NS: number of samples of SNew and SOld. [scalar] (integer)
+ * NNEW: number of new words. [scalar] (integer)
+ * NOLD: number of old words. [scalar] (integer)
+ * SNEW: new words across S simulations. [Nnew*nS,M] (double)
+ * SOLD: old words across S simulations. [Nold*nS,M] (double)
+ * X: noisy memories. [Nold,M] (double)
+ * 
+ * ================ OUTPUT VARIABLES ==================
+ * D_NEW: log odds of new trials. [Nnew*nS,1] (double)
+ * D_OLD: log odds of old trials. [Nnew*nS,1]. (double)
  *
  * This is a MEX-file for MATLAB.
+ * Template C code generated on 15-Aug-2016 with MEXXER v0.1 
+ * (https://github.com/lacerbi/mexxer).
  */
 
+/* Set ARGSCHECK to 0 to skip argument checking (for minor speedup) */
+#define ARGSCHECK 1
 
-void calculate_d(double *d, int M, double sigma, int nS, int Nold, int N, double *S, int Srows, double* X)
+void calculate_d_REM( double *d_new, double *d_old, int M, double g, double c, int nS, int Nnew, int Nold, double *SNew, double *SOld, double *X )
 {
-    mwSize i,j,k;
-    double J,Jss,tmp;
-    double *S0,*X0,*d0,sum,SUM;
-        
-    /* store initial position */
-    S0 = S;     
-    d0 = d;
-        
-    /* Compute d = M/2*log(1+1/sigma^2) + 0.5*sum(SNew.^2,2) */
-
-    J = 1/(sigma*sigma) + 1;
-    
-    /* this summation is awkward because MATLAB is column-major */
-    for (i=0; i<Srows; i++) {
-        sum = 0.;
-        *d = 0.5 * M * log(J);
-        S = S0 + i;   /* initialize pointer at current row */
-        for (j=0; j<M; j++) {
-            sum += (*S)*(*S);
-            S += Srows; /* move pointer to next column */
-        }
-        *(d++) += 0.5 * sum;
-    }
-    
-    
-/* Compute d = d + log(squeeze(mean(exp( ...
- *        -0.5*J*sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1]) ...
- *                    - repmat(X/J/sigma^2,[1,1,Nnew*nS])).^2,2) ...
- *        )))) */
-    
-    Jss = (1/J)/(sigma*sigma);
-    
-    X0 = X;
-    d = d0;
-    
-    for (k=0; k < Srows; k++) {
-        S = S0 + k;
-        SUM = 0.;
-        
-        for (i=0; i < Nold; i++) {
-            X = X0 + i;
-            
-            sum = 0.;            
-            for (j=0; j < M; j++) {
-                tmp = S[j*Srows] - (X[j*Nold] * Jss);
-                sum += tmp * tmp;
-            }
-            SUM += exp(-0.5 * J * sum);
-        }    
-        *(d++) += log( SUM / (double) Nold );
-        
-    }
-    
+	
+	/* Write your main calculations here... */
+	
 }
 
 /* the gateway function */
-void mexFunction( int nlhs, mxArray *plhs[],
-                  int nrhs, const mxArray *prhs[])
+void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
 {
-  /* const mwSize *dims_a,*dims_b; */
-  double J;
-  int M,nS,Nnew,Nold;
-  double *SNew,*SOld,*X,*d_new,*d_old;
-  double sigma;
-  /* size_t n1,n2,n3; */
-  
-  /*  check for proper number of arguments */
-  /* NOTE: You do not need an else statement when using mexErrMsgIdAndTxt
-     within an if statement, because it will never get to the else
-     statement if mexErrMsgIdAndTxt is executed. (mexErrMsgIdAndTxt breaks you out of
-     the MEX-file) */
-  if(nrhs!=8)
-    mexErrMsgIdAndTxt( "MATLAB:calculate_d:invalidNumInputs",
-            "Eight inputs required.");
-  if(nlhs!=2) 
-    mexErrMsgIdAndTxt( "MATLAB:calculate_d:invalidNumOutputs",
-            "Two outputs required.");
-  
-  /* check to make sure the first input argument is a scalar */
-  /* if( !mxIsDouble(prhs[0]) || mxIsComplex(prhs[0]) ||
-      mxGetN(prhs[0])*mxGetM(prhs[0])!=1 ) {
-    mexErrMsgIdAndTxt( "MATLAB:calculate_d:xNotScalar",
-            "Input M must be a scalar.");
-  } */
-  /* I don't do any check on the inputs for the sake of speed */
-  
-  /* Get first input (M, scalar integer) */
-  M = (int) mxGetScalar(prhs[0]);
-  
-  /* Get second input (SIGMA, scalar double) */
-  sigma = (double) mxGetScalar(prhs[1]);
+	double *d_new, *d_old, g, c, *SNew, *SOld, *X;
+	int M, nS, Nnew, Nold;
 
-  /* Get third input (NS, scalar integer) */
-  nS = (int) mxGetScalar(prhs[2]);
-  
-  /* Get fourth input (NNEW, scalar integer) */
-  Nnew = (int) mxGetScalar(prhs[3]);
-  
-  /* Get fifth input (NOLD, scalar integer) */
-  Nold = (int) mxGetScalar(prhs[4]);
-  
-  /* Get pointer to sixth input (SNEW, Nnew*nS x M double) */
-  SNew = mxGetPr(prhs[5]);
-  
-  /* Get pointer to seventh input (SOLD, Nold*nS x M double) */
-  SOld = mxGetPr(prhs[6]);
-  
-  /* Get pointer to eight input (X, Nold x M double) */
-  X = mxGetPr(prhs[7]);
-  
-  /* dims_a = mxGetDimensions(prhs[0]); */   /*  get the dimensions */
-      
-  /* Check matrix sizes */
-  /* N = dims_a[0];
-  K = dims_a[2];
-  if ( dims_b[0] != N || dims_b[1] != K ) {
-      mexErrMsgIdAndTxt( "MATLAB:VestBMS_likec1qtrapzc:dimensionMismatch",
-            "Second matrix dimensions do not match the first input.");      
-  }  
-  /* printf("%d %d %d\n",dims_a[0],dims_a[1],dims_a[2]); */
+	/*  check for proper number of arguments */
+	/* NOTE: You do not need an else statement when using mexErrMsgIdAndTxt
+	   within an if statement, because it will never get to the else
+	   statement if mexErrMsgIdAndTxt is executed. (mexErrMsgIdAndTxt breaks
+	   you out of the MEX-file) */
+	if ( nrhs<9 || nrhs>9 )
+		mexErrMsgIdAndTxt( "MATLAB:calculate_d_REM:invalidNumInputs",
+			"Nine inputs required.");
+	if ( nlhs<2 || nlhs>2 )
+		mexErrMsgIdAndTxt( "MATLAB:calculate_d_REM:invalidNumOutputs",
+			"Two outputs required.");
 
-  /*  output pointer to the first output matrix (D_NEW, Nnew*nS x 1 double) */
-  plhs[0] = mxCreateDoubleMatrix((mwSize) (Nnew * nS), 1, mxREAL);
-  
-  /*  output pointer to the second output matrix (D_OLD, Nold*nS x 1 double) */
-  plhs[1] = mxCreateDoubleMatrix((mwSize) (Nold * nS), 1, mxREAL);
-  
-  /*  create C pointers to copies of the output matrices */
-  d_new = mxGetPr(plhs[0]);
-  d_old = mxGetPr(plhs[1]);
-    
-  /*  call the C subroutine */
-  calculate_d(d_new, M, sigma, nS, Nold, Nnew, SNew, Nnew*nS, X);
-  calculate_d(d_old, M, sigma, nS, Nold, Nnew, SOld, Nold*nS, X);
-  
+	/* Get first input (M, scalar int) */
+	M = (int) mxGetScalar(prhs[0]);
+
+	/* Get second input (G, scalar double) */
+	g = (double) mxGetScalar(prhs[1]);
+
+	/* Get third input (C, scalar double) */
+	c = (double) mxGetScalar(prhs[2]);
+
+	/* Get fourth input (NS, scalar int) */
+	nS = (int) mxGetScalar(prhs[3]);
+
+	/* Get fifth input (NNEW, scalar int) */
+	Nnew = (int) mxGetScalar(prhs[4]);
+
+	/* Get sixth input (NOLD, scalar int) */
+	Nold = (int) mxGetScalar(prhs[5]);
+
+	/* Get seventh input (SNEW, Nnew*nS-by-M double) */
+	SNew = (double*) mxGetPr(prhs[6]);
+
+	/* Get eighth input (SOLD, Nold*nS-by-M double) */
+	SOld = (double*) mxGetPr(prhs[7]);
+
+	/* Get ninth input (X, Nold-by-M double) */
+	X = (double*) mxGetPr(prhs[8]);
+
+	/* Check sizes of input arguments (define ARGSCHECK to 0 above to skip) */
+	if ( ARGSCHECK ) {
+		if ( !mxIsDouble(prhs[0]) || mxIsComplex(prhs[0]) || (mxGetN(prhs[0])*mxGetM(prhs[0])!=1) )
+			mexErrMsgIdAndTxt("MATLAB:calculate_d_REM:MNotScalar", "Input M must be a scalar.");
+
+		if ( !mxIsDouble(prhs[1]) || mxIsComplex(prhs[1]) || (mxGetN(prhs[1])*mxGetM(prhs[1])!=1) )
+			mexErrMsgIdAndTxt("MATLAB:calculate_d_REM:gNotScalar", "Input G must be a scalar.");
+
+		if ( !mxIsDouble(prhs[2]) || mxIsComplex(prhs[2]) || (mxGetN(prhs[2])*mxGetM(prhs[2])!=1) )
+			mexErrMsgIdAndTxt("MATLAB:calculate_d_REM:cNotScalar", "Input C must be a scalar.");
+
+		if ( !mxIsDouble(prhs[3]) || mxIsComplex(prhs[3]) || (mxGetN(prhs[3])*mxGetM(prhs[3])!=1) )
+			mexErrMsgIdAndTxt("MATLAB:calculate_d_REM:nSNotScalar", "Input NS must be a scalar.");
+
+		if ( !mxIsDouble(prhs[4]) || mxIsComplex(prhs[4]) || (mxGetN(prhs[4])*mxGetM(prhs[4])!=1) )
+			mexErrMsgIdAndTxt("MATLAB:calculate_d_REM:NnewNotScalar", "Input NNEW must be a scalar.");
+
+		if ( !mxIsDouble(prhs[5]) || mxIsComplex(prhs[5]) || (mxGetN(prhs[5])*mxGetM(prhs[5])!=1) )
+			mexErrMsgIdAndTxt("MATLAB:calculate_d_REM:NoldNotScalar", "Input NOLD must be a scalar.");
+
+		dims_SNew = (mwSize*) mxGetDimensions(prhs[6]);
+		if ( !mxIsDouble(prhs[6]) || mxIsComplex(prhs[6]) )
+				mexErrMsgIdAndTxt("MATLAB:calculate_d_REM:SNewNotReal", "Input SNEW must be real.");
+		if ( dims_SNew[0] != ((mwSize) (Nnew*nS)) )
+			mexErrMsgIdAndTxt("MATLAB:calculate_d_REM:SNewWrongSize", "The first dimension of input SNEW has the wrong size (should be Nnew*nS).");
+		if ( dims_SNew[1] != ((mwSize) (M)) )
+			mexErrMsgIdAndTxt("MATLAB:calculate_d_REM:SNewWrongSize", "The second dimension of input SNEW has the wrong size (should be M).");
+
+		dims_SOld = (mwSize*) mxGetDimensions(prhs[7]);
+		if ( !mxIsDouble(prhs[7]) || mxIsComplex(prhs[7]) )
+				mexErrMsgIdAndTxt("MATLAB:calculate_d_REM:SOldNotReal", "Input SOLD must be real.");
+		if ( dims_SOld[0] != ((mwSize) (Nold*nS)) )
+			mexErrMsgIdAndTxt("MATLAB:calculate_d_REM:SOldWrongSize", "The first dimension of input SOLD has the wrong size (should be Nold*nS).");
+		if ( dims_SOld[1] != ((mwSize) (M)) )
+			mexErrMsgIdAndTxt("MATLAB:calculate_d_REM:SOldWrongSize", "The second dimension of input SOLD has the wrong size (should be M).");
+
+		dims_X = (mwSize*) mxGetDimensions(prhs[8]);
+		if ( !mxIsDouble(prhs[8]) || mxIsComplex(prhs[8]) )
+				mexErrMsgIdAndTxt("MATLAB:calculate_d_REM:XNotReal", "Input X must be real.");
+		if ( dims_X[0] != ((mwSize) (Nold)) )
+			mexErrMsgIdAndTxt("MATLAB:calculate_d_REM:XWrongSize", "The first dimension of input X has the wrong size (should be Nold).");
+		if ( dims_X[1] != ((mwSize) (M)) )
+			mexErrMsgIdAndTxt("MATLAB:calculate_d_REM:XWrongSize", "The second dimension of input X has the wrong size (should be M).");
+	}
+
+	/* Pointer to first output (D_NEW, Nnew*nS-by-1 double) */
+	plhs[0] = mxCreateDoubleMatrix((mwSize) (Nnew*nS), (mwSize) (1), mxREAL);
+	d_new = mxGetPr(plhs[0]);
+
+	/* Pointer to second output (D_OLD, Nnew*nS-by-1 double) */
+	plhs[1] = mxCreateDoubleMatrix((mwSize) (Nnew*nS), (mwSize) (1), mxREAL);
+	d_old = mxGetPr(plhs[1]);
+
+	/* Call the C subroutine */
+	calculate_d_REM(d_new, d_old, M, g, c, nS, Nnew, Nold, SNew, SOld, X);
+
 }
