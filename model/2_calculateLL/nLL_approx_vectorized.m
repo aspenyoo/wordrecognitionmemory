@@ -87,10 +87,11 @@ switch modelname
             
             switch modelname
                 case 'FP'
-                    d_new = M/2*log(1+1/sigma^2) + 0.5*sum(SNew.^2,2) + log(squeeze(mean(exp(-0.5*J*...
-                        sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1]) - repmat(X/J/sigma^2,[1,1,Nnew*nS])).^2,2)))));
-                    d_old(:,iX) = M/2*log(1+1/sigma^2) + 0.5*sum(SOld.^2,2) + log(squeeze(mean(exp(-0.5*J*...
-                        sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1]) - repmat(X/J/sigma^2,[1,1,Nold*nS])).^2,2)))));
+                    [d_new, d_old(:,iX)] = calculate_d_FP(M, sigma, nS, Nnew, Nold, SNew, SOld, X);
+%                     d_new = M/2*log(1+1/sigma^2) + 0.5*sum(SNew.^2,2) + log(squeeze(mean(exp(-0.5*J*...
+%                         sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1]) - repmat(X/J/sigma^2,[1,1,Nnew*nS])).^2,2)))));
+%                     d_old(:,iX) = M/2*log(1+1/sigma^2) + 0.5*sum(SOld.^2,2) + log(squeeze(mean(exp(-0.5*J*...
+%                         sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1]) - repmat(X/J/sigma^2,[1,1,Nold*nS])).^2,2)))));
                 case 'FPheurs'
                     d_new = squeeze(-min(sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nnew*nS])).^2,2),[],1));
                     d_old(:,iX) = squeeze(-min(sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nold*nS])).^2,2),[],1));
@@ -278,38 +279,44 @@ switch modelname
             idx = logical(binornd(1,pQ,[Nold*nS M]) + repmat((X == 0),[nS 1])); % indices of randomly drawn features
             SOld = (1-idx).*repmat(X,[nS 1]) + idx.*(geornd(g,[Nold*nS M]) + 1); % old words from noisy memories
 
-            % decision variable for new words
-            idxmatch = bsxfun(@eq, SNew, X); % indices in which new words match X
-
-            LRmat = 1-c + c*(1-g)/g * bsxfun(@times,idxmatch,(1-g).^-X) ; 
-            LRmat(bsxfun(@eq,zeros(1,M,Nnew*nS),X)) = 1;
-            d_new = log(mean(prod(LRmat,2),1));   % log odds
+            [d_new, d_old(:,iX)] = calculate_d_REM(M, g, c, nS, Nnew, Nold, SNew, SOld, X);
             
-            
-            %             % plot so see how nS affects data
-%             for iS = 1:nS;
-%                 % binning new words.
-%                 if (islogbinning)
-%                     newHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(1:iS*Nold)-d0)./k)) - 1)),nConf); % bounds: [1 20]
-%                 else
-%                     newHist = min(max(round(m.*d_new(:) + b),1),20); % bounds: [1 20]
-%                 end
-%                 newHist = squeeze(histc(newHist,1:nConf));
-%                 pnew = lambda/nConf + (1-lambda).*(newHist/sum(newHist));
-%                 LL_newtemp(iS) = nnew_part*log(pnew);
-%             end
-%             subplot(3,3,iB);
-%             plot(1:nS,LL_newtemp,'ok')
-%             defaultplot
-%             xlabel('nS')
-%             ylabel('LLnew')
-            
-            % decision variable values for old words
-            idxmatch = bsxfun(@eq, permute(SOld, [3 2 1]), X); % indices in which new words match X
-            
-            LRmat = 1-c + c*(1-g)/g * bsxfun(@times,idxmatch,exp(-X.*log(1-g)));
-            LRmat(bsxfun(@eq,zeros(1,M,Nold*nS),X)) = 1;
-            d_old(:,iX) = log(mean(prod(LRmat,2),1));
+            %             % decision variable for new words
+            %             idxmatch = bsxfun(@eq, SNew, X); % indices in which new words match X
+            %
+            %             LRmat = 1-c + c*(1-g)/g * bsxfun(@times,idxmatch,(1-g).^-X) ;
+            %             LRmat(bsxfun(@eq,zeros(1,M,Nnew*nS),X)) = 1;
+            %             d_new = log(mean(prod(LRmat,2),1));   % log odds
+            %
+            %
+            %             %             % plot so see how nS affects data
+            %             %             for iS = 1:nS;
+            %             %                 % binning new words.
+            %             %                 if (islogbinning)
+            %             %                     newHist= min(round(L+0.5+ L.*(2./(1+exp(-(d_new(1:iS*Nold)-d0)./k)) - 1)),nConf); % bounds: [1 20]
+            %             %                 else
+            %             %                     newHist = min(max(round(m.*d_new(:) + b),1),20); % bounds: [1 20]
+            %             %                 end
+            %             %                 newHist = squeeze(histc(newHist,1:nConf));
+            %             %                 pnew = lambda/nConf + (1-lambda).*(newHist/sum(newHist));
+            %             %                 LL_newtemp(iS) = nnew_part*log(pnew);
+            %             %             end
+            %             %             subplot(3,3,iB);
+            %             %             plot(1:nS,LL_newtemp,'ok')
+            %             %             defaultplot
+            %             %             xlabel('nS')
+            %             %             ylabel('LLnew')
+            %
+            %
+            %             %
+            %
+            %
+            %             % decision variable values for old words
+            %             idxmatch = bsxfun(@eq, permute(SOld, [3 2 1]), X); % indices in which new words match X
+            %
+            %             LRmat = 1-c + c*(1-g)/g * bsxfun(@times,idxmatch,exp(-X.*log(1-g)));
+            %             LRmat(bsxfun(@eq,zeros(1,M,Nold*nS),X)) = 1;
+            %             d_old(:,iX) = log(mean(prod(LRmat,2),1));
             
 
             % binning new words.

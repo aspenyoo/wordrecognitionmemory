@@ -131,8 +131,8 @@ create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 %% get best parameter fits
 clear all
 
-modelname = 'FP';
-binningfn = 3;
+modelname = 'REM';
+binningfn = 1;
 optimMethod = 'patternbayes';
 
 
@@ -226,10 +226,10 @@ ylabel('Proportion Correct')
 % clear
 
 nSamples = 10;
-modelname = 'FP';
-binningfn = 3;
+modelname = 'REM';
+binningfn = 1;
 optimMethod = 'patternbayes';
-subjid = 5;
+subjid = 2;
 
 % get best fit parameters and subject data
 [nnew_part, nold_part] = loadsubjdata(subjid,modelname);
