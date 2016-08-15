@@ -63,7 +63,7 @@ optimMethod = 'patternbayes';
 nSubj = 14;
 z = nan(50,2);
 
-for isubj = 1:4;
+for isubj = 1:14;
     removetxtspaces(modelname,binningfn,isubj,optimMethod)
     isubj
     for i=1:50;
@@ -84,14 +84,15 @@ Mmax = 50;
 filepath = 'model/4_fitdata/';
 approxTime = linspace(.1,3,50);
 maxTime = 36;
-nJobs = 15;
+nJobs = [];
+nStartVals = 10;
 
 for isubj = 1:nSubj;
     subjid = subjids(isubj);
     
     jobnumVec = []; estTimeVec = [];
     for iM = 1:Mmax;
-        counts= countnum2(modelname, binningfn, subjid, [1;iM]);
+        counts = nStartVals - countnum2(modelname, binningfn, subjid, [1;iM]);
         jobnumVec = [jobnumVec repmat(iM,1,counts)];
         estTimeVec = [estTimeVec repmat(approxTime(iM),1,counts)];
     end
@@ -131,20 +132,28 @@ create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 %% get best parameter fits
 clear all
 
-modelname = 'REM';
-binningfn = 1;
+modelname = 'FP';
+binningfn = 3;
 optimMethod = 'patternbayes';
+subjids = [1:14];
 
+% for isubj = 1:10
+%     removetxtspaces(modelname,binningfn,isubj,optimMethod);
+% end
 
-for isubj = 1:10
-    removetxtspaces(modelname,binningfn,isubj,optimMethod);
-end
-
-getbestfitparams(modelname,binningfn,1:10)
+getbestfitparams(modelname,binningfn,1:14)
 
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
-subjids = [1:10];
-plotparamfits(modelname,binningfn,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [1 1 1 0])
+subjids = [1:14];
+plotparamfits(modelname,binningfn,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [1 1 0 0])
+
+%% checking nLLs are consistent (debugging)
+
+load('subjdata.mat')
+for isubj = 1:14;
+    isubj
+    [ nLL(isubj) ] = nLL_approx_vectorized( modelname, bestFitParam(isubj,:), binningfn, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
+end
 
 
 %% saving data and model for each subject
@@ -198,18 +207,20 @@ nOld_part = sum(nOld_part(subjids,:));
 
 % get number of responses for model
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'],'bestFitParam') % load bestFitParam
-nNew_mod = zeros(1,20); nOld_mod = nNew_mod;
-for isubj = 1:nSubj;
+nNew_mod = nan(14,20); nOld_mod = nNew_mod;
+for isubj = 1:14;
     subjid = subjids(isubj)
     theta = bestFitParam(subjid,:);
     
-    [nnew_mod, nold_mod] = simulate_data(modelname, theta, binningfn, nX, nS);
-    nNew_mod = nnew_mod + nNew_mod;
-    nOld_mod = nold_mod + nOld_mod;
+    [nNew_mod(isubj,:), nOld_mod(isubj,:)] = simulate_data(modelname, theta, binningfn, nX, nS);
 end
 
+% sum of model predictions
+nNew_mod_all = sum(nNew_mod(subjids,:));
+nOld_mod_all = sum(nOld_mod(subjids,:));
+
 % plot of responses of frequencies
-figure; bar([nNew_part; nNew_mod; nOld_part; nOld_mod]'); 
+figure; bar([nNew_part; nNew_mod_all; nOld_part; nOld_mod_all]'); 
 legend('data new','model new', 'data old', 'model old')
 axis([0.5 20.5 0 250]); defaultplot; defaultplot;
 xlabel('Rating')
@@ -217,7 +228,7 @@ ylabel('Frequency')
 
 % pc for confidence
 PC_part = [nNew_part(1:10)./(nOld_part(1:10) + nNew_part(1:10)) nOld_part(11:20)./(nNew_part(11:20) + nOld_part(11:20))];
-PC_mod = [nNew_mod(1:10)./(nOld_mod(1:10) + nNew_mod(1:10)) nOld_mod(11:20)./(nNew_mod(11:20) + nOld_mod(11:20))];
+PC_mod = [nNew_mod_all(1:10)./(nOld_mod_all(1:10) + nNew_mod_all(1:10)) nOld_mod_all(11:20)./(nNew_mod_all(11:20) + nOld_mod_all(11:20))];
 figure; bar([PC_part; PC_mod]'); axis([0.5 20.5 0.4 1]); legend('data','model'); defaultplot;
 xlabel('Rating')
 ylabel('Proportion Correct')
