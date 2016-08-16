@@ -34,6 +34,7 @@ switch testmodelname
         nParams = 7;
 end
 if any(binningfn == [2 3 4]); nParams = nParams + 2; end % logistic binning has two more parameters
+if binningfn == 5; nParams = nParams + 3; end % power law has 3 more parameters
 
 if strcmp(optimMethod,'GS'); nGridsVec = fixparams; clear fixparams; end
 

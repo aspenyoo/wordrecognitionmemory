@@ -60,11 +60,17 @@ switch modelname
                 b = theta(4);
                 d0 = theta(5);
                 sigma_mc = theta(6);
+            case 5
+                a = theta(3);
+                b = theta(4);
+                d0 = theta(5);
+                lambda = theta(6);
+                sigma_mc = theta(7);
         end
         Nold = sum(nold_part); Nnew = sum(nnew_part);
         L = nConf/2;
         J = 1/sigma.^2+1;
-        lambda = 0.01;             % lapse rate
+        lapse = 0.01;             % lapse rate
         
         if M ~= floor(M)
             M = floor(M);
@@ -159,8 +165,16 @@ switch modelname
                     newHist = min(max(round(a.*log(1-q)+b+randn(length(q),1).*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
                     newHist(d_new_sign < 0) = nConf+1 - newHist(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
                     newHist = histc(newHist,1:nConf);
+                case 5 % generalized power law on p(correct)
+                    d_new_sign = sign(d_new(:)+d0);                                                % -1 for respond new, +1 for respond old
+                    q = 1./(1+exp(-abs(d_new(:)+d0)));
+                    conf = a.*((q.^lambda - 1)./lambda)+b;
+                    newHist = 0.5+0.5.*erf(bsxfun(@minus,[1.5:(nConf-0.5) Inf],conf)./(sigma_mc*sqrt(2))) - ...
+                        (0.5+0.5.*erf(bsxfun(@minus,[-Inf 1.5:(nConf-0.5)],conf)./(sigma_mc*sqrt(2))));
+                    newHist(d_new_sign < 0,:) = fliplr(newHist(d_new_sign < 0,:));
+                    newHist = (sum(newHist)./nS)';
             end
-            pnew = lambda/nConf + (1-lambda)*(newHist/sum(newHist));
+            pnew = lapse/nConf + (1-lapse)*(newHist/sum(newHist));
             LL_new(iX) = nnew_part*log(pnew);
             
         end
@@ -227,9 +241,17 @@ switch modelname
                 oldHist = min(max(round(a.*log(1-q)+b+randn(length(q),1).*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
                 oldHist(d_old_sign < 0) = nConf+1 - oldHist(d_old_sign < 0);                     % changing respond "new" words back to 1 to 10
                 oldHist = histc(oldHist,1:nConf); % histogram
+            case 5 % power law mapping
+                d_old_sign = sign(d_old(:)+d0);                                                % -1 for respond new, +1 for respond old
+                q = 1./(1+exp(-abs(d_old(:)+d0)));
+                conf = a.*((q.^lambda - 1)./lambda)+b;
+                oldHist = 0.5+0.5.*erf(bsxfun(@minus,[1.5:(nConf-0.5) Inf],conf)./(sigma_mc*sqrt(2))) - ...
+                    (0.5+0.5.*erf(bsxfun(@minus,[-Inf 1.5:(nConf-0.5)],conf)./(sigma_mc*sqrt(2))));
+                oldHist(d_old_sign < 0,:) = fliplr(oldHist(d_old_sign < 0,:));
+                oldHist = (sum(oldHist)./(nS*nX))';
         end
         
-        pold = lambda/nConf + (1-lambda)*(oldHist/sum(oldHist)); % normalizing
+        pold = lapse/nConf + (1-lapse)*(oldHist/sum(oldHist)); % normalizing
         
         % calculating nLL
         LL_old = nold_part*log(pold);
@@ -251,7 +273,7 @@ switch modelname
         
         L = nConf/2;
         Nold = sum(nold_part); Nnew = sum(nnew_part);
-        lambda = 0.01;             % lapse rate
+        lapse = 0.01;             % lapse rate
         
         if M ~= floor(M)
             M = floor(M);
@@ -326,7 +348,7 @@ switch modelname
                 newHisttemp = min(max(round(slope.*d_new(:) + b),1),nConf);
             end
             newHist = histc(newHisttemp,1:nConf);
-            pnew = lambda/nConf + (1-lambda)*(newHist/sum(newHist));
+            pnew = lapse/nConf + (1-lapse)*(newHist/sum(newHist));
             LL_new(iX) = nnew_part*log(pnew);
         end
         
@@ -365,7 +387,7 @@ switch modelname
             oldHist = max(min(round(slope.*d_old(:) + b),nConf),1);
         end
         oldHist = histc(oldHist,1:nConf); % histogram
-        pold = lambda/nConf + (1-lambda)*(oldHist/sum(oldHist)); % normalizing
+        pold = lapse/nConf + (1-lapse)*(oldHist/sum(oldHist)); % normalizing
         
         % calculating nLL
         LL_old = nold_part*log(pold);

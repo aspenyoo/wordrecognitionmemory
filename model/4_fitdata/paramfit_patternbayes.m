@@ -122,7 +122,13 @@ end
                 ub = [ub(1:end-2) 100 100 100 100];
                 plb = [plb(1:end-2) -10 -10 -1 0];
                 pub = [pub(1:end-2) 0 10 1 10];
-                starttheta = [starttheta(:,1:end-2) bsxfun(@plus,plb(end-3:end),bsxfun(@times,rand(nStartVals,4),(pub(end-3:end)-plb(end-3:end))))];
+                starttheta = [starttheta(:,1:end-2) bsxfun(@plus,plb(3:end),bsxfun(@times,rand(nStartVals,4),(pub(3:end)-plb(3:end))))];
+            case 5
+                lb = [lb(1:end-2) 0 -100 -100 -10 0];
+                ub = [ub(1:end-2) 100 100 100 10 100];
+                plb = [plb(1:end-2) 0 -10 -10 -3 0];
+                pub = [pub(1:end-2) 10 10 10 3 10];
+                starttheta = [starttheta(:,1:end-2) bsxfun(@plus,plb(3:end),bsxfun(@times,rand(nStartVals,5),(pub(3:end)-plb(3:end))))];
         end
         
         %deleting fix parameter values

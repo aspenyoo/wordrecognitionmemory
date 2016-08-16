@@ -2,10 +2,6 @@
 #include "math.h"
 
 /*
- * VestBMS_likec1qtrapz.c
- *
- * multiplies two matrices elementwise and executes trapezoidal 
- * integration along first dimensions.
  *
  * This is a MEX-file for MATLAB.
  */
