@@ -22,10 +22,10 @@ for isubj = 1:nSubj;
     
     subjid = subjids(isubj);
     
-    if isempty(joblistfile)
+    if ~isempty(joblistfile)
         alldata = dlmread(joblistfile);
     else
-        alldata = dlmread(['joblist_' modelname num2str(binningfn) 'subj' num2str(subjid) '.txt']);
+        alldata = dlmread(['joblist_' modelname num2str(binningfn) '_subj' num2str(subjid) '.txt']);
     end
     MVec = alldata(jobnum,:);
     MVec = MVec(MVec ~= 0);
