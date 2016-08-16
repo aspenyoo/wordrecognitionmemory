@@ -101,17 +101,7 @@ for isubj = 1:nSubj;
     create_joblist(jobfilename, jobnumVec, estTimeVec, maxTime, nJobs)
 end
 
-%% checking nLL of fit parameters with nLL given
 
-modelname
-isubj = 1;
-binningfn = 2;
-
-bestFitParam(isubj,:)
-nLL_est(isubj,:)
-
-[nnew_part, nold_part] = loadsubjdata(isubj,modelname,20);
-nLL_approx_vectorized(modelname,bestFitParam(isubj,:),binningfn,nnew_part,nold_part)
 
 %% create joblist
 
@@ -148,13 +138,33 @@ subjids = [1:14];
 plotparamfits(modelname,binningfn,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [1 1 0 0])
 
 %% checking nLLs are consistent (debugging)
+% 08.15.2016
+
+clear
+
+modelname = 'FP';
+optimMethod = 'patternbayes';
+binningfn = 3;
+load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
+
+binningfn = 5;
+bestFitParam = [bestFitParam(:,1:end-1) ones(14,1) bestFitParam(:,end)]; % making it binningfn 5
 
 load('subjdata.mat')
-for isubj = 1:14;
+for isubj = 1:3;
     isubj
     [ nLL(isubj) ] = nLL_approx_vectorized( modelname, bestFitParam(isubj,:), binningfn, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
 end
 
+[nLL_est(1:3) nLL']
+
+%% checking nLL of fit parameters with nLL given
+
+bestFitParam(isubj,:)
+nLL_est(isubj,:)
+
+[nnew_part, nold_part] = loadsubjdata(isubj,modelname,20);
+nLL_approx_vectorized(modelname,bestFitParam(isubj,:),binningfn,nnew_part,nold_part)
 
 %% saving data and model for each subject
 clear all
