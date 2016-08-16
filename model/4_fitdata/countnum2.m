@@ -11,7 +11,7 @@ end
 % removetxtspaces(testmodelname,isubj,optimMethod)
 
 filepath = 'model/4_fitdata/BPSfits/';
-try
+% try
     nFixedParams = size(fixparams,2);
     data = dlmread([filepath filename]);
     count = ones(size(data,1),1); % logicals
@@ -19,7 +19,7 @@ try
         count = count & data(:,fixparams(1,iparam)) == fixparams(2,iparam);
     end
     count = sum(count);
-catch
-    count = 0;
-end
+% catch
+%     count = 0;
+% end
 
