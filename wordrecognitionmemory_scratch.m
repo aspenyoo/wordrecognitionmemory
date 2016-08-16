@@ -78,7 +78,7 @@ end
 modelname = 'FP';
 binningfn = 3;
 optimMethod = 'patternbayes';
-subjids = 1:14;
+subjids = 11;
 nSubj = length(subjids);
 Mmax = 50;
 filepath = 'model/4_fitdata/';
@@ -137,9 +137,9 @@ binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = [1:14];
 
-% for isubj = 1:10
-%     removetxtspaces(modelname,binningfn,isubj,optimMethod);
-% end
+for isubj = 1:10
+    removetxtspaces(modelname,binningfn,isubj,optimMethod);
+end
 
 getbestfitparams(modelname,binningfn,1:14)
 
