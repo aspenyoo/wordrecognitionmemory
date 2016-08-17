@@ -301,7 +301,8 @@ switch modelname
             idx = logical(binornd(1,pQ,[Nold*nS M]) + repmat((X == 0),[nS 1])); % indices of randomly drawn features
             SOld = (1-idx).*repmat(X,[nS 1]) + idx.*(geornd(g,[Nold*nS M]) + 1); % old words from noisy memories
 
-            [d_new, d_old(:,iX)] = calculate_d_REM(M, g, c, nS, Nnew, Nold, SNew, SOld, X);
+            matchoddsVec = (c+(1-c).*(g.*(1-g).^(1:30)))./(g.*(1-g).^(1:30));
+            [d_new, d_old(:,iX)] = calculate_d_REM(M, g, c, nS, Nnew, Nold, SNew, SOld, X, matchoddsVec);
             
             %             % decision variable for new words
             %             idxmatch = bsxfun(@eq, SNew, X); % indices in which new words match X

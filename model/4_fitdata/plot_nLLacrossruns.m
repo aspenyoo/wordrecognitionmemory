@@ -24,6 +24,6 @@ for isubj = 1:nSubj;
     alldata = dlmread(filename);
     
     subplot(4,4,subjid)
-    scatter(alldata(:,1),alldata(:,nLLcol),'k.');
+    scatter(alldata(:,1),alldata(:,nLLcol),'ko');
     defaultplot
 end

@@ -1,10 +1,15 @@
-function getbestfitparams(modelname, binningfn, subjids,filepath)
+function getbestfitparams(modelname, binningfn, subjids,paramrange, filepath)
 % gets the best fitting parameters from txt file across subjects and
 % compiles it into a .mat file
 % 
 % MODELNAME: name of the model. FP, FPheurs, or uneqVar
 % NSUBJ: number of subjects (e.g., 14, 25)
-if nargin < 4; filepath = ['model' filesep '4_fitdata' filesep 'BPSfits' filesep]; end
+% 
+% PARAMRANGE: a 3 x (number of parameters you want to enforce a range)
+% matrix, where the first row is the parameter number, second row is the
+% lower bound of that parameter, and third row is the upper bound of that parameter. 
+if nargin < 4; paramrange = []; end
+if nargin < 5; filepath = ['model' filesep '4_fitdata' filesep 'BPSfits' filesep]; end
 
 switch modelname
     case {'FP','FPheurs','uneqVar'}
@@ -24,6 +29,13 @@ for isubj = 1:nSubj;
     alldata = dlmread(filename);
     
     datasorted = sortrows(alldata,nLLcol);
+    for iparam = 1:size(paramrange,2); % how many ranges you are imposing
+        idx = datasorted(:,iparam) < paramrange(2,iparam); % deleting things to small
+        datasorted(idx,:) = [];
+        
+        idx = datasorted(:,iparam) > paramrange(3,iparam); % deleting things to large
+        datasorted(idx,:) = [];
+    end
     bestdata(isubj,:) = datasorted(1,:);
     
 end

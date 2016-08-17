@@ -28,19 +28,50 @@
  */
 
 /* Set ARGSCHECK to 0 to skip argument checking (for minor speedup) */
-#define ARGSCHECK 1
+#define ARGSCHECK 0
 
-void calculate_d_REM( double *d_new, double *d_old, int M, double g, double c, int nS, int Nnew, int Nold, double *SNew, double *SOld, double *X )
+void calculate_d_REM( double *d, int M, double g, double c, int nS, int Nold, double *S, int Srows, double *X, double *oddsVec )
 {
 	
-	/* Write your main calculations here... */
+	mwSize t,i,k;
+	double *S0,*X0,prod,sum;
+
+	/* store initial positions */
+	S0 = S;
+	X0 = X;
+
+	for (t=0; t<Srows; t++){  //for each test word
+		S = S0 + t; // pointing to current row
+		sum = 0.;
+
+		for (i=0; i<Nold; i++){ //for each row of X
+			X = X0 + i;
+			prod = 1.;
+
+			for(k=0; k<M; k++) {//for each element in each row of X
+				// if the elements match
+				if (S[Srows*k] == X[Nold*k]) {
+					prod *= oddsVec[(int) (S[Srows*k] -1) ];
+				}
+				// if the X element is a nonzero mismatch
+				else{
+					if (X[Nold*k] != 0){
+						prod *= (1-c);
+					}
+				}
+			}
+		sum += prod;
+		}
+		*(d++) = -log(Nold) + log(sum);
+
+	}
 	
 }
 
 /* the gateway function */
 void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
 {
-	double *d_new, *d_old, g, c, *SNew, *SOld, *X;
+	double *d_new, *d_old, g, c, *SNew, *SOld, *X, *matchoddsVec;
 	int M, nS, Nnew, Nold;
 
 	/*  check for proper number of arguments */
@@ -48,9 +79,9 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
 	   within an if statement, because it will never get to the else
 	   statement if mexErrMsgIdAndTxt is executed. (mexErrMsgIdAndTxt breaks
 	   you out of the MEX-file) */
-	if ( nrhs<9 || nrhs>9 )
+	if ( nrhs<10 || nrhs>10 )
 		mexErrMsgIdAndTxt( "MATLAB:calculate_d_REM:invalidNumInputs",
-			"Nine inputs required.");
+			"Ten inputs required.");
 	if ( nlhs<2 || nlhs>2 )
 		mexErrMsgIdAndTxt( "MATLAB:calculate_d_REM:invalidNumOutputs",
 			"Two outputs required.");
@@ -82,7 +113,11 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
 	/* Get ninth input (X, Nold-by-M double) */
 	X = (double*) mxGetPr(prhs[8]);
 
+	/* Get tenth input (matchoddsVec, 1-by-30 double)*/
+	matchoddsVec = (double*) mxGetPr(prhs[9]);
+
 	/* Check sizes of input arguments (define ARGSCHECK to 0 above to skip) */
+	/*
 	if ( ARGSCHECK ) {
 		if ( !mxIsDouble(prhs[0]) || mxIsComplex(prhs[0]) || (mxGetN(prhs[0])*mxGetM(prhs[0])!=1) )
 			mexErrMsgIdAndTxt("MATLAB:calculate_d_REM:MNotScalar", "Input M must be a scalar.");
@@ -126,6 +161,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
 		if ( dims_X[1] != ((mwSize) (M)) )
 			mexErrMsgIdAndTxt("MATLAB:calculate_d_REM:XWrongSize", "The second dimension of input X has the wrong size (should be M).");
 	}
+	*/
+
 
 	/* Pointer to first output (D_NEW, Nnew*nS-by-1 double) */
 	plhs[0] = mxCreateDoubleMatrix((mwSize) (Nnew*nS), (mwSize) (1), mxREAL);
@@ -136,6 +173,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
 	d_old = mxGetPr(plhs[1]);
 
 	/* Call the C subroutine */
-	calculate_d_REM(d_new, d_old, M, g, c, nS, Nnew, Nold, SNew, SOld, X);
+	calculate_d_REM(d_new, M, g, c, nS, Nold, SNew, Nnew*nS, X, matchoddsVec);
+	calculate_d_REM(d_old, M, g, c, nS, Nold, SOld, Nold*nS, X, matchoddsVec);
 
 }

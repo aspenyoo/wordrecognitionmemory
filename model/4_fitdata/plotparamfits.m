@@ -40,7 +40,8 @@ switch modelname
     case 'REM'
         nParams = 7;
 end
-if (binningfn == 2); nParams = nParams + 2; end 
+if any(binningfn == [2 3 4]); nParams = nParams + 2; end 
+if binningfn == 5; nParams = nParams + 3; end
 
 % getting simulated data
 pNew_est = nan(nSubj,20); pOld_est = pNew_est;
