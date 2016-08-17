@@ -5,7 +5,7 @@
 #PBS -M aspen.yoo@nyu.edu
 #PBS -l mem=4GB
 #PBS -m abe
-#PBS -N paramfit_wrap2
+#PBS -N FP5
 
 index=${PBS_ARRAYID}
 job=${PBS_JOBID}
@@ -20,7 +20,7 @@ addpath(genpath('/home/ay963/matlab-scripts'))
 addpath(genpath('/home/ay963/wordrecognitionmemory'))
 
 modelname = 'FP';
-binningfn = 3;
+binningfn = 5;
 
 if $index > 100;
     blah = num2str($index);
