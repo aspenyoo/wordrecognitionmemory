@@ -1,4 +1,4 @@
-function [d_new, d_old] = calculate_d_REM(M, g, c, nS, Nnew, Nold, SNew, SOld, X)
+function [d_new, d_old] = calculate_d_REM(M, g, c, nS, Nnew, Nold, SNew, SOld, X, matchoddsVec)
 % calculate log odds function used as a basis for Luigi to code up C code!
 %
 % ================ INPUT VARIABLES ====================
