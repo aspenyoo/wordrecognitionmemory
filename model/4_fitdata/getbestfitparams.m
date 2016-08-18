@@ -19,6 +19,7 @@ switch modelname
 end
 
 if any(binningfn == [2 3 4]); nParams = nParams + 2; end 
+if binningfn == 5; nParams = nParams + 3; end
 nLLcol = nParams + 1; % column corresponding to nLLs for FP, FPheurs, and uneqVar models
 nSubj = length(subjids);
 

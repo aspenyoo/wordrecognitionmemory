@@ -58,12 +58,12 @@ exit;
 %% checking which jobs need to be resubmitted
 
 modelname = 'FP';
-binningfn = 3;
+binningfn = 5;
 optimMethod = 'patternbayes';
 nSubj = 14;
 z = nan(50,2);
 
-for isubj = 1:14;
+for isubj = 1:9;
     removetxtspaces(modelname,binningfn,isubj,optimMethod)
     isubj
     for i=1:50;
@@ -123,18 +123,18 @@ create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 clear all
 
 modelname = 'FP';
-binningfn = 3;
+binningfn = 5;
 optimMethod = 'patternbayes';
-subjids = [1:14];
+subjids = [1:8];
 
-for isubj = 1:14
+for isubj = 1:8
     removetxtspaces(modelname,binningfn,isubj,optimMethod);
 end
 
-getbestfitparams(modelname,binningfn,1:14)
+getbestfitparams(modelname,binningfn,1:8)
 
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
-subjids = [1:14];
+subjids = [1:8];
 plotparamfits(modelname,binningfn,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [1 1 0 0])
 
 %% checking nLLs are consistent (debugging)

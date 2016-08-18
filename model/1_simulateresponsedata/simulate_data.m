@@ -27,11 +27,18 @@ switch modelname
         d0 = theta(4);                  % shift of logistic binning function
         L = nConf/2;
         
-        if any(binningfn == [2 3 4]);
-            a = theta(3);
-            b = theta(4);
-            d0 = theta(5);
-            sigma_mc = theta(6);
+        switch binningfn
+            case {2,3,4};
+                a = theta(3);
+                b = theta(4);
+                d0 = theta(5);
+                sigma_mc = theta(6);
+            case 5
+                a = theta(3);
+                b = theta(4);
+                d0 = theta(5);
+                lambda = theta(6);
+                sigma_mc = theta(7);
         end
         
         sigs = 1;                       % width of word feature distribution
@@ -86,7 +93,15 @@ switch modelname
                     d_new_sign = sign(d_new(:)+d0);
                     q = 1./(1+exp(-abs(d_new(:)+d0)));
                     newHisttemp = min(max(round(a.*log(1-q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
-                    newHisttemp(d_new_sign < 0) = nConf+1 - newHisttemp(d_new_sign < 0);                     % changing respond "new" words back to 1 to 10
+                    newHisttemp(d_new_sign < 0) = nConf+1 - newHisttemp(d_new_sign < 0);    
+                case 5 % generalized power law on p(correct)
+                    d_new_sign = sign(d_new(:)+d0);                                                % -1 for respond new, +1 for respond old
+                    q = 1./(1+exp(-abs(d_new(:)+d0)));
+                    conf = a.*((q.^lambda - 1)./lambda)+b;
+                    newHisttemp = 0.5+0.5.*erf(bsxfun(@minus,[1.5:(nConf-0.5) Inf],conf)./(sigma_mc*sqrt(2))) - ...
+                        (0.5+0.5.*erf(bsxfun(@minus,[-Inf 1.5:(nConf-0.5)],conf)./(sigma_mc*sqrt(2))));
+                    newHisttemp(d_new_sign < 0,:) = fliplr(newHisttemp(d_new_sign < 0,:));
+                    newHist(iX,:) = (sum(newHisttemp)./nS)';% changing respond "new" words back to 1 to 10
             end
         end
         
@@ -117,13 +132,21 @@ switch modelname
                 q = 1./(1+exp(-abs(d_old(:)+d0)));
                 oldHist = min(max(round(a.*log(1-q)+b+randn.*sigma_mc),1),L)+L;        % confidence rating from 11 to 20
                 oldHist(d_old_sign < 0) = nConf+1 - oldHist(d_old_sign < 0);                     % changing respond "new" words back to 1 to 10
+            case 5 % power law mapping
+                d_old_sign = sign(d_old(:)+d0);                                                % -1 for respond new, +1 for respond old
+                q = 1./(1+exp(-abs(d_old(:)+d0)));
+                conf = a.*((q.^lambda - 1)./lambda)+b;
+                oldHist = 0.5+0.5.*erf(bsxfun(@minus,[1.5:(nConf-0.5) Inf],conf)./(sigma_mc*sqrt(2))) - ...
+                    (0.5+0.5.*erf(bsxfun(@minus,[-Inf 1.5:(nConf-0.5)],conf)./(sigma_mc*sqrt(2))));
+                oldHist(d_old_sign < 0,:) = fliplr(oldHist(d_old_sign < 0,:));
+                oldHist = (sum(oldHist)./(nS*nX))';
         end
         
         switch binningfn
             case {0,1}
                 nnew_part = round(mean(newHist,1)/(nS));
                 nold_part = round(oldHist'/(nX*nS));
-            case {2,3,4}
+            case {2,3,4,5}
                 nnew_part = mean(newHist);
                 nold_part = oldHist';
         end
