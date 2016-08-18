@@ -57,8 +57,8 @@ exit;
 
 %% checking which jobs need to be resubmitted
 
-modelname = 'REM';
-binningfn = 1;
+modelname = 'FP';
+binningfn = 5;
 optimMethod = 'patternbayes';
 nSubj = 14;
 z = nan(50,2);
@@ -74,16 +74,17 @@ for isubj = 1:nSubj;
 end
 
 %% separate jobs for each person
+clear 
 
-modelname = 'FP';
-binningfn = 3;
+modelname = 'REM';
+binningfn = 1;
 optimMethod = 'patternbayes';
-subjids = [1 3:14];
+subjids = [1:14];
 nSubj = length(subjids);
 Mmax = 50;
 filepath = 'model/4_fitdata/';
-approxTime = linspace(.1,3,50);
-maxTime = 36;
+approxTime = linspace(.22*1000/3600,4.61*1000/3600,50);
+maxTime = 8;
 nJobs = [];
 nStartVals = 10;
 
@@ -142,18 +143,16 @@ plotparamfits(modelname,binningfn,optimMethod,bestFitParam(subjids,:),20, 0, 0, 
 
 clear
 
-modelname = 'FP';
+modelname = 'REM';
 optimMethod = 'patternbayes';
-binningfn = 3;
+binningfn = 1;
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
 
-binningfn = 5;
-bestFitParam = [bestFitParam(:,1:end-1) ones(14,1) bestFitParam(:,end)]; % making it binningfn 5
-
 load('subjdata.mat')
-for isubj = 1:3;
+nLL = nan(1,1);
+for isubj = 1;
     isubj
-    [ nLL(isubj) ] = nLL_approx_vectorized( modelname, bestFitParam(isubj,:), binningfn, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
+    nLL = nLL_approx_vectorized( modelname, bestFitParam(isubj,:), binningfn, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 )
 end
 
 [nLL_est(1:3) nLL']

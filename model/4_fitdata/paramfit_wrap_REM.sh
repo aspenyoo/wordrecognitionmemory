@@ -1,11 +1,11 @@
 #!/bin/bash
 #PBS -l nodes=1:ppn=1
-#PBS -l walltime=38:00:00
+#PBS -l walltime=12:00:00
 #PBS -j oe
 #PBS -M aspen.yoo@nyu.edu
 #PBS -l mem=4GB
 #PBS -m abe
-#PBS -N paramfit_wrap_REM
+#PBS -N REM
 
 index=${PBS_ARRAYID}
 job=${PBS_JOBID}
@@ -27,8 +27,9 @@ if $index > 100;
     isubj = str2double(blah(1:end-2));
     joblistnum = str2double(blah(end-1:end)); 
 end
+joblistfile = []; % will do a different job per person. (if you want same for all, write joblist name)
 
-cluster_wrap2(modelname, binningfn, isubj, joblistnum,'joblist_08012016.txt',[1 7; nan 0])
+cluster_wrap2(modelname, binningfn, isubj, joblistnum,joblistfile,[1 7; nan 0])
 
 EOF
 
