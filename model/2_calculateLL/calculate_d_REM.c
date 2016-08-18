@@ -34,17 +34,17 @@ void calculate_d_REM( double *d, int M, double g, double c, int nS, int Nold, do
 {
 	mwSize t,i,j;
 	double prod,sum;
-	for (t=0; t<Srows; t++){  //for each test word
+	for (t=0; t<Srows; t++){  /*for each test word*/
 		sum = 0.0;
 
-		for (i=0; i<Nold; i++){ //for each row of X
+		for (i=0; i<Nold; i++){ /*for each row of X*/
 			prod = 1.0;
 
-			for(j=0; j<M; j++) {//for each element in each row of X
-				// if the elements match
+			for(j=0; j<M; j++) {/*for each element in each row of X*/
+				/* if the elements match*/
 				if (S[Srows*j+t] == X[Nold*j+i])
 					prod *= oddsVec[(int) (S[Srows*j+t]-1)];
-				// if the X element is a nonzero mismatch
+				/* if the X element is a nonzero mismatch*/
 				else if (X[Nold*j+i] != 0)
 						prod *= 1.0-c;
 			}
