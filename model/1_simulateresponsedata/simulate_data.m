@@ -175,24 +175,12 @@ switch modelname
             X = binornd(1,1-p0,[Nold M]).*(geornd(g,[Nold M])+1);
             
             % generating new and old test words
-            SNew = geornd(g,[1 M Nnew*nS])+1; % new words
+            SNew = geornd(g,[Nnew*nS M])+1; % new words
             idx = logical(binornd(1,pQ,[Nold*nS M]) + repmat((X == 0),[nS 1])); % indices of randomly drawn features
             SOld = (1-idx).*repmat(X,[nS 1]) + idx.*(geornd(g,[Nold*nS M]) + 1); % old words from noisy memories
             
-            % decision variable values for new words
-            idxmatch = bsxfun(@eq, SNew, X); % indices in which new words match X
-            
-            LRmat = 1-c + c*(1-g)/g * bsxfun(@times,idxmatch,(1-g).^-X) ; 
-            LRmat(bsxfun(@eq,zeros(1,M,Nold*nS),X)) = 1;
-            d_new = log(mean(prod(LRmat,2),1));   % log odds
-            
-            % decision variable values for old words
-            idxmatch = bsxfun(@eq, permute(SOld, [3 2 1]), X); % indices in which new words match X
-            
-            LRmat = 1-c + c*(1-g)/g * bsxfun(@times,idxmatch,exp(-X.*log(1-g)));
-            LRmat(bsxfun(@eq,zeros(1,M,Nold*nS),X)) = 1;
-            d_old(:,iX) = log(mean(prod(LRmat,2),1));
-            
+            matchoddsVec = (c+(1-c).*g.*(1-g).^(0:30))./(g.*(1-g).^(0:30));
+            [d_new, d_old(:,iX)] = calculate_d_REM(M, g, c, nS, Nnew, Nold, SNew, SOld, X, matchoddsVec);
 
             % binning new words.
             if (binningfn)

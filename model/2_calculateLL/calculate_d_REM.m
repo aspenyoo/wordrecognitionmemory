@@ -17,7 +17,7 @@ function [d_new, d_old] = calculate_d_REM(M, g, c, nS, Nnew, Nold, SNew, SOld, X
 % D_OLD: log odds of old trials. [Nnew*nS,1]. (double)
 
 
-idxmatch = bsxfun(@eq, SNew, X); % indices in which new words match X
+idxmatch = bsxfun(@eq, permute(SNew, [3 2 1]), X); % indices in which new words match X
 
 % mismatchSum = sum(bsxfun(@and,bsxfun(@ne,X,0),~idxmatch),2); % number of
 %    nonzero mismatches in each word
@@ -29,7 +29,7 @@ idxmatch = bsxfun(@eq, SNew, X); % indices in which new words match X
 %
 % d_new = -log(Nnew) + log(sum((1-c).^mismatchSum.*prod(matchMat,2),1));   % log odds
 
-LRmat = 1-c + c*(1-g)/g * bsxfun(@times,idxmatch,(1-g).^-X) ;
+LRmat = 1-c + c*(1-g)/g * bsxfun(@times,idxmatch,exp(-X.*log(1-g))) ;
 LRmat(bsxfun(@eq,zeros(1,M,Nnew*nS),X)) = 1;
 d_new = squeeze(log(mean(prod(LRmat,2),1)));   % log odds
 

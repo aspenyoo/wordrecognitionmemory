@@ -34,14 +34,14 @@ end
 gold = aspencolors('dustygold');
 greyblue = aspencolors('greyblue');
 
-switch modelname
-    case {'FP','FPheurs','uneqVar'}
-        nParams = 4;
-    case 'REM'
-        nParams = 7;
-end
-if any(binningfn == [2 3 4]); nParams = nParams + 2; end 
-if binningfn == 5; nParams = nParams + 3; end
+% switch modelname
+%     case {'FP','FPheurs','uneqVar'}
+%         nParams = 4;
+%     case 'REM'
+%         nParams = 7;
+% end
+% if any(binningfn == [2 3 4]); nParams = nParams + 2; end 
+% if binningfn == 5; nParams = nParams + 3; end
 
 % getting simulated data
 pNew_est = nan(nSubj,20); pOld_est = pNew_est;
@@ -231,7 +231,7 @@ if (selectiveplot(2))
     
     % label
     text(.39,.39,'average participant');
-    title([num2str(nParams) ' Parameter Group Fit']);
+    title([modelname num2str(binningfn) ' Parameter Group Fit']);
     ylabel('Proportion');
     xlabel('Bin Number');
     

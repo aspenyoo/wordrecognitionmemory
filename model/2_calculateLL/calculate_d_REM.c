@@ -32,40 +32,26 @@
 
 void calculate_d_REM( double *d, int M, double g, double c, int nS, int Nold, double *S, int Srows, double *X, double *oddsVec )
 {
-	
-	mwSize t,i,k;
-	double *S0,*X0,prod,sum;
-
-	/* store initial positions */
-	S0 = S;
-	X0 = X;
-
+	mwSize t,i,j;
+	double prod,sum;
 	for (t=0; t<Srows; t++){  //for each test word
-		S = S0 + t; // pointing to current row
-		sum = 0.;
+		sum = 0.0;
 
 		for (i=0; i<Nold; i++){ //for each row of X
-			X = X0 + i;
-			prod = 1.;
+			prod = 1.0;
 
-			for(k=0; k<M; k++) {//for each element in each row of X
+			for(j=0; j<M; j++) {//for each element in each row of X
 				// if the elements match
-				if (S[Srows*k] == X[Nold*k]) {
-					prod *= oddsVec[(int) (S[Srows*k] -1) ];
-				}
+				if (S[Srows*j+t] == X[Nold*j+i])
+					prod *= oddsVec[(int) (S[Srows*j+t]-1)];
 				// if the X element is a nonzero mismatch
-				else{
-					if (X[Nold*k] != 0){
-						prod *= (1-c);
-					}
-				}
+				else if (X[Nold*j+i] != 0)
+						prod *= 1.0-c;
 			}
-		sum += prod;
+			sum += prod;
 		}
-		*(d++) = -log(Nold) + log(sum);
-
+		d[t] = log(sum)-log(Nold);
 	}
-	
 }
 
 /* the gateway function */
@@ -169,7 +155,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
 	d_new = mxGetPr(plhs[0]);
 
 	/* Pointer to second output (D_OLD, Nnew*nS-by-1 double) */
-	plhs[1] = mxCreateDoubleMatrix((mwSize) (Nnew*nS), (mwSize) (1), mxREAL);
+	plhs[1] = mxCreateDoubleMatrix((mwSize) (Nold*nS), (mwSize) (1), mxREAL);
 	d_old = mxGetPr(plhs[1]);
 
 	/* Call the C subroutine */

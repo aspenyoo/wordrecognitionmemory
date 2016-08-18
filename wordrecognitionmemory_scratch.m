@@ -57,13 +57,13 @@ exit;
 
 %% checking which jobs need to be resubmitted
 
-modelname = 'FP';
-binningfn = 5;
+modelname = 'REM';
+binningfn = 1;
 optimMethod = 'patternbayes';
 nSubj = 14;
 z = nan(50,2);
 
-for isubj = 1:9;
+for isubj = 1:nSubj;
     removetxtspaces(modelname,binningfn,isubj,optimMethod)
     isubj
     for i=1:50;
@@ -122,16 +122,16 @@ create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 %% get best parameter fits
 clear all
 
-modelname = 'FP';
-binningfn = 5;
+modelname = 'REM';
+binningfn = 1;
 optimMethod = 'patternbayes';
-subjids = [1:8];
+subjids = [1:14];
 
-for isubj = 1:8
+for isubj = 1:14
     removetxtspaces(modelname,binningfn,isubj,optimMethod);
 end
 
-getbestfitparams(modelname,binningfn,1:8)
+getbestfitparams(modelname,binningfn,1:14)
 
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
 subjids = [1:8];
@@ -265,3 +265,26 @@ for isamp = 1:nSamples;
 end
 
 nLLVec
+
+%% model comparison (AIC)
+% 08182016
+
+clear all
+
+modelnames = {'FP','FP'};
+binningfns = [3 5];
+optimMethod = 'patternbayes';
+nModels = length(modelnames);
+nSubj = 14;
+
+AICVec = nan(nSubj,nModels);
+nLLMat = nan(nSubj,nModels);
+for imodel = 1:nModels;
+    modelname = modelnames{imodel};
+    binningfn = binningfns(imodel);
+    load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat']) % load bestFitParam
+    k = size(bestFitParam,2) -1
+    
+    nLLMat(:,imodel) = nLL_est;
+    AICVec(:,imodel) = 2*(k + nLL_est);
+end
