@@ -1,7 +1,5 @@
 #include "mex.h"
 #include "math.h"
-#include <iostream>
-using namespace std;
 
 /*
  * calculate_d_REM_mex.c
@@ -36,7 +34,7 @@ void calculate_d_REM( double *d, int M, double g, double c, int nS, int Nold, do
 	double prod,sum;
 	int Smax=0;
 	double* oddsVec;
-	for(int i=0;i<Nold*M;i++)
+	for(int i=0;i<Srows*M;i++)
     if(S[i]>Smax)
       Smax=S[i];//Smax is the largest element of S
 
