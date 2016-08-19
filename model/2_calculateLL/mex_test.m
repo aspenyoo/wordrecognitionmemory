@@ -26,7 +26,7 @@ matchoddsVec = (c+(1-c).*(g.*(1-g).^(0:30)))./(g.*(1-g).^(0:30));
 tic; [d_new, d_old] = calculate_d_REM (M, g, c, nS, Nnew, Nold, SNew, SOld, X, matchoddsVec); t1 = toc; 
 tic; [d_new2,d_old2] = calculate_d_REM_mex (M, g, c, nS, Nnew, Nold, SNew, SOld, X, matchoddsVec); t2 = toc;
             
-rmse = sqrt(mean(sum((d_new(:) - d_new2(:)).^2)));
+rmse = sqrt(mean(sum((d_new(:) - d_new2(:)).^2))) + sqrt(mean(sum((d_old(:) - d_old2(:)).^2)));
 
 fprintf('=========================\n\t TESTING MAT VS MEX CODE:\n');
 fprintf('\tRMSE: %g.\n\tMATLAB time: %.1f ms.\n\tMEX time: %.1f ms.\n\tSpeed gain: %.1f.\n', ...

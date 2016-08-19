@@ -1,12 +1,11 @@
 #include "mex.h"
 #include "math.h"
-#include "matrix.h"
 
 /*
  * calculate_d_REM_mex.c
  *
  * calculate log odds function used as a basis for Luigi to code up C code!
- * 
+ *
  * ================ INPUT VARIABLES ====================
  * M: number of features. [scalar] (integer)
  * G: deometric distribution parameter, used for feature valuws. [scalar] (double)
@@ -17,33 +16,42 @@
  * SNEW: new words across S simulations. [Nnew*nS,M] (double)
  * SOLD: old words across S simulations. [Nold*nS,M] (double)
  * X: noisy memories. [Nold,M] (double)
- * 
+ *
  * ================ OUTPUT VARIABLES ==================
  * D_NEW: log odds of new trials. [Nnew*nS,1] (double)
  * D_OLD: log odds of old trials. [Nnew*nS,1]. (double)
  *
  * This is a MEX-file for MATLAB.
- * Template C code generated on 15-Aug-2016 with MEXXER v0.1 
+ * Template C code generated on 15-Aug-2016 with MEXXER v0.1
  * (https://github.com/lacerbi/mexxer).
  */
 
 /* Set ARGSCHECK to 0 to skip argument checking (for minor speedup) */
 #define ARGSCHECK 0
 
-void calculate_d_REM( double *d, int M, double g, double c, int nS, int Nold, double *S, int Srows, double *X, double *oddsVec )
+void calculate_d_REM( double *d, int M, double g, double c, int nS, int Nold, double *S, int Srows, double *X)
 {
-	mwSize t,i,j;
 	double prod,sum;
-	for (t=0; t<Srows; t++){  /*for each test word*/
+	int Smax=0;
+	double* oddsVec;
+	for(int i=0;i<Srows*M;i++)
+    if(S[i]>Smax)
+      Smax=S[i];//Smax is the largest element of S
+
+  oddsVec=new double[Smax+1];//create an array, to reserve memory
+  for(int i=0;i<=Smax;i++)
+    oddsVec[i]=1.0-c+c/g/pow(1.0-g,i-1); //and fill it with the correct values
+
+	for (int t=0; t<Srows; t++){  /*for each test word*/
 		sum = 0.0;
 
-		for (i=0; i<Nold; i++){ /*for each row of X*/
+		for (int i=0; i<Nold; i++){ /*for each row of X*/
 			prod = 1.0;
 
-			for(j=0; j<M; j++) {/*for each element in each row of X*/
+			for(int j=0; j<M; j++) {/*for each element in each row of X*/
 				/* if the elements match*/
 				if (S[Srows*j+t] == X[Nold*j+i])
-					prod *= oddsVec[(int) (S[Srows*j+t]-1)];
+					prod*=oddsVec[(int) S[Srows*j+t]];
 				/* if the X element is a nonzero mismatch*/
 				else if (X[Nold*j+i] != 0)
 						prod *= 1.0-c;
@@ -52,6 +60,7 @@ void calculate_d_REM( double *d, int M, double g, double c, int nS, int Nold, do
 		}
 		d[t] = log(sum)-log(Nold);
 	}
+	delete[] oddsVec; // delete the memory reserved for oddsVec
 }
 
 /* the gateway function */
@@ -159,7 +168,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
 	d_old = mxGetPr(plhs[1]);
 
 	/* Call the C subroutine */
-	calculate_d_REM(d_new, M, g, c, nS, Nold, SNew, Nnew*nS, X, matchoddsVec);
-	calculate_d_REM(d_old, M, g, c, nS, Nold, SOld, Nold*nS, X, matchoddsVec);
+	calculate_d_REM(d_new, M, g, c, nS, Nold, SNew, Nnew*nS, X);
+	calculate_d_REM(d_old, M, g, c, nS, Nold, SOld, Nold*nS, X);
 
 }
