@@ -42,8 +42,6 @@ if ~isempty(fixparams)
     tempTheta(unfixedparams) = theta;
     theta = tempTheta;
 end
-theta
-% 
 
 if strcmp(modelname,'uneqVar') % if uneqVar
     [pnew, pold] = responses_uneqVar(theta, binningfn);
