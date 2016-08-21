@@ -1,5 +1,5 @@
-function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelname, binningfn, nnew_part, nold_part, fixparams,nStartVals, nConf)
-% 
+function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelname, binningfn, memstrengthvar, nnew_part, nold_part, fixparams,nStartVals, nConf)
+%
 % paramfit_patternbayes(MODELNAME) uses bayesian patternsearch (one of Luigi
 % Acerbi's optimization algorithms) to find the best fit parameters (and
 % coinciding negative loglikelihoods (nLLs) for MODELNAME of one subjects
@@ -27,9 +27,9 @@ function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelna
 % Aspen Yoo -- January 28, 2016
 %
 
-if nargin < 5; fixparams = []; end
-if nargin < 6; nStartVals = 1; end
-if nargin < 7; nConf = 20; end
+if nargin < 6; fixparams = []; end
+if nargin < 7; nStartVals = 1; end
+if nargin < 8; nConf = 20; end
 nX = 30;
 nS = 50;
 
@@ -52,7 +52,7 @@ startTheta = genStartTheta;
 bfp = nan(size(startTheta));
 nll = nan(nStartVals,1); exitflag = nll;
 for istartval = 1:nStartVals;
-    obj_func = @(x) nLL_approx_vectorized(modelname, x, binningfn, nnew_part, nold_part, fixparams, nX, nS, nConf );
+    obj_func = @(x) nLL_approx_vectorized(modelname, x, binningfn, memstrengthvar, nnew_part, nold_part, fixparams, nX, nS, nConf );
     [bfp(istartval,:) ,nll(istartval), exitflag(istartval), outputt{istartval}] = bps(obj_func,startTheta(istartval,:),lb,ub,plb,pub,options);
 end
 
@@ -73,63 +73,71 @@ if ~isempty(fixparams);
     startTheta(:,unfixparams) = st;
     startTheta(:,fixparams(1,:)) = fixparams(2,:);
 end
-    
+
 
     function [starttheta] = genStartTheta
+        
+        % getting model specific parameters
         switch modelname
-            case 'FP'
-                starttheta = [ randi(30,nStartVals,1) 1e-3+rand(nStartVals,1).*3 1e-3+rand(nStartVals,1).*3 rand(nStartVals,1)-.5];
-                lb = [ 1 exp(-6) 1e-3 -10];
-                ub = [100 6 10  10];
-                plb = [1 exp(-6) 1e-3 -5];
-                pub = [50 exp(1) 5 5];
-            case 'FPheurs'
-                starttheta = [ randi(45,nStartVals,1) 1e-3+rand(nStartVals,1).*3 1e-3+rand(nStartVals,1).*3  -1e-3-rand(nStartVals,1).*7];
-                lb = [ 1 exp(-6) 1e-3 -50];
-                ub = [100 6 10  -1e-3];
-                plb = [1 exp(-6) 1e-3 -20];
-                pub = [50 exp(1) 5 -1e-3];
+            case {'FP','FPheurs'}
+                %                 starttheta = [ randi(30,nStartVals,1) 1e-3+rand(nStartVals,1).*3 1e-3+rand(nStartVals,1).*3 rand(nStartVals,1)-.5];
+                lb = [1 1e-3];
+                ub = [100 6 ];
+                plb = [1 1e-3 ];
+                pub = [50 3 ];
             case 'uneqVar'
-                starttheta = [3*rand(nStartVals,1) 3*rand(nStartVals,1)+1e-3 1e-3+rand(nStartVals,1).*3  rand(nStartVals,1)-.5];
-                lb = [0 1e-3 1e-3 -50];
-                ub = [10 10 10 50];
-                plb = [0 1e-3 1e-3 -5];
-                pub = [2 5 5 5];
+                %                 starttheta = [3*rand(nStartVals,1) 3*rand(nStartVals,1)+1e-3 1e-3+rand(nStartVals,1).*3  rand(nStartVals,1)-.5];
+                lb = [0 1e-3];
+                ub = [10 10];
+                plb = [0 1e-3];
+                pub = [2 5];
             case 'REM'
-                starttheta = [5+randi(50,nStartVals,1) rand(nStartVals,3) randi(15) 1e-3+rand(nStartVals,1).*3 rand(nStartVals,1)-.5];
-                lb = [ 1 1e-3 1e-3 1e-3 1 1e-3 -10];
-                ub = [50 1 1 1 50 10 10];
-                plb = [1 1e-3 1e-3 1e-3 1 1e-3 -5];
-                pub = [50 1 1 1 15 5 5];
+                %                 starttheta = [5+randi(50,nStartVals,1) rand(nStartVals,3) randi(15) 1e-3+rand(nStartVals,1).*3 rand(nStartVals,1)-.5];
+                lb = [ 1 1e-3 1e-3 1e-3 1];
+                ub = [50 1 1 1 50];
+                plb = [1 1e-3 1e-3 1e-3 1];
+                pub = [50 1 1 1 15];
         end
         
-        % setting last two parameters
+        % setting binnfn parameters
         switch binningfn
-            case 0 % linear binning
-                starttheta = [starttheta(:,1:end-2) -rand(nStartVals,1)*10, rand(nStartVals,1)*10 ];
-                lb(end-1:end) = [-Inf 0];
-                ub(end-1:end) = [0 Inf];
-                plb(end-1:end) = [-10 0];
-                pub(end-1:end) = [0 10];
-            case {2,3} % log binning
-                starttheta = [starttheta(:,1:end-2) rand*20 -5+rand*10 -5+rand*10 rand*10];
-                lb = [lb(1:end-2) 0 -100 -100 0];
-                ub = [ub(1:end-2) 100 100 100 100];
-                plb = [plb(1:end-2) 0 -10 -10 0];
-                pub = [pub(1:end-2) 10 10 10 10];
-            case 4 % log binning on 1/(1-p_c)
-                lb = [lb(1:end-2) -100 -100 -100 0];
-                ub = [ub(1:end-2) 100 100 100 100];
-                plb = [plb(1:end-2) -10 -10 -1 0];
-                pub = [pub(1:end-2) 0 10 1 10];
-                starttheta = [starttheta(:,1:end-2) bsxfun(@plus,plb(3:end),bsxfun(@times,rand(nStartVals,4),(pub(3:end)-plb(3:end))))];
-            case 5
-                lb = [lb(1:end-2) 0 -100 -100 -10 0];
-                ub = [ub(1:end-2) 100 100 100 10 100];
-                plb = [plb(1:end-2) 0 -10 -10 -3 0];
-                pub = [pub(1:end-2) 10 10 10 3 10];
-                starttheta = [starttheta(:,1:end-2) bsxfun(@plus,plb(3:end),bsxfun(@times,rand(nStartVals,5),(pub(3:end)-plb(3:end))))];
+            case {0,1} % linear or logistic mapping
+                if strcmp(modelname,'FPheurs') % FP heurs model spans (-Inf, 0], so d0 should be be negative
+                    lb = [lb 1e-3 0];
+                    ub = [ub 10 100];
+                    plb = [plb 1e-3 0];
+                    pub = [pub 2 50];
+                else
+                    lb = [lb 1e-3 -50];
+                    ub = [ub 10 50];
+                    plb = [plb 1e-3 -10];
+                    pub = [pub 5 10];
+                end
+            case {2,3} % log or power law mapping
+                %                 starttheta = [starttheta(:,1:end-2) rand*20 -5+rand*10 -5+rand*10 rand*10];
+                lb = [lb 0 -100 -30 0];
+                ub = [ub 100 100 30 100];
+                plb = [plb 0 -10 -1 0];
+                pub = [pub 10 10 1 10];
+                if memstrengthvar == 2; % if 1/(1-p(correct))
+                    plb(end-3) = -10;
+                    pub(end-3) = 0;
+                end
+                if binningfn == 3; % power law binning
+                    lb = [lb(1:end-2) -100 lb(end-1:end)];
+                    ub = [ub(1:end-2) 100 ub(end-1:end)];
+                    plb = [plb(1:end-2) -10 plb(end-1:end)];
+                    pub = [pub(1:end-2) 10 pub(end-1:end)];
+                end
         end
+        
+        % setting sigma_mc parameters
+        lb = [lb 0];
+        ub = [ub 10];
+        plb = [plb 0];
+        pub = [pub 3];
+        
+        starttheta = [bsxfun(@plus,randi(pub(1)-plb(1),nStartVals,1),plb(1)) bsxfun(@plus,bsxfun(@times,rand(nStartVals,size(lb,2)-1),pub(2:end)-plb(2:end)),plb(2:end))];
         
         %deleting fix parameter values
         if ~isempty(fixparams)
@@ -139,5 +147,6 @@ end
             plb(fixparams(1,:)) = [];
             pub(fixparams(1,:)) = [];
         end
+        
     end
 end

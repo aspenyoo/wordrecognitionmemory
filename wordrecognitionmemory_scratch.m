@@ -143,19 +143,60 @@ plotparamfits(modelname,binningfn,optimMethod,bestFitParam(subjids,:),20, 0, 0, 
 
 clear
 
-modelname = 'REM';
+modelname = 'FP';
 optimMethod = 'patternbayes';
 binningfn = 1;
+memstrengthvar = 0;
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
+subjids = 1:5;
+nSubj = length(subjids);
 
 load('subjdata.mat')
-nLL = nan(1,1);
-for isubj = 1;
+nLL = nan(1,nSubj);
+for isubj = 1:nSubj;
     isubj
-    nLL = nLL_approx_vectorized( modelname, bestFitParam(isubj,:), binningfn, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 )
+    nLL(isubj) = nLL_approx_vectorized( modelname, [bestFitParam(isubj,:) 0], binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
+    nLL2(isubj) = nLL_approx_vectorized_old( modelname, bestFitParam(isubj,:), binningfn, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
 end
 
-[nLL_est(1:3) nLL']
+[nLL_est(subjids) nLL' nLL2']
+
+%% checking that nLLs are consistnent between old and new nLL functions
+
+clear
+
+modelname = 'REM';
+optimMethod = 'patternbayes';
+binningfn1 = 1;
+memstrengthvar = 0;
+binningfn2 = 1;
+load(['paramfit_' optimMethod '_' modelname num2str(binningfn2) '.mat'])
+load('subjdata.mat')
+isubj = 14;
+
+nSamples = 100;
+newnLL = nan(1,nSamples);
+oldnLL = nan(1,nSamples);
+for isample = 1:nSamples;
+    isample
+    if binningfn1 == 1;
+        bfp = [bestFitParam(isubj,:) 0];
+        bfp(end-1) = -bfp(end-1);
+    end
+    newnLL(isample) = nLL_approx_vectorized( modelname, bfp, binningfn1, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
+    oldnLL(isample) = nLL_approx_vectorized_old( modelname, bestFitParam(isubj,:), binningfn2, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
+end
+
+if nSamples > 10;
+    figure
+    [counts,centers] = hist(newnLL);
+    [counts2,centers2] = hist(oldnLL);
+    plot(centers,counts,centers2,counts2)
+    defaultplot
+else
+    [newnLL; oldnLL]
+end
+
 
 %% checking nLL of fit parameters with nLL given
 
@@ -248,6 +289,7 @@ ylabel('Proportion Correct')
 nSamples = 10;
 modelname = 'REM';
 binningfn = 1;
+memstrengthvar = 0;
 optimMethod = 'patternbayes';
 subjid = 2;
 
@@ -259,7 +301,7 @@ nLLVec = nan(1,nSamples); timeVec = nan(1,nSamples);
 for isamp = 1:nSamples;
     isamp
     t0 = GetSecs;
-    nLLVec(isamp) = nLL_approx_vectorized(modelname,bestFitParam(subjid,:),binningfn,nnew_part,nold_part,[],30,50);
+    nLLVec(isamp) = nLL_approx_vectorized(modelname,bestFitParam(subjid,:),binningfn,memstrengthvar,nnew_part,nold_part,[],30,50);
     timeVec(isamp) = GetSecs - t0;
 end
 
