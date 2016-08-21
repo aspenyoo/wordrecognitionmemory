@@ -1,12 +1,12 @@
-function plotparamfits(modelname, binningfn, optimizationMethod, bestFitParam, nConf, isdatasave, fakedata, subjnum, selectiveplot)
+function plotparamfits(modelname, binningfn, memstrengthvar, optimizationMethod, bestFitParam, nConf, isdatasave, fakedata, subjnum, selectiveplot)
 % function that plots confdist (data and model overlaid)
 
 nSubj = size(bestFitParam,1);
 nParams = size(bestFitParam,2);
-if nargin < 5; nConf = 20; end
-if nargin < 6; isdatasave = 0; end
-if nargin < 7; fakedata = 0; end % default: real subject data
-if nargin < 8; subjnum = 1:nSubj; end
+if nargin < 6; nConf = 20; end
+if nargin < 7; isdatasave = 0; end
+if nargin < 8; fakedata = 0; end % default: real subject data
+if nargin < 9; subjnum = 1:nSubj; end
 if isempty(subjnum); subjnum = 1:nSubj; end
 if nargin < 9; selectiveplot = [1 1 1 0]; end % automaticlyy plots everything
 date = clock;
@@ -18,11 +18,7 @@ if isstruct(fakedata)
     pOld_part = fakedata.old;
 else
     % load real data
-    nNew_part = nan(nSubj,nConf); nOld_part = nan(nSubj,nConf);
-    for isubj = 1:nSubj;
-        subjnumm = subjnum(isubj);
-        [nNew_part(isubj,:), nOld_part(isubj,:)] = loadsubjdata(subjnumm,[], nConf);
-    end
+    load('subjdata.mat')
     pNew_part = nNew_part/150;
     pOld_part = nOld_part/150;
 end
@@ -49,14 +45,13 @@ nX = 30; nS = 50;
 for isubjnum = 1:nSubj;
     
     subjnum(isubjnum)
-    [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = simulate_data(modelname,bestFitParam(isubjnum,:),binningfn,nX,nS);
-
+    [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = nLL_approx_vectorized(modelname, bestFitParam(isubjnum,:), binningfn, memstrengthvar, nNew_part(isubjnum,:), nOld_part(isubjnum,:), [], nX, nS, nConf );
 end
 
-% change numbers to probabilities
-N = 150;
-pNew_est = pNew_est/N;
-pOld_est = pOld_est/N;
+% % change numbers to probabilities
+% N = 150;
+% pNew_est = pNew_est/N;
+% pOld_est = pOld_est/N;
 
 if nConf ~= 20 && (size(pNew_est,2)==20);
     pNew_esttemp = nan(nSubj,nConf);
