@@ -125,41 +125,42 @@ clear all
 
 modelname = 'REM';
 binningfn = 1;
+memstrengthvar = 0;
 optimMethod = 'patternbayes';
-subjids = [1:14];
+subjids = [1:10];
 
-for isubj = 1:14
-    removetxtspaces(modelname,binningfn,isubj,optimMethod);
+for isubj = subjids;
+    removetxtspaces(modelname,binningfn,memstrengthvar,isubj,optimMethod);
 end
 
-getbestfitparams(modelname,binningfn,1:14)
+getbestfitparams(modelname,binningfn,memstrengthvar,subjids)
 
-load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
-subjids = [1:8];
-plotparamfits(modelname,binningfn,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [1 1 0 0])
+%%
+load(['paramfit_' optimMethod '_' modelname num2str(binningfn) num2str(memstrengthvar) '.mat'])
+subjids = [1:4];
+plotparamfits(modelname,binningfn,memstrengthvar,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [1 1 0 0])
 
 %% checking nLLs are consistent (debugging)
 % 08.15.2016
 
 clear
 
-modelname = 'FP';
+modelname = 'REM';
 optimMethod = 'patternbayes';
 binningfn = 1;
 memstrengthvar = 0;
-load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
-subjids = 1:5;
-nSubj = length(subjids);
+load(['paramfit_' optimMethod '_' modelname num2str(binningfn) num2str(memstrengthvar) '.mat'])
+subjids = 1:10;
 
 load('subjdata.mat')
-nLL = nan(1,nSubj);
-for isubj = 1:nSubj;
+nLL = nan(1,length(subjids));
+for isubj = subjids;
     isubj
-    nLL(isubj) = nLL_approx_vectorized( modelname, [bestFitParam(isubj,:) 0], binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
-    nLL2(isubj) = nLL_approx_vectorized_old( modelname, bestFitParam(isubj,:), binningfn, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
+    nLL(isubj) = nLL_approx_vectorized( modelname, bestFitParam(isubj,:), binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
+%     nLL2(isubj) = nLL_approx_vectorized_old( modelname, bestFitParam(isubj,1:end-1), binningfn, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
 end
 
-[nLL_est(subjids) nLL' nLL2']
+[nLL_est(subjids) nLL']
 
 %% checking that nLLs are consistnent between old and new nLL functions
 

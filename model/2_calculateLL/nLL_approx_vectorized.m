@@ -1,4 +1,4 @@
-function [ nLL ] = nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, nold_part, fixparams, nX, nS, nConf )
+function [ varargout ] = nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, nold_part, fixparams, nX, nS, nConf )
 % nLL_approx calculates the negative log likelihood using an approximation
 % method
 %
@@ -99,6 +99,7 @@ else % if FP, FPheurs, or REM
     % calculate LL
     LL_new = nan(1,nX);
     d_old = nan(Nold*nS,nX);
+    newHisttotal = nan(nX,nConf);
     for iX = 1:nX;
         
         % calculate d
@@ -122,7 +123,8 @@ else % if FP, FPheurs, or REM
                 idx = logical(binornd(1,pQ,[Nold*nS M]) + repmat((X == 0),[nS 1])); % indices of randomly drawn features
                 SOld = (1-idx).*repmat(X,[nS 1]) + idx.*(geornd(g,[Nold*nS M]) + 1); % old words from noisy memories
                 
-                matchoddsVec = (c+(1-c).*g.*(1-g).^(0:30))./(g.*(1-g).^(0:30));
+                maxidx = max(X(:));
+                matchoddsVec = (c+(1-c).*g.*(1-g).^(0:maxidx))./(g.*(1-g).^(0:maxidx));
                 [d_new, d_old(:,iX)] = calculate_d_REM(M, g, c, nS, Nnew, Nold, SNew, SOld, X, matchoddsVec);
         end
         
@@ -199,7 +201,7 @@ else % if FP, FPheurs, or REM
             conf = min(max(round(conf),1),nConf);
             newHist = histc(conf,1:nConf); % histogram
         end
-        
+        newHisttotal(iX,:) = newHist'; % in case you want nnew_part
         
         pnew = lapse/nConf + (1-lapse)*(newHist/sum(newHist));
         LL_new(iX) = nnew_part*log(pnew);
@@ -290,82 +292,11 @@ else % if FP, FPheurs, or REM
 end
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-% 
-% 
-%         
-%     case 'REM'
-%         
-%         M = theta(1);                   % number of features
-%         g = theta(2);                   % probability of success (for geometric distribution
-%         ustar = theta(3);               % probability of encoding something
-%         c = theta(4);                   % probability of encoding correct feature value
-%         m = theta(5);                   % number of storage attempts
-%         if (binningfn);
-%             k = theta(6);  d0 = theta(7);
-%         else
-%             c1 = theta(6); c2 = theta(7);
-%         end
-% 
-%         
-%         
-%         
-%         d_old = nan(Nold*nS,nX);
-%         LL_new = nan(1,nX);
-%         % looping over X samples
-%         for iX = 1:nX;
-%             
-%             X = binornd(1,1-p0,[Nold M]).*(geornd(g,[Nold M])+1);
-%             
-%             % generating new and old test words
-%             SNew = geornd(g,[Nnew*nS M])+1; % new words
-%             idx = logical(binornd(1,pQ,[Nold*nS M]) + repmat((X == 0),[nS 1])); % indices of randomly drawn features
-%             SOld = (1-idx).*repmat(X,[nS 1]) + idx.*(geornd(g,[Nold*nS M]) + 1); % old words from noisy memories
-%             
-%             matchoddsVec = (c+(1-c).*g.*(1-g).^(0:30))./(g.*(1-g).^(0:30));
-%             [d_new, d_old(:,iX)] = calculate_d_REM(M, g, c, nS, Nnew, Nold, SNew, SOld, X, matchoddsVec);
-%           
-%             
-%             
-%             % binning new words.
-%             if (binningfn)
-%                 newHisttemp = min(round(L+0.5+ L.*(2./(1+exp(-(d_new(:)-d0)./k)) - 1)),nConf);
-%             else
-%                 newHisttemp = min(max(round(slope.*d_new(:) + b),1),nConf);
-%             end
-%             newHist = histc(newHisttemp,1:nConf);
-%             pnew = lapse/nConf + (1-lapse)*(newHist/sum(newHist));
-%             LL_new(iX) = nnew_part*log(pnew);
-%         end
-% 
-%         % binning old words
-%         if (binningfn) % logistic binning
-%             oldHist = min(round(L.*(2./((1+exp(-(d_old(:)-d0)./k))) - 1)+10.5),nConf);
-%         else % "linear" binning
-%             oldHist = max(min(round(slope.*d_old(:) + b),nConf),1);
-%         end
-%         oldHist = histc(oldHist,1:nConf); % histogram
-%         pold = lapse/nConf + (1-lapse)*(oldHist/sum(oldHist)); % normalizing
-%         
-%         % calculating nLL
-%         LL_old = nold_part*log(pold);
-%         LL_new = max(LL_new) + log(mean(exp(max(LL_new)-LL_new))); % average over X
-%         nLL = -LL_new-LL_old;
-% end
+if nargout > 1; 
+    if ~strcmp(modelname,'uneqVar')
+        pnew = sum(newHisttotal)/sum(newHisttotal(:));
+    end
+    varargout = {pnew, pold};
+else
+    varargout = {nLL};
+end
