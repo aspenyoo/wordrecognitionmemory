@@ -1,18 +1,17 @@
-function [bestFitParam, nLL_est, startTheta, outputt] = fitdata_cluster(isubj, testmodelname, binningfn, optimMethod, fixparams, truemodelname, nConf, nStartVals)
+function [bestFitParam, nLL_est, startTheta, outputt] = fitdata_cluster(isubj, testmodelname, binningfn, memstrengthvar, optimMethod, fixparams, truemodelname, nConf, nStartVals)
 
-if nargin < 3; binningfn = 1; end
-if nargin < 4; optimMethod = 'patternbayes'; end
-if nargin < 5; fixparams = []; end
-if nargin < 6; truemodelname = []; end
+if nargin < 5; optimMethod = 'patternbayes'; end
+if nargin < 6; fixparams = []; end
+if nargin < 7; truemodelname = []; end
 if isempty(truemodelname); truemodelname = testmodelname; end
-if nargin < 7; nConf = 20; end
+if nargin < 8; nConf = 20; end
 if isempty(nConf); nConf = 20; end 
 if (size(fixparams,2) > 1) && (size(fixparams,1) < 2); % if it is a vector of Ms, instead of a 2 x fixed parameter things
     nMs = length(fixparams);
-    if nargin < 8; nStartVals = 1; end
+    if nargin < 9; nStartVals = 1; end
 else
     nMs = 1;
-    if nargin < 8; nStartVals = 10; end
+    if nargin < 9; nStartVals = 10; end
 end
 
 filepath = 'wordrecognitionmemory/model/4_fitdata/BPSfits/';
@@ -27,14 +26,20 @@ filepath = 'wordrecognitionmemory/model/4_fitdata/BPSfits/';
 
 switch testmodelname
     case {'FP','FPheurs','UVSD'}
-        nParams = 4;
+        nParams = 2;
     case {'VP','VPheurs'}
-        nParams = 5;
+        nParams = 3;
     case 'REM'
-        nParams = 7;
+        nParams = 5;
 end
-if any(binningfn == [2 3 4]); nParams = nParams + 2; end % logistic binning has two more parameters
-if binningfn == 5; nParams = nParams + 3; end % power law has 3 more parameters
+switch binningfn
+    case {0,1}; % linear, logistic
+        nParams = nParams + 3;
+    case 2      % logarithmic
+        nParams = nParams + 4;
+    case 3      % power law
+        nParams = nParams + 5; 
+end
 
 if strcmp(optimMethod,'GS'); nGridsVec = fixparams; clear fixparams; end
 
@@ -66,12 +71,12 @@ for iM = 1:nMs;
     for istartval = 1:nStartVals;
         switch optimMethod
             case 'patternbayes'
-                filename = [filepath 'paramfit_patternbayes_' testmodelname num2str(binningfn) '_subj' num2str(isubj) '.txt'];
+                filename = [filepath 'paramfit_patternbayes_' testmodelname num2str(binningfn) num2str(memstrengthvar) '_subj' num2str(isubj) '.txt'];
                 if isubj > 14;
-                    filename = [filepath 'modelrecovery_patternbayes_' testmodelname num2str(binningfn) '_' truemodelname 'subj' num2str(isubj) '.txt'];
+                    filename = [filepath 'modelrecovery_patternbayes_' testmodelname num2str(binningfn) num2str(memstrengthvar) '_' truemodelname 'subj' num2str(isubj) '.txt'];
                 end
                 
-                [bestFitParam, nLL_est, startTheta, outputt] = paramfit_patternbayes(testmodelname, binningfn, nnew_part, nold_part, fixparam ,1);
+                [bestFitParam, nLL_est, startTheta, outputt] = paramfit_patternbayes(testmodelname, binningfn, memstrengthvar, nnew_part, nold_part, fixparam ,1);
                 fileID = fopen(filename,permission);
                 A1 = [bestFitParam, nLL_est, startTheta, outputt.fsd];
                 fprintf(fileID, formatSpec, A1); % save stuff in txt file
