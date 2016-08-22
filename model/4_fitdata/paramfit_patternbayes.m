@@ -102,6 +102,7 @@ end
         % setting binnfn parameters
         switch binningfn
             case {0,1} % linear or logistic mapping
+                % k, d0
                 if strcmp(modelname,'FPheurs') % FP heurs model spans (-Inf, 0], so d0 should be be negative
                     lb = [lb 1e-3 0];
                     ub = [ub 10 100];
@@ -114,20 +115,23 @@ end
                     pub = [pub 5 10];
                 end
             case {2,3} % log or power law mapping
+                % a, b, d0
                 %                 starttheta = [starttheta(:,1:end-2) rand*20 -5+rand*10 -5+rand*10 rand*10];
-                lb = [lb 0 -100 -30 0];
-                ub = [ub 100 100 30 100];
-                plb = [plb 0 -10 -1 0];
-                pub = [pub 10 10 1 10];
+                lb = [lb 0 -100 -30];
+                ub = [ub 100 100 30];
+                plb = [plb 0 -10 -1];
+                pub = [pub 10 10 1];
                 if memstrengthvar == 2; % if 1/(1-p(correct))
-                    plb(end-3) = -10;
-                    pub(end-3) = 0;
+                    % a
+                    plb(end-2) = -10;
+                    pub(end-2) = 0;
                 end
                 if binningfn == 3; % power law binning
-                    lb = [lb(1:end-2) -100 lb(end-1:end)];
-                    ub = [ub(1:end-2) 100 ub(end-1:end)];
-                    plb = [plb(1:end-2) -10 plb(end-1:end)];
-                    pub = [pub(1:end-2) 10 pub(end-1:end)];
+                    % lambda
+                    lb = [lb -30];
+                    ub = [ub 30];
+                    plb = [plb -5];
+                    pub = [pub 5];
                 end
         end
         
