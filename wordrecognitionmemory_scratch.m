@@ -78,27 +78,28 @@ clear
 
 modelname = 'REM';
 binningfn = 1;
+memstrengthvar = 0;
 optimMethod = 'patternbayes';
-subjids = [1:14];
+subjids = [1:9];
 nSubj = length(subjids);
 Mmax = 50;
 filepath = 'model/4_fitdata/';
 approxTime = linspace(.22*1000/3600,4.61*1000/3600,50);
-maxTime = 8;
+maxTime = 16;
 nJobs = [];
 nStartVals = 10;
 
-for isubj = 1:nSubj;
-    subjid = subjids(isubj);
+for isubj = subjids;
+    subjid = isubj;%subjids(isubj);
     
     jobnumVec = []; estTimeVec = [];
     for iM = 1:Mmax;
-        counts = nStartVals - countnum2(modelname, binningfn, subjid, [1;iM]);
+        counts = nStartVals - countnum2(modelname, binningfn,memstrengthvar,subjid, [1;iM]);
         jobnumVec = [jobnumVec repmat(iM,1,counts)];
         estTimeVec = [estTimeVec repmat(approxTime(iM),1,counts)];
     end
     
-    jobfilename = [filepath 'joblist_' modelname num2str(binningfn) '_subj' num2str(subjid) '.txt' ];
+    jobfilename = [filepath 'joblist_' modelname num2str(binningfn) num2str(memstrengthvar) '_subj' num2str(subjid) '.txt' ];
     create_joblist(jobfilename, jobnumVec, estTimeVec, maxTime, nJobs)
 end
 
