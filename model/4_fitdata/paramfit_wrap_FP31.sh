@@ -5,7 +5,7 @@
 #PBS -M aspen.yoo@nyu.edu
 #PBS -l mem=4GB
 #PBS -m abe
-#PBS -N FP5
+#PBS -N FP31
 
 index=${PBS_ARRAYID}
 job=${PBS_JOBID}
@@ -20,16 +20,17 @@ addpath(genpath('/home/ay963/matlab-scripts'))
 addpath(genpath('/home/ay963/wordrecognitionmemory'))
 
 modelname = 'FP';
-binningfn = 5;
+binningfn = 3;
+memstrengthvar = 1;
 
 if $index > 100;
     blah = num2str($index);
     isubj = str2double(blah(1:end-2));
     joblistnum = str2double(blah(end-1:end)); 
 end
-joblistfile = 'joblist_08112016.txt' % will do a different job per person. (if you want same for all, write joblist name)
+joblistfile = []; % will do a different job per person. (if you want same for all, write joblist name)
 
-cluster_wrap2(modelname, binningfn, isubj, joblistnum,joblistfile,[1 5; nan 0])
+cluster_wrap2(modelname, binningfn, memstrengthvar, isubj, joblistnum,joblistfile,[1 5; nan 0])
 
 EOF
 

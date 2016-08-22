@@ -76,16 +76,16 @@ end
 %% separate jobs for each person
 clear 
 
-modelname = 'REM';
-binningfn = 1;
-memstrengthvar = 0;
+modelname = 'FP';
+binningfn = 3;
+memstrengthvar = 1;
 optimMethod = 'patternbayes';
-subjids = [1:9];
+subjids = [1:14];
 nSubj = length(subjids);
 Mmax = 50;
 filepath = 'model/4_fitdata/';
 approxTime = linspace(.22*1000/3600,4.61*1000/3600,50);
-maxTime = 16;
+maxTime = 8;
 nJobs = [];
 nStartVals = 10;
 
@@ -94,7 +94,7 @@ for isubj = subjids;
     
     jobnumVec = []; estTimeVec = [];
     for iM = 1:Mmax;
-        counts = nStartVals - countnum2(modelname, binningfn,memstrengthvar,subjid, [1;iM]);
+        counts = max([nStartVals - countnum2(modelname, binningfn,memstrengthvar,subjid, [1;iM]) 0]);
         jobnumVec = [jobnumVec repmat(iM,1,counts)];
         estTimeVec = [estTimeVec repmat(approxTime(iM),1,counts)];
     end
