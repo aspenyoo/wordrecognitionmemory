@@ -76,16 +76,16 @@ end
 %% separate jobs for each person
 clear 
 
-modelname = 'REM';
-binningfn = 1;
-memstrengthvar = 0;
+modelname = 'FP';
+binningfn = 3;
+memstrengthvar = 1;
 optimMethod = 'patternbayes';
-subjids = [1:9];
+subjids = [1:14];
 nSubj = length(subjids);
 Mmax = 50;
 filepath = 'model/4_fitdata/';
 approxTime = linspace(.22*1000/3600,4.61*1000/3600,50);
-maxTime = 16;
+maxTime = 8;
 nJobs = [];
 nStartVals = 10;
 
@@ -94,7 +94,7 @@ for isubj = subjids;
     
     jobnumVec = []; estTimeVec = [];
     for iM = 1:Mmax;
-        counts = nStartVals - countnum2(modelname, binningfn,memstrengthvar,subjid, [1;iM]);
+        counts = max([nStartVals - countnum2(modelname, binningfn,memstrengthvar,subjid, [1;iM]) 0]);
         jobnumVec = [jobnumVec repmat(iM,1,counts)];
         estTimeVec = [estTimeVec repmat(approxTime(iM),1,counts)];
     end
@@ -124,11 +124,11 @@ create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 %% get best parameter fits
 clear all
 
-modelname = 'REM';
+modelname = 'FP';
 binningfn = 1;
 memstrengthvar = 0;
 optimMethod = 'patternbayes';
-subjids = [1:10];
+subjids = [1:14];
 
 for isubj = subjids;
     removetxtspaces(modelname,binningfn,memstrengthvar,isubj,optimMethod);
@@ -138,7 +138,7 @@ getbestfitparams(modelname,binningfn,memstrengthvar,subjids)
 
 %%
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) num2str(memstrengthvar) '.mat'])
-subjids = [1:4];
+subjids = [1:7];
 plotparamfits(modelname,binningfn,memstrengthvar,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [1 1 0 0])
 
 %% checking nLLs are consistent (debugging)
@@ -199,6 +199,46 @@ else
     [newnLL; oldnLL]
 end
 
+%% changing file names to be consistent with new model naming scheme
+clear all
+
+modelname = 'FPheurs';
+binningfnnew = 1;
+binningfnold = 1;
+memstrengthvar = 0;
+nParamsold = 4; % how many parameters does the old way have
+filepath = 'model/4_fitdata/BPSfits/';
+
+nSubj = 14;
+for isubj = 1:nSubj;
+    % load old file
+    filename = ['paramfit_patternbayes_' modelname num2str(binningfnold) ...
+        '_subj' num2str(isubj) '.txt'];
+    alldata = dlmread(filename);
+    
+    % flip d0
+    alldata(:,nParamsold) = -alldata(:,nParamsold);
+    alldata(:,2*nParamsold+1) = -alldata(:,2*nParamsold+1);
+    
+    % add 0 sigma_mc
+    nrows = size(alldata,1);
+    alldata = [alldata(:,1:nParamsold) zeros(nrows,1) ...
+        alldata(:,nParamsold+1:2*nParamsold+1) zeros(nrows,1) alldata(:,2*nParamsold+2)];
+    
+    % write to new file
+    newfilename = [filepath 'paramfit_patternbayes_' modelname num2str(binningfnold) ...
+        num2str(memstrengthvar) '_subj' num2str(isubj) '.txt'];
+    
+    fid = fopen(newfilename, 'w');
+    formatSpec = repmat('%4.4f \t ',1,2*nParamsold+4);
+    formatSpec = [formatSpec(1:end-3) '\r\n'];
+    
+    for irows = 1:nrows;
+        fprintf(fid, formatSpec, alldata(irows,:));
+    end
+    fclose(fid);
+    
+end
 
 %% checking nLL of fit parameters with nLL given
 
