@@ -77,11 +77,10 @@ end
 clear 
 
 modelname = 'FP';
-binningfn = 3;
+binningfn = 2;
 memstrengthvar = 1;
 optimMethod = 'patternbayes';
-subjids = [1:14];
-nSubj = length(subjids);
+subjids = 14;
 Mmax = 50;
 filepath = 'model/4_fitdata/';
 approxTime = linspace(.22*1000/3600,4.61*1000/3600,50);
