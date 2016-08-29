@@ -30,7 +30,7 @@ if $index > 100;
 end
 joblistfile = 'joblist_08112016.txt'; % will do a different job per person. (if you want same for all, write joblist name)
 
-cluster_wrap2(modelname, binningfn, memstrengthvar, isubj, joblistnum,joblistfile,[1 7; nan 0])
+cluster_wrap2(modelname, binningfn, memstrengthvar, isubj, joblistnum,joblistfile,[1 8; nan 0])
 
 EOF
 
