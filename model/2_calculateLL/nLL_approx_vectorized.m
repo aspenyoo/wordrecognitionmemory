@@ -185,11 +185,15 @@ else % if FP, FPheurs, or REM
             case 0 % linear
                 conf = k.*q;                            % bounds: [1 20]
             case 1 % logistic
-                conf= L+0.5+ L.*(2./(1+exp(-(q)./k)) - 1);   % bounds: [1 20]
+                conf= 0.5+ 2*L./(1+exp(-(q)./k));   % bounds: [1 20]
             case 2                      % logarithmic mapping
                 conf = a.*log(q)+b;
             case 3 % generalized power law mapping
                 conf = a.*((q.^lambda - 1)./lambda)+b;
+        end
+        
+        if (binningfun == 0) && (memstrengthvar ==0); % confidence is 10.5 at decision boundary (0)
+            conf = conf + nConf/2+0.5;
         end
         
         % binning with or without metacognitive noise
@@ -243,7 +247,7 @@ else % if FP, FPheurs, or REM
         case 0 % linear
             conf = k.*q;                            % bounds: [1 20]
         case 1 % logistic
-            conf = L+0.5+ L.*(2./(1+exp(-(q)./k)) - 1);   % bounds: [1 20]
+            conf= 0.5+2*L./(1+exp(-(q)./k));   % bounds: [1 20]
         case 2 % log mapping on p(correct|evidence) instead of LPR
             conf = a.*log(q)+b;
         case 3 % power law mapping
@@ -330,8 +334,42 @@ switch nargout
             counts_new = normpdf(centers_new);
             counts_old = normpdf(centers_old,theta(1),theta(2));
         else
-            [counts_old,centers_old] = hist(d_old,50);
-            [counts_new,centers_new] = hist(d_newtotal,50);
+            [counts_old,centers_old] = hist(d_old(:),50);
+            [counts_new,centers_new] = hist(d_newtotal(:),50);
+            
+            switch binningfn
+                case 0 % linear
+                    binvalues = 1.5:(nConf-0.5);
+                    switch memstrengthvar
+                        case 0 % LPR
+                            confbounds = binvalues./k - d0;
+                        case 1 % p(corr)
+                            confbounds = -log(1./(binvalues./k - d0 + 0.5)-1);
+                        case 2 % 1/p(incorr)
+                    end
+                case 1 % logistic
+                    binvalues = 1.5:(nConf-0.5);
+                    switch memstrengthvar
+                        case 0 % LPR
+                            confbounds = -k.*log((nConf+0.5)./(binvalues-0.5)-1);
+                        case 1 % p(corr)
+                            confbounds = -log(1./(-k.*log((nConf+0.5)./(binvalues-0.5)-1)+0.5)-1);
+                        case 2 % 1/p(incorr)
+                    end
+                case 2 % logarithmic
+                    switch memstrengthvar
+                        case 0 % LPR
+                        case 1 % p(corr)
+                        case 2 % 1/p(incorr)
+                    end
+                case 3 % power law
+                    switch memstrengthvar
+                        case 0 % LPR
+                        case 1 % p(corr)
+                        case 2 % 1/p(incorr)
+                    end
+            end
+
         end
         varargout = {centers_new, counts_new, centers_old, counts_old, confbounds};
 end

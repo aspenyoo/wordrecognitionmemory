@@ -60,7 +60,6 @@ switch binningfn
     case 0 % linear
         confBounds = (ratingBounds-d0-nConf/2-0.5)./k +decisionboundary;
     case 1
-        ratingBounds = 0.5:20.5;
         confBounds = -k.*log(nConf./(ratingBounds - 0.5)-1)+d0+decisionboundary;
     case 2 % logarithmic
     case 3 % power law

@@ -107,9 +107,9 @@ end
 %% create joblist
 
 nStartVals = 10;
-esttimeVec = repmat(linspace(0.08,4.2,50),1,nStartVals);
-jobnumVec = repmat(1:50,1,nStartVals);
-maxTime = 36;
+esttimeVec = repmat([0.08 0.164 0.25 0.33 .42 0.58 0.84 1.26 1.68 2.10 2.52 3.36 4.2],1,nStartVals);
+jobnumVec = repmat([1:5 7 10 15 20 25 30 40 50],1,nStartVals);
+maxTime = 12;
 filepath = 'model/4_fitdata/';
 
 % for subjid = 1:14;
@@ -117,38 +117,38 @@ filepath = 'model/4_fitdata/';
 %     create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 % end
 
-jobfilename = [filepath 'joblist_08112016.txt'];
+jobfilename = [filepath 'joblist_08302016.txt'];
 create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 
 %% get best parameter fits
 clear all
 
-modelname = 'UVSD';
-binningfn = 0;
-memstrengthvar = [];
+modelname = 'FP';
+binningfn = 1;
+memstrengthvar = 0;
 optimMethod = 'patternbayes';
 subjids = [1:14];
-% 
-% for isubj = subjids;
-%     removetxtspaces(modelname,binningfn,memstrengthvar,isubj,optimMethod);
-% end
+
+for isubj = subjids;
+    removetxtspaces(modelname,binningfn,memstrengthvar,isubj,optimMethod);
+end
 
 getbestfitparams(modelname,binningfn,memstrengthvar,subjids)
 
 %%
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) num2str(memstrengthvar) '.mat'])
 subjids = [1:14];
-plotparamfits(modelname,binningfn,memstrengthvar,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [1 1 0 0])
+plotparamfits(modelname,binningfn,memstrengthvar,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [0 0 1 0])
 
 %% checking nLLs are consistent (debugging)
 % 08.15.2016
 
 clear
 
-modelname = 'FP';
+modelname = 'REM';
 optimMethod = 'patternbayes';
-binningfn = 2;
-memstrengthvar = 1;
+binningfn = 1;
+memstrengthvar = 0;
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) num2str(memstrengthvar) '.mat'])
 binningfn = 2;
 memstrengthvar = 1;
@@ -159,12 +159,12 @@ nLL = nan(1,length(subjids));
 for isubj = subjids;
     isubj
     nLL(isubj) = nLL_approx_vectorized( modelname, bestFitParam(isubj,:), binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
-    nLL2(isubj) = nLL_approx_vectorized( modelname, [bestFitParam(isubj,1:end-1) 0], binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
+%     nLL2(isubj) = nLL_approx_vectorized( modelname, [bestFitParam(isubj,1:end-1) 0], binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
 %     nLL3(isubj) = nLL_approx_vectorized( modelname, [bestFitParam(isubj,1:end-1) 1e-3], binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
 %     nLL2(isubj) = nLL_approx_vectorized_old( modelname, bestFitParam(isubj,1:end-1), binningfn, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
 end
 
-[nLL_est(subjids) nLL' nLL2' nLL3']
+[nLL_est(subjids) nLL']% nLL2' nLL3']
 
 %% checking that nLLs are consistnent between old and new nLL functions
 

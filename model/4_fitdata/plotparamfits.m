@@ -39,13 +39,15 @@ greyblue = aspencolors('greyblue');
 % if any(binningfn == [2 3 4]); nParams = nParams + 2; end 
 % if binningfn == 5; nParams = nParams + 3; end
 
-% getting simulated data
-pNew_est = nan(nSubj,20); pOld_est = pNew_est;
 nX = 30; nS = 50;
-for isubjnum = 1:nSubj;
-    
-    subjnum(isubjnum)
-    [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = nLL_approx_vectorized(modelname, bestFitParam(isubjnum,:), binningfn, memstrengthvar, nNew_part(isubjnum,:), nOld_part(isubjnum,:), [], nX, nS, nConf );
+% getting simulated data
+if any(selectiveplot(1:2))
+    pNew_est = nan(nSubj,20); pOld_est = pNew_est;
+    for isubjnum = 1:nSubj;
+        
+        subjnum(isubjnum)
+        [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = nLL_approx_vectorized(modelname, bestFitParam(isubjnum,:), binningfn, memstrengthvar, nNew_part(isubjnum,:), nOld_part(isubjnum,:), [], nX, nS, nConf );
+    end
 end
 
 % % change numbers to probabilities
@@ -226,7 +228,7 @@ if (selectiveplot(2))
     
     % label
     text(.39,.39,'average participant');
-    title([modelname num2str(binningfn) ' Parameter Group Fit']);
+    title([modelname num2str(binningfn) num2str(memstrengthvar)]);
     ylabel('Proportion');
     xlabel('Bin Number');
     
@@ -355,7 +357,7 @@ if (selectiveplot(4))
     
     % label
     text(.39,.39,'average participant');
-    title([num2str(nParams) ' Parameter Group Fit']);
+    title([modelname num2str(binningfn) num2str(memstrengthvar)]);
     ylabel('Proportion');
     xlabel('Bin Number');
     
