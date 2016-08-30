@@ -1,4 +1,4 @@
-function [pnew, pold] = responses_uneqVar( theta, islogbinning, cplot, dplot)
+function [pnew, pold, confBounds] = responses_uneqVar( theta, binningfn, nConf, cplot, dplot)
 % [pnew, pold] = function responses_uneqVar( THETA, PPLOT, RPLOT) gives
 % probability of "old" and "new" response confidences.
 % 
@@ -19,46 +19,54 @@ function [pnew, pold] = responses_uneqVar( theta, islogbinning, cplot, dplot)
 % rplot = 1;
 
 % -----------------------------------------------------------------------
-
-if nargin < 4;
-    cplot = 0;
-    dplot = 0;
-end
-
-N = 150;
+if nargin < 3; nConf = 20; end
+if nargin < 4; cplot = 0;end
+if nargin < 5; dplot = 0; end
 
 % getting parameter names
 mu_old = theta(1);
 sigma_old = theta(2);
-if (islogbinning)
-    k = theta(3);
-    if length(theta) < 5;
-        gamMax = 10;
-        if length(theta) < 4;
-            d0 = 0;
-        else
-            d0 = theta(4);
-        end
-    else
-        d0 = theta(4);
-        gamMax = theta(5);
-    end
-else
-    c1 = theta(3);
-    c2 = theta(4);
+switch binningfn
+    case {0,1}              % linear (0) and logistic (1) mapping
+        k = theta(end-1);
+        d0 = theta(end);
+        nParams = 4;
+    case 2        % logarithmic mapping
+        a = theta(end-2);
+        b = theta(end-1);
+        d0 = theta(end);
+        nParams = 5;
+    case 3              % power law mapping from p(correct)
+        a = theta(end-3);
+        b = theta(end-2);
+        d0 = theta(end-1);
+        lambda = theta(end);
+        nParams = 6;
 end
 
-% calculating pnew and pold
-if (islogbinning)
-    ratingBounds = 0.5:20.5;
-    confBounds = -k.*log(((2*gamMax)./(ratingBounds - 10.5 + gamMax)) -1) + d0;
-else
-    c0 = mean([c1 c2]);
-    
-    ratingBounds = [-Inf 1.5:19.5 Inf];
+assert(nParams == length(theta),'check number of parameters');
 
-    confBounds = ([-Inf linspace(c1,c2,19) Inf]);
+% if any(binningfn == [2 3])
+%     d_new_sign = sign(d_new(:)+d0); % -1 for respond new, +1 for respond old
+%     q = abs(d_new(:)+d0);
+% else
+%     q = d_new(:) + d0;
+% end
+
+% calculate confBounds
+ratingBounds = [ -Inf 1.5:19.5 Inf];
+decisionboundary = fminsearch(@(x) abs(normpdf(x,mu_old,sigma_old) - normpdf(x)),rand); % finding decisionboundary and shifting the distributions over by it so that 0 is decision boundary
+switch binningfn
+    case 0 % linear
+        confBounds = (ratingBounds-d0-nConf/2-0.5)./k +decisionboundary;
+    case 1
+        ratingBounds = 0.5:20.5;
+        confBounds = -k.*log(nConf./(ratingBounds - 0.5)-1)+d0+decisionboundary;
+    case 2 % logarithmic
+    case 3 % power law
 end
+
+
 pnew = normcdf(confBounds(2:end)) - normcdf(confBounds(1:end-1));
 pold = normcdf(confBounds(2:end),mu_old,sigma_old) - normcdf(confBounds(1:end-1),mu_old,sigma_old);
 
@@ -70,6 +78,8 @@ pold(pold==0) = 1.8519e-04;
 % ===== PLOTS =====
 nHist = 40;
 if dplot == 1;
+    
+    N = 150;
     gold = aspencolors('dustygold');
     greyblue = aspencolors('greyblue');
     if cplot == 1;

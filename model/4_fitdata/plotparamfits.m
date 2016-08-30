@@ -260,21 +260,28 @@ if (selectiveplot(3))
         isubj = subjnum(isubjnum);
         subplot(subplotsize,subplotsize,isubj);
         
-%         switch modelname
-%             case 'FP'
-                simulate_data(modelname,bestFitParam(isubjnum,:),binningfn, 30, 20,20,150,[0 1]);
-%             case 'VP'
-%                 responses_VP( bestFitParam(isubjnum,:),islogbinning, 0,1);
-%             case 'FPheurs'
-%                 responses_FPheurs( bestFitParam(isubjnum,:),islogbinning, 0,1);
-%             case 'VPheurs'
-%                 responses_VPheurs( bestFitParam(isubjnum,:),islogbinning, 0,1);
-%             case 'uneqVar'
-%                 responses_uneqVar( bestFitParam(isubjnum,:), islogbinning,0,1);
-%         end
+        [centers_new, counts_new, centers_old, counts_old, confBounds] = nLL_approx_vectorized( modelname, bestFitParam(isubj,:), binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], nX, nS, nConf );
         
+        % plots
+        subplot(subplotsize,subplotsize,isubj); hold on;
+        fNew = plot(centers_new,counts_new);
+        fOld = plot(centers_old,counts_old);
+        fConf = plot(repmat(confBounds(:),1,2)', repmat([0 max([counts_new(:); counts_old(:)])],length(confBounds),1)');
+        
+        % aesthetics
+        defaultplot;
+        set(fNew                                    ,...
+            'Color'             , greyblue          ,...
+            'LineWidth'         , 2                 );
+        set(fOld                                    ,...
+            'Color'             , gold               ,...
+            'LineWidth'         , 2                 );
+        set(fConf                                   ,...
+            'Color'             ,0.7*ones(1,3)      );
         title(['participant ' num2str(isubj)])
     end
+    
+    
     hold off;
     legend('old','new');
     hLeg = legend('old','new');

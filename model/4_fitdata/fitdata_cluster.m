@@ -25,7 +25,9 @@ filepath = 'wordrecognitionmemory/model/4_fitdata/BPSfits/';
 %            1 x (number of different Ms) if 'patternbayes'
 
 switch testmodelname
-    case {'FP','FPheurs','UVSD'}
+    case 'UVSD'
+        nParams = 1; % would normally be two here, but since no metacognitive noise, did one less here
+    case {'FP','FPheurs'}
         nParams = 2;
     case {'VP','VPheurs'}
         nParams = 3;
@@ -40,8 +42,8 @@ switch binningfn
     case 3      % power law
         nParams = nParams + 5; 
 end
-
-if strcmp(optimMethod,'GS'); nGridsVec = fixparams; clear fixparams; end
+% 
+% if strcmp(optimMethod,'GS'); nGridsVec = fixparams; clear fixparams; end
 
 % % used in cluster to indicate both subject and fixed M
 % if isubj > 100;
@@ -57,7 +59,7 @@ if strcmp(optimMethod,'GS'); nGridsVec = fixparams; clear fixparams; end
 permission = 'a+'; % open or create new file for reading and writing. append data to the end of the file
 
 % parameter fitting function
-iterMs = [];
+% iterMs = [];
 formatSpec = repmat('%4.4f \t ',1,2*nParams+2);
 formatSpec = [formatSpec(1:end-3) '\r\n'];
 
@@ -69,6 +71,7 @@ for iM = 1:nMs;
     end
     
     for istartval = 1:nStartVals;
+        istartval
         switch optimMethod
             case 'patternbayes'
                 filename = [filepath 'paramfit_patternbayes_' testmodelname num2str(binningfn) num2str(memstrengthvar) '_subj' num2str(isubj) '.txt'];
@@ -80,6 +83,7 @@ for iM = 1:nMs;
                 fileID = fopen(filename,permission);
                 A1 = [bestFitParam, nLL_est, startTheta, outputt.fsd];
                 fprintf(fileID, formatSpec, A1); % save stuff in txt file
+                disp('saved')
                 fclose(fileID);
                 
                 %     case 'patternsearch'

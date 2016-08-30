@@ -123,21 +123,21 @@ create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 %% get best parameter fits
 clear all
 
-modelname = 'FP';
-binningfn = 1;
-memstrengthvar = 0;
+modelname = 'UVSD';
+binningfn = 0;
+memstrengthvar = [];
 optimMethod = 'patternbayes';
 subjids = [1:14];
-
-for isubj = subjids;
-    removetxtspaces(modelname,binningfn,memstrengthvar,isubj,optimMethod);
-end
+% 
+% for isubj = subjids;
+%     removetxtspaces(modelname,binningfn,memstrengthvar,isubj,optimMethod);
+% end
 
 getbestfitparams(modelname,binningfn,memstrengthvar,subjids)
 
 %%
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) num2str(memstrengthvar) '.mat'])
-subjids = [1:7];
+subjids = [1:14];
 plotparamfits(modelname,binningfn,memstrengthvar,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [1 1 0 0])
 
 %% checking nLLs are consistent (debugging)
@@ -145,22 +145,26 @@ plotparamfits(modelname,binningfn,memstrengthvar,optimMethod,bestFitParam(subjid
 
 clear
 
-modelname = 'REM';
+modelname = 'FP';
 optimMethod = 'patternbayes';
-binningfn = 1;
-memstrengthvar = 0;
+binningfn = 2;
+memstrengthvar = 1;
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) num2str(memstrengthvar) '.mat'])
-subjids = 1:10;
+binningfn = 2;
+memstrengthvar = 1;
+subjids = 1:14;
 
 load('subjdata.mat')
 nLL = nan(1,length(subjids));
 for isubj = subjids;
     isubj
     nLL(isubj) = nLL_approx_vectorized( modelname, bestFitParam(isubj,:), binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
+    nLL2(isubj) = nLL_approx_vectorized( modelname, [bestFitParam(isubj,1:end-1) 0], binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
+%     nLL3(isubj) = nLL_approx_vectorized( modelname, [bestFitParam(isubj,1:end-1) 1e-3], binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
 %     nLL2(isubj) = nLL_approx_vectorized_old( modelname, bestFitParam(isubj,1:end-1), binningfn, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
 end
 
-[nLL_est(subjids) nLL']
+[nLL_est(subjids) nLL' nLL2' nLL3']
 
 %% checking that nLLs are consistnent between old and new nLL functions
 
@@ -370,3 +374,49 @@ for imodel = 1:nModels;
     nLLMat(:,imodel) = nLL_est;
     AICVec(:,imodel) = 2*(k + nLL_est);
 end
+
+%% get UVSD binning to work
+% 08.26.2016
+clear all
+theta = [1 1.25 1 0];
+binningfn = 0;
+
+[pnew, pold, confBounds] = responses_uneqVar(theta, binningfn);
+centers_new = linspace(-3,3,50);
+centers_old = linspace(theta(1)-3*theta(2),theta(1)+3*theta(2),50);
+counts_new = normpdf(centers_new);
+counts_old = normpdf(centers_old,theta(1),theta(2));
+
+figure;
+plot(centers_new, counts_new,'Color',aspencolors('greyblue')); hold on;
+plot(centers_old, counts_old,'Color',aspencolors('dustygold'))
+plot(repmat(confBounds(:),1,2)', repmat([0 max([counts_new(:); counts_old(:)])],length(confBounds),1)','Color',0.7*ones(1,3));
+
+%% fit UVSD model
+% 08.26.2016
+clear all
+
+modelname = 'UVSD';
+binningfn = 1;
+optimMethod = 'patternbayes';
+fixparams = [4; 0];
+memstrengthvar = [];
+
+blah = GetSecs;
+for isubj = 1:14;
+    isubj
+    fitdata_cluster(isubj, modelname, binningfn, memstrengthvar, optimMethod, fixparams,[],[],3);
+end
+timee = GetSecs - blah
+
+%% looking at how confhist is calculated. debugging
+% 08.29.2016
+
+load('paramfit_patternbayes_FP21.mat')
+binningfn = 2;
+memstrengthvar = 1;
+isubj = 7;
+
+theta = bestFitParam(isubj,:);
+[nnew_part,nold_part] = loadsubjdata(isubj);
+nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, nold_part)

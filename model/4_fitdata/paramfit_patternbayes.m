@@ -85,7 +85,7 @@ end
                 ub = [100 6 ];
                 plb = [1 1e-3 ];
                 pub = [50 3 ];
-            case 'uneqVar'
+            case 'UVSD'
                 %                 starttheta = [3*rand(nStartVals,1) 3*rand(nStartVals,1)+1e-3 1e-3+rand(nStartVals,1).*3  rand(nStartVals,1)-.5];
                 lb = [0 1e-3];
                 ub = [10 10];
@@ -136,10 +136,12 @@ end
         end
         
         % setting sigma_mc parameters
-        lb = [lb 0];
-        ub = [ub 10];
-        plb = [plb 0];
-        pub = [pub 3];
+        if ~strcmp(modelname,'UVSD')
+            lb = [lb 0];
+            ub = [ub 10];
+            plb = [plb 0];
+            pub = [pub 3];
+        end
         
         starttheta = [bsxfun(@plus,randi(pub(1)-plb(1),nStartVals,1),plb(1)) bsxfun(@plus,bsxfun(@times,rand(nStartVals,size(lb,2)-1),pub(2:end)-plb(2:end)),plb(2:end))];
         

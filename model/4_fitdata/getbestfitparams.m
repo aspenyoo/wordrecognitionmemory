@@ -12,7 +12,9 @@ if nargin < 5; paramrange = []; end
 if nargin < 6; filepath = ['model' filesep '4_fitdata' filesep 'BPSfits' filesep]; end
 
 switch modelname
-    case {'FP','FPheurs','uneqVar'}
+    case 'UVSD'
+        nParams = 1;
+    case {'FP','FPheurs'}
         nParams = 2;
     case 'REM'
         nParams = 5;

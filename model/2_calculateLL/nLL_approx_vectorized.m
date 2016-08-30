@@ -43,8 +43,8 @@ if ~isempty(fixparams)
     theta = tempTheta;
 end
 
-if strcmp(modelname,'uneqVar') % if uneqVar
-    [pnew, pold] = responses_uneqVar(theta, binningfn);
+if strcmp(modelname,'UVSD') % if uneqVar
+    [pnew, pold, confbounds] = responses_uneqVar(theta, binningfn);
     nLL = -sum(log(pnew).*nnew_part) - sum(log(pold).*nold_part);
 else % if FP, FPheurs, or REM
     
@@ -110,6 +110,7 @@ else % if FP, FPheurs, or REM
                 SOld = (repmat(X,[nS 1])/sigma^2)/(1/sigma^2 + 1) + randn(Nold*nS,M)*(1/sqrt(1/sigma^2 + 1));
                 
                 [d_new, d_old(:,iX)] = calculate_d_FP(M, sigma, nS, Nnew, Nold, SNew, SOld, X);
+                d_newtotal(:,iX) = d_new;
             case 'FPheurs'
                 X = randn(Nold, M)*sqrt(sigma^2+1);
                 SNew = randn(Nnew*nS,M);
@@ -117,6 +118,7 @@ else % if FP, FPheurs, or REM
                 
                 d_new = squeeze(-min(sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nnew*nS])).^2,2),[],1));
                 d_old(:,iX) = squeeze(-min(sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nold*nS])).^2,2),[],1));
+                d_newtotal(:,iX) = d_new;
             case 'REM'
                 X = binornd(1,1-p0,[Nold M]).*(geornd(g,[Nold M])+1);
                 SNew = geornd(g,[Nnew*nS M])+1; % new words
@@ -126,6 +128,7 @@ else % if FP, FPheurs, or REM
                 maxidx = max(X(:));
                 matchoddsVec = (c+(1-c).*g.*(1-g).^(0:maxidx))./(g.*(1-g).^(0:maxidx));
                 [d_new, d_old(:,iX)] = calculate_d_REM(M, g, c, nS, Nnew, Nold, SNew, SOld, X, matchoddsVec);
+                d_newtotal(:,iX) = d_new;
         end
         
         %             % plot so see how nS affects data
@@ -191,14 +194,24 @@ else % if FP, FPheurs, or REM
         
         % binning with or without metacognitive noise
         if (sigma_mc)
-            newHist = 0.5+0.5.*erf(bsxfun(@minus,[1.5:(nConf-0.5) Inf],conf)./(sigma_mc*sqrt(2))) - ...
-                (0.5+0.5.*erf(bsxfun(@minus,[-Inf 1.5:(nConf-0.5)],conf)./(sigma_mc*sqrt(2))));
-            if any(binningfn == [2 3])
-                newHist(d_new_sign < 0,:) = fliplr(newHist(d_new_sign < 0,:));
+            switch binningfn
+                case {0,1}
+                    newHist = 0.5+0.5.*erf(bsxfun(@minus,[1.5:(nConf-0.5) Inf],conf)./(sigma_mc*sqrt(2))) - ...
+                    (0.5+0.5.*erf(bsxfun(@minus,[-Inf 1.5:(nConf-0.5)],conf)./(sigma_mc*sqrt(2))));
+                case {2,3}
+                    newHist = [zeros(length(conf),nConf/2) 0.5+0.5.*erf(bsxfun(@minus,[1.5:(nConf/2-0.5) Inf],conf)./(sigma_mc*sqrt(2))) - ...
+                        (0.5+0.5.*erf(bsxfun(@minus,[-Inf 1.5:(nConf/2-0.5)],conf)./(sigma_mc*sqrt(2))))];
+                    newHist(d_new_sign < 0,:) = fliplr(newHist(d_new_sign < 0,:));
             end
             newHist = (sum(newHist)./(nS*nX))';
         else
-            conf = min(max(round(conf),1),nConf);
+            switch binningfn
+                case {0,1}
+                    conf = min(max(round(conf),1),nConf);
+                case {2,3}
+                    conf = min(max(round(conf),1),nConf/2)+nConf/2;
+                    conf(d_new_sign<0) = nConf+1 - conf(d_new_sign<0);
+            end
             newHist = histc(conf,1:nConf); % histogram
         end
         newHisttotal(iX,:) = newHist'; % in case you want nnew_part
@@ -239,14 +252,25 @@ else % if FP, FPheurs, or REM
     
     % histograms of confidence
     if (sigma_mc) % if there is metacognitive noise
-        oldHist = 0.5+0.5.*erf(bsxfun(@minus,[1.5:(nConf-0.5) Inf],conf)./(sigma_mc*sqrt(2))) - ...
-            (0.5+0.5.*erf(bsxfun(@minus,[-Inf 1.5:(nConf-0.5)],conf)./(sigma_mc*sqrt(2))));
-        if any(binningfn == [2 3]);
-            oldHist(d_old_sign < 0,:) = fliplr(oldHist(d_old_sign < 0,:));
+        switch binningfn
+            case {0,1}
+                oldHist = 0.5+0.5.*erf(bsxfun(@minus,[1.5:(nConf-0.5) Inf],conf)./(sigma_mc*sqrt(2))) - ...
+                    (0.5+0.5.*erf(bsxfun(@minus,[-Inf 1.5:(nConf-0.5)],conf)./(sigma_mc*sqrt(2))));
+            case {2,3}
+                oldHist = [zeros(length(conf),nConf/2) 0.5+0.5.*erf(bsxfun(@minus,[1.5:(nConf/2-0.5) Inf],conf)./(sigma_mc*sqrt(2))) - ...
+                    (0.5+0.5.*erf(bsxfun(@minus,[-Inf 1.5:(nConf/2-0.5)],conf)./(sigma_mc*sqrt(2))));];
+                oldHist(d_old_sign < 0,:) = fliplr(oldHist(d_old_sign < 0,:));
         end
         oldHist = (sum(oldHist)./(nS*nX))';
     else
-        conf = min(max(round(conf),1),nConf);
+        switch binningfn
+            case {0,1}
+                conf = min(max(round(conf),1),nConf);
+                
+            case {2,3}
+                conf = min(max(round(conf),1),nConf/2)+nConf/2;
+                conf(d_old_sign<0) = nConf+1 - conf(d_old_sign<0);
+        end
         oldHist = histc(conf,1:nConf); % histogram
     end
     
@@ -291,12 +315,23 @@ else % if FP, FPheurs, or REM
     
 end
 
-
-if nargout > 1; 
-    if ~strcmp(modelname,'uneqVar')
-        pnew = sum(newHisttotal)/sum(newHisttotal(:));
-    end
-    varargout = {pnew, pold};
-else
-    varargout = {nLL};
+switch nargout
+    case 1;
+        varargout = {nLL};
+    case 2;
+        if ~strcmp(modelname,'UVSD')
+            pnew = sum(newHisttotal)/sum(newHisttotal(:));
+        end
+        varargout = {pnew, pold};
+    case 5;
+        if strcmp(modelname,'UVSD')
+            centers_new = linspace(-3,3,50);
+            centers_old = linspace(theta(1)-3*theta(2),theta(1)+3*theta(2),50);
+            counts_new = normpdf(centers_new);
+            counts_old = normpdf(centers_old,theta(1),theta(2));
+        else
+            [counts_old,centers_old] = hist(d_old,50);
+            [counts_new,centers_new] = hist(d_newtotal,50);
+        end
+        varargout = {centers_new, counts_new, centers_old, counts_old, confbounds};
 end
