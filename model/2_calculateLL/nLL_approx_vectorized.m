@@ -192,7 +192,7 @@ else % if FP, FPheurs, or REM
                 conf = a.*((q.^lambda - 1)./lambda)+b;
         end
         
-        if (binningfun == 0) && (memstrengthvar ==0); % confidence is 10.5 at decision boundary (0)
+        if (binningfn == 0) && (memstrengthvar ==0); % confidence is 10.5 at decision boundary (0)
             conf = conf + nConf/2+0.5;
         end
         
