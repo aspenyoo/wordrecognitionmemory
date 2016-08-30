@@ -254,6 +254,10 @@ else % if FP, FPheurs, or REM
             conf = a.*((q.^lambda - 1)./lambda)+b;
     end
     
+    if (binningfn == 0) && (memstrengthvar ==0); % confidence is 10.5 at decision boundary (0)
+            conf = conf + nConf/2+0.5;
+    end
+    
     % histograms of confidence
     if (sigma_mc) % if there is metacognitive noise
         switch binningfn
@@ -342,7 +346,7 @@ switch nargout
                     binvalues = 1.5:(nConf-0.5);
                     switch memstrengthvar
                         case 0 % LPR
-                            confbounds = binvalues./k - d0;
+                            confbounds = (binvalues-nConf/2-0.5)./k - d0;
                         case 1 % p(corr)
                             confbounds = -log(1./(binvalues./k - d0 + 0.5)-1);
                         case 2 % 1/p(incorr)
