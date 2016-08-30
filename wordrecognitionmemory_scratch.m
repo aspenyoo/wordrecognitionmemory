@@ -124,7 +124,7 @@ create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 clear all
 
 modelname = 'FP';
-binningfn = 1;
+binningfn = 0;
 memstrengthvar = 0;
 optimMethod = 'patternbayes';
 subjids = [1:14];
@@ -137,21 +137,19 @@ getbestfitparams(modelname,binningfn,memstrengthvar,subjids)
 
 %%
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) num2str(memstrengthvar) '.mat'])
-subjids = [1:14];
-plotparamfits(modelname,binningfn,memstrengthvar,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [0 0 1 0])
+subjids = [1:3];
+plotparamfits(modelname,binningfn,memstrengthvar,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [1 0 1 0])
 
 %% checking nLLs are consistent (debugging)
 % 08.15.2016
 
 clear
 
-modelname = 'REM';
+modelname = 'FP';
 optimMethod = 'patternbayes';
-binningfn = 1;
+binningfn = 0;
 memstrengthvar = 0;
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) num2str(memstrengthvar) '.mat'])
-binningfn = 2;
-memstrengthvar = 1;
 subjids = 1:14;
 
 load('subjdata.mat')
@@ -165,6 +163,12 @@ for isubj = subjids;
 end
 
 [nLL_est(subjids) nLL']% nLL2' nLL3']
+
+%% debugging
+isubj = 2;
+[pnew pold] = nLL_approx_vectorized( modelname, bestFitParam(isubj,:), binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
+figure; plot(1:20,pnew,1:20,pold)
+ylim([0 0.3])
 
 %% checking that nLLs are consistnent between old and new nLL functions
 
