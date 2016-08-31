@@ -338,15 +338,15 @@ switch nargout
             counts_new = normpdf(centers_new);
             counts_old = normpdf(centers_old,theta(1),theta(2));
         else
-            [counts_old,centers_old] = hist(d_old(:),50);
             [counts_new,centers_new] = hist(d_newtotal(:),50);
+            [counts_old,centers_old] = hist(d_old(:),50);
             
             switch binningfn
                 case 0 % linear
                     binvalues = 1.5:(nConf-0.5);
                     switch memstrengthvar
                         case 0 % LPR
-                            confbounds = (binvalues-nConf/2-0.5)./k - d0;
+                            confbounds = (binvalues-nConf/2-0.5)./k - d0
                         case 1 % p(corr)
                             confbounds = -log(1./(binvalues./k - d0 + 0.5)-1);
                         case 2 % 1/p(incorr)
@@ -360,10 +360,20 @@ switch nargout
                             confbounds = -log(1./(-k.*log((nConf+0.5)./(binvalues-0.5)-1)+0.5)-1);
                         case 2 % 1/p(incorr)
                     end
-                case 2 % logarithmic
+                case 2 % logarithmic                    
                     switch memstrengthvar
                         case 0 % LPR
                         case 1 % p(corr)
+                            binvalues = 1:(nConf/2 -0.5);
+                            
+                            % getting p(old)
+                            pold_new = 1./(1+exp(-d_newtotal(:)));
+                            pold_old = 1./(1+exp(-d_old(:)));
+                            [counts_new,centers_new] = hist(pold_new,50);
+                            [counts_old,centers_old] = hist(pold_old,50);
+                            
+                            confbounds = exp((binvalues-b)./a);
+%                             confbounds = [1-fliplr(confbounds) 0.5 confbounds];
                         case 2 % 1/p(incorr)
                     end
                 case 3 % power law

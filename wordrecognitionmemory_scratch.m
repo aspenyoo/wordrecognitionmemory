@@ -107,9 +107,10 @@ end
 %% create joblist
 
 nStartVals = 10;
-esttimeVec = repmat([0.08 0.164 0.25 0.33 .42 0.58 0.84 1.26 1.68 2.10 2.52 3.36 4.2],1,nStartVals);
-jobnumVec = repmat([1:5 7 10 15 20 25 30 40 50],1,nStartVals);
-maxTime = 12;
+esttimeVec = linspace(0.08,4.2,50);
+jobnumVec = repmat([6 8 9 11:14 16:19 21:24 26:29 31:39 41:49],1,nStartVals);
+esttimeVec = esttimeVec(jobnumVec);
+maxTime = 64;
 filepath = 'model/4_fitdata/';
 
 % for subjid = 1:14;
@@ -117,7 +118,7 @@ filepath = 'model/4_fitdata/';
 %     create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 % end
 
-jobfilename = [filepath 'joblist_08302016.txt'];
+jobfilename = [filepath 'joblist_09012016.txt'];
 create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 
 %% get best parameter fits
@@ -137,8 +138,8 @@ getbestfitparams(modelname,binningfn,memstrengthvar,subjids)
 
 %%
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) num2str(memstrengthvar) '.mat'])
-subjids = [1:3];
-plotparamfits(modelname,binningfn,memstrengthvar,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [1 0 1 0])
+subjids = [2];
+plotparamfits(modelname,binningfn,memstrengthvar,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [0 0 1 0])
 
 %% checking nLLs are consistent (debugging)
 % 08.15.2016

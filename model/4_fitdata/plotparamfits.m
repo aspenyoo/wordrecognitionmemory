@@ -79,7 +79,7 @@ if (selectiveplot(1))
         isubj = subjnum(isubjnum);
         
         % plots
-        subplot(subplotsize,subplotsize,isubj); hold on;
+        subplot(subplotsize,subplotsize,isubjnum); hold on;
         fNew = plot(pNew_est(isubjnum,:)); % pnewMat(:,MInd,sigInd,c1Ind,c2Ind) are best fit thing
         fOld = plot(pOld_est(isubjnum,:)); % poldMat(:,MInd,sigInd,c1Ind,c2Ind)
         sNew = plot(pNew_part(isubjnum,:));
@@ -127,7 +127,7 @@ if (selectiveplot(1))
     
     %big title
     h = axes('Position',[0 0 1 1],'Visible','off'); %add an axes on the left side of your subplots
-    hTitle = text(0.45,0.95,[num2str(nParams) ' Parameter Model']);
+    hTitle = text(0.45,0.95,[modelname num2str(binningfn) num2str(memstrengthvar)]);
     %big ylabel
     set(gcf,'CurrentAxes',h)
     hYlabel = text(.1,.45,'Proportion');
@@ -156,7 +156,7 @@ if (selectiveplot(1))
         'FontSize'              , 14        );
     
     %     subplotlegend(hLegend,[4 4 nSubj+1]);
-    subplotlegend(hLegend,[subplotsize subplotsize subplotsize^2]);
+    if nSubj < subplotsize^2; subplotlegend(hLegend,[subplotsize subplotsize subplotsize^2]); end
     
     if (isdatasave)
         %         saveas(gcf,['paramfit_' modelname linlog '_' optimizationMethod ...
@@ -260,12 +260,12 @@ if (selectiveplot(3))
     for isubjnum = 1:nSubj;
         
         isubj = subjnum(isubjnum);
-        subplot(subplotsize,subplotsize,isubj);
+        subplot(subplotsize,subplotsize,isubjnum);
         
-        [centers_new, counts_new, centers_old, counts_old, confBounds] = nLL_approx_vectorized( modelname, bestFitParam(isubj,:), binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], nX, nS, nConf );
+        [centers_new, counts_new, centers_old, counts_old, confBounds] = nLL_approx_vectorized( modelname, bestFitParam(isubjnum,:), binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], nX, nS, nConf );
         
         % plots
-        subplot(subplotsize,subplotsize,isubj); hold on;
+        subplot(subplotsize,subplotsize,isubjnum); hold on;
         fNew = plot(centers_new,counts_new);
         fOld = plot(centers_old,counts_old);
         fConf = plot(repmat(confBounds(:),1,2)', repmat([0 max([counts_new(:); counts_old(:)])],length(confBounds),1)');
@@ -288,7 +288,7 @@ if (selectiveplot(3))
     legend('old','new');
     hLeg = legend('old','new');
     %     subplotlegend(hLeg,[4 4 nSubj+1])
-    subplotlegend(hLeg,[subplotsize subplotsize subplotsize^2])
+    if nSubj > subplotsize^2; subplotlegend(hLeg,[subplotsize subplotsize subplotsize^2]); end
     
     if (isdatasave)
         %         saveas(gcf,['paramfit_' modelname linlog '_' optimizationMethod ...
