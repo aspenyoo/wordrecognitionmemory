@@ -121,25 +121,6 @@ filepath = 'model/4_fitdata/';
 jobfilename = [filepath 'joblist_09012016.txt'];
 create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 
-%% get best parameter fits
-clear all
-
-modelname = 'FP';
-binningfn = 0;
-memstrengthvar = 0;
-optimMethod = 'patternbayes';
-subjids = [1:14];
-
-for isubj = subjids;
-    removetxtspaces(modelname,binningfn,memstrengthvar,isubj,optimMethod);
-end
-
-getbestfitparams(modelname,binningfn,memstrengthvar,subjids)
-
-%%
-load(['paramfit_' optimMethod '_' modelname num2str(binningfn) num2str(memstrengthvar) '.mat'])
-subjids = [2];
-plotparamfits(modelname,binningfn,memstrengthvar,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [0 0 1 0])
 
 %% checking nLLs are consistent (debugging)
 % 08.15.2016
@@ -425,3 +406,43 @@ isubj = 7;
 theta = bestFitParam(isubj,:);
 [nnew_part,nold_part] = loadsubjdata(isubj);
 nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, nold_part)
+
+%% =====================================================
+%       DOING STUFF WITH FIT PARAMETERS
+% ======================================================
+clear all
+
+modelname = 'FP';
+binningfn = 2;
+memstrengthvar = 1;
+optimMethod = 'patternbayes';
+subjids = [1:14];
+
+%% remove txt spacing
+for isubj = subjids;
+    removetxtspaces(modelname,binningfn,memstrengthvar,isubj,optimMethod);
+end
+
+%% get MLE parameter estimates
+getbestfitparams(modelname,binningfn,memstrengthvar,subjids)
+
+%% load MLE parameter estimates
+load(['paramfit_' optimMethod '_' modelname num2str(binningfn) num2str(memstrengthvar) '.mat'])
+
+%% plot best fit parameters
+subjids = [1:14];
+plotparamfits(modelname,binningfn,memstrengthvar,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [0 0 1 0])
+
+%% calculate pnew and pold and save in file for ronald
+load('subjdata.mat')
+
+nSubj = 14;
+nNew_mod = nan(nSubj,20); nOld_mod = nan(nSubj,20);
+for isubj = 1:nSubj;
+    isubj
+    [nNew_mod(isubj,:),nOld_mod(isubj,:)] = nLL_approx_vectorized(modelname,bestFitParam(isubj,:),binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 100, 50);
+end
+
+nNew_mod = bsxfun(@times,nNew_mod,sum(nNew_part,2));
+nOld_mod = bsxfun(@times,nOld_mod,sum(nOld_part,2));
+save(['model/4_fitdata/BPSfits/' modelname num2str(binningfn) num2str(memstrengthvar) '_datamodel.mat'],'nNew_part','nOld_part','nNew_mod','nOld_mod')
