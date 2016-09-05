@@ -107,8 +107,8 @@ end
 %% create joblist
 
 nStartVals = 10;
-esttimeVec = linspace(0.08,4.2,50);
-jobnumVec = repmat([6 8 9 11:14 16:19 21:24 26:29 31:39 41:49],1,nStartVals);
+esttimeVec = linspace(0.08,8,100);
+jobnumVec = repmat([51:65],1,nStartVals);
 esttimeVec = esttimeVec(jobnumVec);
 maxTime = 64;
 filepath = 'model/4_fitdata/';
@@ -118,7 +118,7 @@ filepath = 'model/4_fitdata/';
 %     create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 % end
 
-jobfilename = [filepath 'joblist_09012016.txt'];
+jobfilename = [filepath 'joblist_09052016.txt'];
 create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 
 
