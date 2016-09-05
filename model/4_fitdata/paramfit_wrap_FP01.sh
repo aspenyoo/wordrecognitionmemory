@@ -5,7 +5,7 @@
 #PBS -M aspen.yoo@nyu.edu
 #PBS -l mem=4GB
 #PBS -m abe
-#PBS -N FP00
+#PBS -N FP01
 
 index=${PBS_ARRAYID}
 job=${PBS_JOBID}
@@ -21,14 +21,14 @@ addpath(genpath('/home/ay963/wordrecognitionmemory'))
 
 modelname = 'FP';
 binningfn = 0;
-memstrengthvar = 0;
+memstrengthvar = 1;
 
 if $index > 100;
     blah = num2str($index);
     isubj = str2double(blah(1:end-2));
     joblistnum = str2double(blah(end-1:end)); 
 end
-joblistfile = 'joblist_08312016.txt'; % will do a different job per person. (if you want same for all, write joblist name)
+joblistfile = 'joblist_08012016.txt'; % will do a different job per person. (if you want same for all, write joblist name)
 
 cluster_wrap2(modelname, binningfn, memstrengthvar, isubj, joblistnum,joblistfile,[1 4; nan 0])
 
