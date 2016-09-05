@@ -99,6 +99,7 @@ else % if FP, FPheurs, or REM
     % calculate LL
     LL_new = nan(1,nX);
     d_old = nan(Nold*nS,nX);
+    d_newtotal = nan(Nold*nS,nX);
     newHisttotal = nan(nX,nConf);
     for iX = 1:nX;
         
@@ -192,7 +193,7 @@ else % if FP, FPheurs, or REM
                 conf = a.*((q.^lambda - 1)./lambda)+b;
         end
         
-        if (binningfn == 0) && (memstrengthvar ==0); % confidence is 10.5 at decision boundary (0)
+        if (binningfn == 0) && (memstrengthvar == 0); % confidence is 10.5 at decision boundary (0)
             conf = conf + nConf/2+0.5;
         end
         
