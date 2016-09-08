@@ -130,9 +130,9 @@ clear
 modelname = 'FP';
 optimMethod = 'patternbayes';
 binningfn = 0;
-memstrengthvar = 0;
+memstrengthvar = 1;
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) num2str(memstrengthvar) '.mat'])
-subjids = 1:14;
+subjids = 1;
 
 load('subjdata.mat')
 nLL = nan(1,length(subjids));
@@ -430,8 +430,8 @@ getbestfitparams(modelname,binningfn,memstrengthvar,subjids)
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) num2str(memstrengthvar) '.mat'])
 
 %% plot best fit parameters
-subjids = [1:14];
-plotparamfits(modelname,binningfn,memstrengthvar,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [0 0 1 0])
+subjids = [1];
+plotparamfits(modelname,binningfn,memstrengthvar,optimMethod,bestFitParam(subjids,:),20, 0, 0, subjids, [1 0 1 0])
 
 %% calculate pnew and pold and save in file for ronald
 load('subjdata.mat')

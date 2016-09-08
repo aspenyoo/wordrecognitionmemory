@@ -103,7 +103,7 @@ end
         switch binningfn
             case {0,1} % linear or logistic mapping
                 % k, d0
-                if strcmp(modelname,'FPheurs') % FP heurs model spans (-Inf, 0], so d0 should be be negative
+                if strcmp(modelname,'FPheurs') % FP heurs model spans (-Inf, 0], so -d0 should be be negative
                     lb = [lb 1e-3 0];
                     ub = [ub 10 100];
                     plb = [plb 1e-3 0];
