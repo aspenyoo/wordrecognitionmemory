@@ -108,7 +108,7 @@ end
 
 nStartVals = 10;
 esttimeVec = linspace(0.08,8,100);
-jobnumVec = repmat([51:65],1,nStartVals);
+jobnumVec = repmat([66:75],1,nStartVals);
 esttimeVec = esttimeVec(jobnumVec);
 maxTime = 64;
 filepath = 'model/4_fitdata/';

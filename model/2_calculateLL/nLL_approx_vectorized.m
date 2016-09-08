@@ -99,7 +99,7 @@ else % if FP, FPheurs, or REM
     % calculate LL
     LL_new = nan(1,nX);
     d_old = nan(Nold*nS,nX);
-    d_newtotal = nan(Nold*nS,nX);
+    d_newtotal = nan(Nnew*nS,nX);
     newHisttotal = nan(nX,nConf);
     for iX = 1:nX;
         
