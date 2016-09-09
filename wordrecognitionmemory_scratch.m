@@ -446,3 +446,6 @@ end
 nNew_mod = bsxfun(@times,nNew_mod,sum(nNew_part,2));
 nOld_mod = bsxfun(@times,nOld_mod,sum(nOld_part,2));
 save(['model/4_fitdata/BPSfits/' modelname num2str(binningfn) num2str(memstrengthvar) '_datamodel.mat'],'nNew_part','nOld_part','nNew_mod','nOld_mod')
+
+%% getting the nLL of MLE estimate for each M
+
