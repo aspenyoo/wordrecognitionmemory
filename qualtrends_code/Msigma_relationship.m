@@ -4,7 +4,7 @@
 
 clear all
 modelname = 'FP21';
-MMax = 65;
+MMax = 75;
 MMin = 1;
 MVec = MMin:MMax;
 Mcol = 1;       % column with the M listed

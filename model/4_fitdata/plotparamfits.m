@@ -19,8 +19,8 @@ if isstruct(fakedata)
 else
     % load real data
     load('subjdata.mat')
-    pNew_part = nNew_part/150;
-    pOld_part = nOld_part/150;
+    pNew_part = bsxfun(@rdivide,nNew_part,sum(nNew_part,2));
+    pOld_part = bsxfun(@rdivide,nOld_part,sum(nOld_part,2));
 end
 
 % ====================================================================
