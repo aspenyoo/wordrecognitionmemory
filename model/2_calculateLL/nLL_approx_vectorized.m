@@ -178,7 +178,7 @@ else % if FP, FPheurs, or REM
             case 1      % p(correct|evidence). [0.5 1]
                 q = 1./(1+exp(-q));
             case 2      % 1/(1-p(correct|evidence)). [2, Inf)
-                q = 1./(1-1./(1+exp(-q)));
+                q = 1./(1-1./(1+exp(-q)));               
         end
         
         % calculate LLnew

@@ -139,12 +139,15 @@ nLL = nan(1,length(subjids));
 for isubj = subjids;
     isubj
     nLL(isubj) = nLL_approx_vectorized( modelname, bestFitParam(isubj,:), binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
-%     nLL2(isubj) = nLL_approx_vectorized( modelname, [bestFitParam(isubj,1:end-1) 0], binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
-%     nLL3(isubj) = nLL_approx_vectorized( modelname, [bestFitParam(isubj,1:end-1) 1e-3], binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
-%     nLL2(isubj) = nLL_approx_vectorized_old( modelname, bestFitParam(isubj,1:end-1), binningfn, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
+    %     bfp = [bestFitParam(isubj,[1 2 end 5 3 4]) 1e-3 1]; % for binningfn = 2, memstrengthvar = 1;
+    %     bfp = [bestFitParam(isubj,[1 2 5 4]) 1 0 2 bestFitParam(isubj,3)]; % for binningfn = 1; memstrength = 0
+    %     bfp = [bestFitParam(isubj,[1 2 5 4 3]) 0 2 1 ];
+    bfp = [bestFitParam(isubj,[1 2 5 4 3]) 0 2 1]; % 01: pcorr --> lin
+    memstrengthfn = 1;
+    nLL2(isubj) = nLL_approx_vectorized2( modelname, bfp, memstrengthfn, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
 end
 
-[nLL_est(subjids) nLL']% nLL2' nLL3']
+[nLL_est(subjids) nLL' nLL2'] % nLL3']
 
 %% debugging
 isubj = 2;
