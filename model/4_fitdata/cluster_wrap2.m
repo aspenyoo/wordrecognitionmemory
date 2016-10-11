@@ -1,4 +1,4 @@
-function cluster_wrap2(modelname, binningfn, memstrengthvar, subjids, jobnum, joblistfile, fixparams)
+function cluster_wrap2(modelname, subjids, jobnum, joblistfile, fixparams)
 % a wrapper to fit multiple parameter values iteratively, so that the
 % length of one job will be 48 hours.
 %
@@ -10,8 +10,7 @@ function cluster_wrap2(modelname, binningfn, memstrengthvar, subjids, jobnum, jo
 % SUBJIDS: vector of subject IDs
 % JOBNUM: which row of the joblist you want to be evaluated
 
-if isempty(binningfn); binningfn = 1; end
-if nargin < 6; fixparams = [1; nan]; end
+if nargin < 5; fixparams = [1; nan]; end
 
 nSubj = length(subjids);
 nStartVals = 1;
@@ -25,14 +24,14 @@ for isubj = 1:nSubj;
     if ~isempty(joblistfile)
         alldata = dlmread(joblistfile);
     else
-        alldata = dlmread(['joblist_' modelname num2str(binningfn) num2str(memstrengthvar) '_subj' num2str(subjid) '.txt']);
+        alldata = dlmread(['joblist_' modelname '_subj' num2str(subjid) '.txt']);
     end
     MVec = alldata(jobnum,:);
     MVec = MVec(MVec ~= 0);
     
     for iM = 1:length(MVec);
         fixparams(2,1) = MVec(iM)
-        fitdata_cluster(subjid, modelname, binningfn, memstrengthvar, 'patternbayes', fixparams,[],[],nStartVals);
+        fitdata_cluster(subjid, modelname, 'patternbayes', fixparams,[],[],nStartVals);
     end
     
 end

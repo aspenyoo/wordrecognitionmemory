@@ -1,4 +1,4 @@
-function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelname, binningfn, memstrengthvar, nnew_part, nold_part, fixparams,nStartVals, nConf)
+function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelname, nnew_part, nold_part, fixparams,nStartVals, nConf)
 %
 % paramfit_patternbayes(MODELNAME) uses bayesian patternsearch (one of Luigi
 % Acerbi's optimization algorithms) to find the best fit parameters (and
@@ -27,9 +27,9 @@ function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelna
 % Aspen Yoo -- January 28, 2016
 %
 
-if nargin < 6; fixparams = []; end
-if nargin < 7; nStartVals = 1; end
-if nargin < 8; nConf = 20; end
+if nargin < 4; fixparams = []; end
+if nargin < 5; nStartVals = 1; end
+if nargin < 6; nConf = 20; end
 nX = 30;
 nS = 50;
 
@@ -52,7 +52,7 @@ startTheta = genStartTheta;
 bfp = nan(size(startTheta));
 nll = nan(nStartVals,1); exitflag = nll;
 for istartval = 1:nStartVals;
-    obj_func = @(x) nLL_approx_vectorized(modelname, x, binningfn, memstrengthvar, nnew_part, nold_part, fixparams, nX, nS, nConf );
+    obj_func = @(x) nLL_approx_vectorized(modelname, x, nnew_part, nold_part, fixparams, nX, nS, nConf );
     [bfp(istartval,:) ,nll(istartval), exitflag(istartval), outputt{istartval}] = bps(obj_func,startTheta(istartval,:),lb,ub,plb,pub,options);
 end
 
@@ -99,41 +99,11 @@ end
                 pub = [50 1 1 1 15];
         end
         
-        % setting binnfn parameters
-        switch binningfn
-            case {0,1} % linear or logistic mapping
-                % k, d0
-                if strcmp(modelname,'FPheurs') % FP heurs model spans (-Inf, 0], so -d0 should be be negative
-                    lb = [lb 1e-3 0];
-                    ub = [ub 10 100];
-                    plb = [plb 1e-3 0];
-                    pub = [pub 2 50];
-                else
-                    lb = [lb 1e-3 -50];
-                    ub = [ub 10 50];
-                    plb = [plb 1e-3 -10];
-                    pub = [pub 5 10];
-                end
-            case {2,3} % log or power law mapping
-                % a, b, d0
-                %                 starttheta = [starttheta(:,1:end-2) rand*20 -5+rand*10 -5+rand*10 rand*10];
-                lb = [lb 0 -100 -30];
-                ub = [ub 100 100 30];
-                plb = [plb 0 -10 -1];
-                pub = [pub 10 10 1];
-                if memstrengthvar == 2; % if 1/(1-p(correct))
-                    % a
-                    plb(end-2) = -10;
-                    pub(end-2) = 0;
-                end
-                if binningfn == 3; % power law binning
-                    % lambda
-                    lb = [lb -30];
-                    ub = [ub 30];
-                    plb = [plb -5];
-                    pub = [pub 5];
-                end
-        end
+        % d0, a, b, gamma, k
+        lb = [lb -10 -50 -50 0 0];
+        ub = [ub 10 50 50 50 50];
+        plb = [plb 0 20 0 0 0];
+        pub = [pub 1 25 10 2 2];
         
         % setting sigma_mc parameters
         if ~strcmp(modelname,'UVSD')

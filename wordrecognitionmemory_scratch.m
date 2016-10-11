@@ -1,3 +1,21 @@
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+%  RANDOM STUFF
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+
+% october 11, 2016
+% weibull
+clear all
+
+a = 1;
+lambda = 1;
+k = .5;
+
+xx = linspace(0,2.5,50);
+y = a.*(1-exp(-(xx./lambda).^k));
+plot(xx,y);
+
+
+
 %% checking to see SD of nLLs for different model
 % 6/29/2016
 
