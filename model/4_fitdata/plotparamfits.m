@@ -1,15 +1,13 @@
-function plotparamfits(modelname, binningfn, memstrengthvar, optimizationMethod, bestFitParam, nConf, isdatasave, fakedata, subjnum, selectiveplot)
+function plotparamfits(modelname, bestFitParam, nConf, fakedata, subjnum, selectiveplot)
 % function that plots confdist (data and model overlaid)
 
 nSubj = size(bestFitParam,1);
-nParams = size(bestFitParam,2);
-if nargin < 6; nConf = 20; end
-if nargin < 7; isdatasave = 0; end
-if nargin < 8; fakedata = 0; end % default: real subject data
-if nargin < 9; subjnum = 1:nSubj; end
+if nargin < 3; nConf = 20; end
+if nargin < 4; fakedata = 0; end % default: real subject data
+if nargin < 5; subjnum = 1:nSubj; end
 if isempty(subjnum); subjnum = 1:nSubj; end
-if nargin < 9; selectiveplot = [1 1 1 0]; end % automaticlyy plots everything
-date = clock;
+if nargin < 6; selectiveplot = [1 1 1 0]; end % automaticlyy plots everything
+
 
 subplotsize = ceil(sqrt(nSubj));
 
@@ -46,7 +44,7 @@ if any(selectiveplot(1:2))
     for isubjnum = 1:nSubj;
         
         subjnum(isubjnum)
-        [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = nLL_approx_vectorized(modelname, bestFitParam(isubjnum,:), binningfn, memstrengthvar, nNew_part(isubjnum,:), nOld_part(isubjnum,:), [], nX, nS, nConf );
+        [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = nLL_approx_vectorized(modelname, bestFitParam(isubjnum,:), nNew_part(isubjnum,:), nOld_part(isubjnum,:), [], nX, nS, nConf );
     end
 end
 
@@ -127,7 +125,7 @@ if (selectiveplot(1))
     
     %big title
     h = axes('Position',[0 0 1 1],'Visible','off'); %add an axes on the left side of your subplots
-    hTitle = text(0.45,0.95,[modelname num2str(binningfn) num2str(memstrengthvar)]);
+    hTitle = text(0.45,0.95,[modelname]);
     %big ylabel
     set(gcf,'CurrentAxes',h)
     hYlabel = text(.1,.45,'Proportion');
@@ -158,13 +156,6 @@ if (selectiveplot(1))
     %     subplotlegend(hLegend,[4 4 nSubj+1]);
     if nSubj < subplotsize^2; subplotlegend(hLegend,[subplotsize subplotsize subplotsize^2]); end
     
-    if (isdatasave)
-        %         saveas(gcf,['paramfit_' modelname linlog '_' optimizationMethod ...
-        %              '_confdist' num2str(date(2)) num2str(date(3)) num2str(date(1)) '.emf'])
-        img = getframe(gcf);
-        imwrite(img.cdata, ['paramfit_' modelname num2str(binningfn) '_' optimizationMethod ...
-            '_confdist_' num2str(date(2)) num2str(date(3)) num2str(date(1)) '.png']);
-    end
 end
 
 % ===== AVERAGE CONFIDENCE PLOT =====
@@ -228,7 +219,7 @@ if (selectiveplot(2))
     
     % label
     text(.39,.39,'average participant');
-    title([modelname num2str(binningfn) num2str(memstrengthvar)]);
+    title([modelname]);
     ylabel('Proportion');
     xlabel('Bin Number');
     
@@ -243,14 +234,7 @@ if (selectiveplot(2))
     %         'New Words (estimated)'         ,...
     %         'Old Words (estimated)'         );
     
-    
-    if (isdatasave)
-        %         saveas(gcf,['paramfit_' modelname linlog '_' optimizationMethod ...
-        %              '_confdistAverage' num2str(date(2)) num2str(date(3)) num2str(date(1)) '.emf'])
-        img = getframe(gcf);
-        imwrite(img.cdata, ['paramfit_' modelname num2str(binningfn) '_' optimizationMethod ...
-            '_confdistAverage_' num2str(date(2)) num2str(date(3)) num2str(date(1)) '.png']);
-    end
+   
 end
 
 % ===== INDVL DPLOT =====
@@ -262,7 +246,7 @@ if (selectiveplot(3))
         isubj = subjnum(isubjnum);
         subplot(subplotsize,subplotsize,isubjnum);
         
-        [centers_new, counts_new, centers_old, counts_old, confBounds] = nLL_approx_vectorized( modelname, bestFitParam(isubjnum,:), binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], nX, nS, nConf );
+        [centers_new, counts_new, centers_old, counts_old, confBounds] = nLL_approx_vectorized( modelname, bestFitParam(isubjnum,:), nNew_part(isubj,:), nOld_part(isubj,:), [], nX, nS, nConf );
         
         % plots
         subplot(subplotsize,subplotsize,isubjnum); hold on;
@@ -290,13 +274,6 @@ if (selectiveplot(3))
     %     subplotlegend(hLeg,[4 4 nSubj+1])
     if nSubj > subplotsize^2; subplotlegend(hLeg,[subplotsize subplotsize subplotsize^2]); end
     
-    if (isdatasave)
-        %         saveas(gcf,['paramfit_' modelname linlog '_' optimizationMethod ...
-        %              '_memdist' num2str(date(2)) num2str(date(3)) num2str(date(1)) '.emf'])
-        img = getframe(gcf);
-        imwrite(img.cdata, ['paramfit_' modelname num2str(binningfn) '_' optimizationMethod ...
-            '_memdist_' num2str(date(2)) num2str(date(3)) num2str(date(1)) '.png']);
-    end
 end
 
 
@@ -357,16 +334,10 @@ if (selectiveplot(4))
     
     % label
     text(.39,.39,'average participant');
-    title([modelname num2str(binningfn) num2str(memstrengthvar)]);
+    title([modelname]);
     ylabel('Proportion');
     xlabel('Bin Number');
     
     hold off;
-    
-    
-    if (isdatasave)
-        img = getframe(gcf);
-        imwrite(img.cdata, ['paramfit_' modelname num2str(binningfn) '_' optimizationMethod ...
-            '_confdistBoxplot_' num2str(date(2)) num2str(date(3)) num2str(date(1)) '.png']);
-    end
+
 end

@@ -189,8 +189,10 @@ switch nargout
             counts_new = normpdf(centers_new);
             counts_old = normpdf(centers_old,theta(1),theta(2));
         else
-            binvalues = 1:(nConf/2 - 0.5);
-            confbounds = gamma.*(-log(1-((binvalues-b)./a)).^(1/k));
+            binvalues = 1.5:(nConf/2 - 0.5);
+            tempp = 1-((binvalues-b)./a);
+            tempp(sign(tempp) == -1) = nan;
+            confbounds = gamma.*(-log(tempp)).^(1/k);
 
             [counts_new,centers_new] = hist(d_newtotal(:),50);
             [counts_old,centers_old] = hist(d_old(:),50);

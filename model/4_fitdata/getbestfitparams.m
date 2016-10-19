@@ -1,4 +1,4 @@
-function getbestfitparams(modelname, binningfn,memstrengthvar,subjids,paramrange, filepath)
+function getbestfitparams(modelname, subjids,paramrange, filepath)
 % gets the best fitting parameters from txt file across subjects and
 % compiles it into a .mat file
 % 
@@ -8,8 +8,8 @@ function getbestfitparams(modelname, binningfn,memstrengthvar,subjids,paramrange
 % PARAMRANGE: a 3 x (number of parameters you want to enforce a range)
 % matrix, where the first row is the parameter number, second row is the
 % lower bound of that parameter, and third row is the upper bound of that parameter. 
-if nargin < 5; paramrange = []; end
-if nargin < 6; filepath = ['model' filesep '4_fitdata' filesep 'BPSfits' filesep]; end
+if nargin < 3; paramrange = []; end
+if nargin < 4; filepath = ['model' filesep '4_fitdata' filesep 'BPSfits' filesep]; end
 
 switch modelname
     case 'UVSD'
@@ -19,14 +19,8 @@ switch modelname
     case 'REM'
         nParams = 5;
 end
-switch binningfn 
-    case {0,1}
-        nParams = nParams + 3; 
-    case 2
-        nParams = nParams + 4;
-    case 3
-        nParams = nParams + 5;
-end
+
+nParams = nParams + 6; 
 
 nLLcol = nParams + 1; % column corresponding to nLLs for FP, FPheurs, and uneqVar models
 nSubj = length(subjids);
@@ -34,8 +28,7 @@ nSubj = length(subjids);
 bestdata = nan(nSubj,nLLcol*2);
 for isubj = 1:nSubj;
     subjid = subjids(isubj);
-    filename = [filepath 'paramfit_patternbayes_' modelname num2str(binningfn) ...
-        num2str(memstrengthvar) '_subj' num2str(subjid) '.txt'];
+    filename = [filepath 'paramfit_patternbayes_' modelname '_subj' num2str(subjid) '.txt'];
     alldata = dlmread(filename);
     
     datasorted = sortrows(alldata,nLLcol);
@@ -55,5 +48,5 @@ nLL_est = bestdata(:,nLLcol);
 % startTheta = bestdata(:,6:9);
 nLL_SD = bestdata(:,end);
 
-matfilename = [ filepath 'paramfit_patternbayes_' modelname num2str(binningfn) num2str(memstrengthvar) '.mat'];
-save(matfilename,'subjids','modelname','binningfn','bestFitParam','nLL_est','nLL_SD');
+matfilename = [ filepath 'paramfit_patternbayes_' modelname '.mat'];
+save(matfilename,'subjids','modelname','bestFitParam','nLL_est','nLL_SD');
