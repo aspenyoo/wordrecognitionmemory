@@ -44,7 +44,12 @@ if ~isempty(fixparams)
 end
 
 if strcmp(modelname,'UVSD') % if uneqVar
-    [pnew, pold, confbounds] = responses_uneqVar(theta, binningfn);
+    [pnew, pold, confbounds] = responses_uneqVar(theta);
+    size(pnew)
+    size(pold)
+    size(nnew_part)
+    size(nold_part)
+    
     nLL = -sum(log(pnew).*nnew_part) - sum(log(pold).*nold_part);
 else % if FP, FPheurs, or REM
     
@@ -78,8 +83,8 @@ else % if FP, FPheurs, or REM
     a = theta(end-3);
     b = theta(end-2);
     gamma = theta(end-1);
-    k = theta(end); % figure out what to do when k is not used.
-    nParams = nParams +6; % 4 if no k
+    k = theta(end);
+    nParams = nParams +6;
     
     % check to make sure the length of theta is correct
     assert(nParams == length(theta),'length of theta is not correct')
@@ -191,8 +196,15 @@ switch nargout
         else
             binvalues = 1.5:(nConf/2 - 0.5);
             tempp = 1-((binvalues-b)./a);
-            tempp(sign(tempp) == -1) = nan;
-            confbounds = gamma.*(-log(tempp)).^(1/k);
+            tempp(tempp < 0) = nan;
+%             tempp(tempp > 1) = nan;
+            confbounds = gamma.*(-log(tempp)).^(1/k) - d0;
+            
+%             xx = linspace(0,10,100);
+%             figure;
+%             plot(xx,a.*(1-exp(-(xx./gamma).^k)) + b,'k-')
+%             hold on;
+%             plot(confbounds+d0,binvalues,'or')
 
             [counts_new,centers_new] = hist(d_newtotal(:),50);
             [counts_old,centers_old] = hist(d_old(:),50);

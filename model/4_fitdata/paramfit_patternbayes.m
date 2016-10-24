@@ -100,17 +100,17 @@ end
         end
         
         % d0, a, b, gamma, k
-        lb = [lb -10 -50 -50 0 0];
-        ub = [ub 10 50 50 50 50];
-        plb = [plb 0 20 0 0 0];
-        pub = [pub 1 25 10 2 2];
+        lb = [lb 0 -10 -50 -50 0 0];
+        ub = [ub 10 10 50 50 50 50];
+        plb = [plb 0 0 20 0 0 0];
+        pub = [pub 3 1 25 10 2 2];
         
-        % setting sigma_mc parameters
-        if ~strcmp(modelname,'UVSD')
-            lb = [lb 0];
-            ub = [ub 10];
-            plb = [plb 0];
-            pub = [pub 3];
+        % deleting sigma_mc parameter for UVSD model
+        if strcmp(modelname,'UVSD')
+            lb(3) = [];
+            ub(3) = [];
+            plb(3) = [];
+            pub(3) = []; 
         end
         
         starttheta = [bsxfun(@plus,randi(pub(1)-plb(1),nStartVals,1),plb(1)) bsxfun(@plus,bsxfun(@times,rand(nStartVals,size(lb,2)-1),pub(2:end)-plb(2:end)),plb(2:end))];

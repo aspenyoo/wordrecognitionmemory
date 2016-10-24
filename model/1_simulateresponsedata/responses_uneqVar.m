@@ -1,4 +1,4 @@
-function [pnew, pold, confBounds] = responses_uneqVar( theta, binningfn, nConf, cplot, dplot)
+function [pnew, pold, confBounds] = responses_uneqVar( theta, nConf, cplot, dplot)
 % [pnew, pold] = function responses_uneqVar( THETA, PPLOT, RPLOT) gives
 % probability of "old" and "new" response confidences.
 % 
@@ -19,30 +19,21 @@ function [pnew, pold, confBounds] = responses_uneqVar( theta, binningfn, nConf, 
 % rplot = 1;
 
 % -----------------------------------------------------------------------
-if nargin < 3; nConf = 20; end
-if nargin < 4; cplot = 0;end
-if nargin < 5; dplot = 0; end
+if nargin < 2; nConf = 20; end
+if nargin < 3; cplot = 0;end
+if nargin < 4; dplot = 0; end
 
 % getting parameter names
 mu_old = theta(1);
 sigma_old = theta(2);
-switch binningfn
-    case {0,1}              % linear (0) and logistic (1) mapping
-        k = theta(end-1);
-        d0 = theta(end);
-        nParams = 4;
-    case 2        % logarithmic mapping
-        a = theta(end-2);
-        b = theta(end-1);
-        d0 = theta(end);
-        nParams = 5;
-    case 3              % power law mapping from p(correct)
-        a = theta(end-3);
-        b = theta(end-2);
-        d0 = theta(end-1);
-        lambda = theta(end);
-        nParams = 6;
-end
+
+d0 = theta(end-4);
+a = theta(end-3);
+b = theta(end-2);
+gamma = theta(end-1);
+k = theta(end);
+nParams = 7;
+
 
 assert(nParams == length(theta),'check number of parameters');
 
@@ -54,16 +45,16 @@ assert(nParams == length(theta),'check number of parameters');
 % end
 
 % calculate confBounds
-ratingBounds = [ -Inf 1.5:19.5 Inf];
+% ratingBounds = [ -Inf 1.5:19.5 Inf];
+binvalues = 1.5:(nConf/2 - 0.5);
 decisionboundary = fminsearch(@(x) abs(normpdf(x,mu_old,sigma_old) - normpdf(x)),rand); % finding decisionboundary and shifting the distributions over by it so that 0 is decision boundary
-switch binningfn
-    case 0 % linear
-        confBounds = (ratingBounds-d0-nConf/2-0.5)./k +decisionboundary;
-    case 1
-        confBounds = -k.*log(nConf./(ratingBounds - 0.5)-1)+d0+decisionboundary;
-    case 2 % logarithmic
-    case 3 % power law
-end
+tempp = 1-((binvalues-b)./a);
+tempp(tempp < 0) = nan;
+tempp(tempp > 1) = nan;
+confBounds = gamma.*(-log(tempp)).^(1/k) - d0;
+confBounds
+confBounds = [-Inf decisionboundary-confBounds decisionboundary decisionboundary+confBounds Inf];
+confBounds
 
 
 pnew = normcdf(confBounds(2:end)) - normcdf(confBounds(1:end-1));

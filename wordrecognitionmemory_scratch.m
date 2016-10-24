@@ -433,7 +433,7 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 % ======================================================
 clear all
 
-modelname = 'FP';
+modelname = 'REM';
 optimMethod = 'patternbayes';
 subjids = [1:14];
 
@@ -449,8 +449,8 @@ getbestfitparams(modelname,subjids)
 load(['paramfit_' optimMethod '_' modelname '.mat'])
 
 %% plot best fit parameters
-subjids = [13];
-plotparamfits(modelname,bestFitParam(subjids,:),20, 0, subjids, [0 0 1 0])
+subjids = [1];
+plotparamfits(modelname,bestFitParam(subjids,:),20, 0, subjids, [1 1 1 0])
 
 %% calculate pnew and pold and save in file for ronald
 load('subjdata.mat')
@@ -467,4 +467,39 @@ nOld_mod = bsxfun(@times,nOld_mod,sum(nOld_part,2));
 save(['model/4_fitdata/BPSfits/' modelname num2str(binningfn) num2str(memstrengthvar) '_datamodel.mat'],'nNew_part','nOld_part','nNew_mod','nOld_mod')
 
 %% getting the nLL of MLE estimate for each M
+
+
+
+%% plotting binning function
+
+xx = linspace(0,10,100);
+nSubj = size(bestFitParam,1);
+nConf = 20;
+
+figure;
+for isubj = 1:nSubj;
+    theta = bestFitParam(isubj,:);
+    
+    sigma_mc = theta(end-5);
+    d0 = theta(end-4);
+    a = theta(end-3);
+    b = theta(end-2);
+    gamma = theta(end-1);
+    k = theta(end);
+    
+    binvalues = 1.5:(nConf/2 - 0.5);
+    tempp = 1-((binvalues-b)./a);
+    tempp(tempp < 0) = nan;
+    tempp(tempp > 1) = nan;
+    confbounds = gamma.*(-log(tempp)).^(1/k) - d0;
+    
+    subplot(4,4,isubj);
+    plot(xx,a.*(1-exp(-(xx./gamma).^k)) + b,'k-')
+    hold on;
+    plot(confbounds+d0,binvalues,'ok')
+    defaultplot
+    ylim([1 10])
+    title(['subj ' num2str(isubj)])
+    
+end
 
