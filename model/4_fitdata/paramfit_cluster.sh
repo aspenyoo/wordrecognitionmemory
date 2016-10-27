@@ -19,7 +19,7 @@ cat<<EOF | matlab -nodisplay
 addpath(genpath('/home/ay963/matlab-scripts'))
 addpath(genpath('/home/ay963/wordrecognitionmemory'))
 
-modelname = REM;
+modelname = 'REM';
 
 if $index > 100;
     blah = num2str($index);
