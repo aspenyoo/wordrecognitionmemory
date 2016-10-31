@@ -56,9 +56,19 @@ confBounds
 confBounds = [-Inf decisionboundary-confBounds decisionboundary decisionboundary+confBounds Inf];
 confBounds
 
+% % PNEW AND POLD
 
-pnew = normcdf(confBounds(2:end)) - normcdf(confBounds(1:end-1));
-pold = normcdf(confBounds(2:end),mu_old,sigma_old) - normcdf(confBounds(1:end-1),mu_old,sigma_old);
+% getting "new" response confidence
+confbounds = confBounds;
+confbounds(confbounds < 0) = 0;
+confbounds(isnan(confbounds)) = 0;
+confbounds = [-Inf decisionboundary-confbounds decisionboundary];
+pnew = normcdf(confbounds(2:end)) - normcdf(confbounds(1:end-1));
+pold = normcdf(confbounds(2:end),mu_old,sigma_old) - normcdf(confbounds(1:end-1),mu_old,sigma_old);
+
+% getting "old" response confidence
+
+
 
 % making 0 probabilities very small (prevents LL from going to -Inf)
 % picked this value because FP and VP model have 150*6*6 total simulations

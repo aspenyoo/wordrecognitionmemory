@@ -431,9 +431,9 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 %% =====================================================
 %       DOING STUFF WITH FIT PARAMETERS
 % ======================================================
-clear all
+% clear all
 
-modelname = 'REM';
+modelname = 'FP';
 optimMethod = 'patternbayes';
 subjids = [1:14];
 
@@ -449,7 +449,7 @@ getbestfitparams(modelname,subjids)
 load(['paramfit_' optimMethod '_' modelname '.mat'])
 
 %% plot best fit parameters
-subjids = [1];
+subjids = [1:14];
 plotparamfits(modelname,bestFitParam(subjids,:),20, 0, subjids, [1 1 1 0])
 
 %% calculate pnew and pold and save in file for ronald
@@ -503,3 +503,19 @@ for isubj = 1:nSubj;
     
 end
 
+%% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+%  PARAMETER RECOVERY
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+
+modelname = 'FP21';
+load(['paramfit_patternbayes_' modelname '.mat'])
+m = mean(bestFitParam);
+covv = cov(bestFitParam);
+
+nSubj = 50;
+trueparams = mvnrnd(m,covv,nSubj);
+trueparams(:,5) = 0;
+
+for isubj = 1:nSubj;
+    
+end
