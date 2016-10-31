@@ -23,7 +23,7 @@ function [ varargout ] = nLL_approx_vectorized( modelname, theta, binningfn, mem
 % ===== OUTPUT VARIABLES =====
 % NLL: negative log likelihood
 %
-% Aspen Yoo - Aug 19, 2016
+% Aspen Yoo - Aug 20, 2016
 
 if nargin < 7; fixparams = []; end
 if nargin < 8; nX = 30; end
