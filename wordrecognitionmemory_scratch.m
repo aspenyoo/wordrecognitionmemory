@@ -74,7 +74,7 @@ for isubj = 1:nSubj;
 end
 
 %% separate jobs for each person
-clear 
+clear
 
 modelname = 'FP';
 binningfn = 2;
@@ -139,9 +139,9 @@ nLL = nan(1,length(subjids));
 for isubj = subjids;
     isubj
     nLL(isubj) = nLL_approx_vectorized( modelname, bestFitParam(isubj,:), binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
-%     nLL2(isubj) = nLL_approx_vectorized( modelname, [bestFitParam(isubj,1:end-1) 0], binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
-%     nLL3(isubj) = nLL_approx_vectorized( modelname, [bestFitParam(isubj,1:end-1) 1e-3], binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
-%     nLL2(isubj) = nLL_approx_vectorized_old( modelname, bestFitParam(isubj,1:end-1), binningfn, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
+    %     nLL2(isubj) = nLL_approx_vectorized( modelname, [bestFitParam(isubj,1:end-1) 0], binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
+    %     nLL3(isubj) = nLL_approx_vectorized( modelname, [bestFitParam(isubj,1:end-1) 1e-3], binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
+    %     nLL2(isubj) = nLL_approx_vectorized_old( modelname, bestFitParam(isubj,1:end-1), binningfn, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
 end
 
 [nLL_est(subjids) nLL']% nLL2' nLL3']
@@ -264,10 +264,10 @@ save('datamodel_forRonald.mat','data','model');
 nSubj = 14;
 nnew_part = nan(nSubj,20); nold_part = nnew_part;
 for isubj = 1:nSubj;
-   [nnew_part(isubj,:), nold_part(isubj,:)] = loadsubjdata(isubj); 
+    [nnew_part(isubj,:), nold_part(isubj,:)] = loadsubjdata(isubj);
 end
 
-%% Figure 2B from Mickes et al., 2007 paper 
+%% Figure 2B from Mickes et al., 2007 paper
 % (percent correct for each confidence)
 
 clear all
@@ -275,7 +275,7 @@ clear all
 modelname = 'FP';
 binningfn = 3;
 optimMethod = 'patternbayes';
-nX = 100; 
+nX = 100;
 nS = 50;
 
 subjids = [1:10 12:14];
@@ -301,7 +301,7 @@ nNew_mod_all = sum(nNew_mod(subjids,:));
 nOld_mod_all = sum(nOld_mod(subjids,:));
 
 % plot of responses of frequencies
-figure; bar([nNew_part; nNew_mod_all; nOld_part; nOld_mod_all]'); 
+figure; bar([nNew_part; nNew_mod_all; nOld_part; nOld_mod_all]');
 legend('data new','model new', 'data old', 'model old')
 axis([0.5 20.5 0 250]); defaultplot; defaultplot;
 xlabel('Rating')
@@ -449,3 +449,29 @@ save(['model/4_fitdata/BPSfits/' modelname num2str(binningfn) num2str(memstrengt
 
 %% getting the nLL of MLE estimate for each M
 
+
+%% % % % % % % % % % % % % % % % % % %
+%   SIMULATING DATA WITH COVARIANCE STRUCTURE
+% % % % % % % % % % % % % % % % % % %
+
+modelname = 'FP21';
+load(['paramfit_patternbayes_' modelname '.mat'])
+
+MU = mean(bestFitParam);
+SIGMA = cov(bestFitParam);
+
+nSubj = 50;
+trueparams = [];
+while size(trueparams,1)<nSubj;
+    tempparams = mvnrnd(MU,SIGMA,nSubj-size(trueparams,1));
+    
+    tempparams(:,1) = round(tempparams(:,1)); % M
+    tempparams(tempparams(:,1)>75,:) = []; % deleting M larger than 75
+    tempparams(tempparams(:,1)<0,:) = []; % negative M
+    tempparams(tempparams(:,2)<0,:) = []; % negative sigma
+    tempparams(tempparams(:,end)<0,:) = []; % negative MC noise
+    
+    trueparams = [trueparams; tempparams];
+end
+
+trueparams =     tempparams(:,5) = 0; % d0

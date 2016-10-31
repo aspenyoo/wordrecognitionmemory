@@ -1,4 +1,4 @@
-function [ responses, trueParam ] = simulate_resp(modelname,islogbinning, nSubj, fixparams, savedata)
+function [ responses, trueParam ] = simulate_resp(modelname, nSubj, fixparams)
 % simulate_resp simulates the number of responses for each confidence
 % value.
 %
@@ -32,58 +32,57 @@ function [ responses, trueParam ] = simulate_resp(modelname,islogbinning, nSubj,
 % random number generator
 % rng('shuffle');
 
-if nargin < 3; nSubj = 1; end
-if nargin < 4; fixparams = []; end
-if nargin < 5; savedata = 0; end % won't save data automatically
+if nargin < 2; nSubj = 1; end
+if nargin < 3; fixparams = []; end
 
-switch modelname
-    case 'FP'; nParams = 4;
-    case 'FPheurs'; nParams = 4;
-    case 'VP'; nParams = 5;
-    case 'VPheurs'; nParams = 5;
-    case 'uneqVar'; nParams = 4;
-    case 'REM'; nParams = 7;
-end
-nParams = nParams +2;
+% switch modelname
+%     case 'FP21', 
+        nParams = 6;
+% end
+
 
 % setting variable sizes
 responses.new = nan(nSubj,20);
 responses.old = nan(nSubj,20);
 trueParam = nan(nSubj,nParams);
 
+% getting best fit params for reference
+load(['paramfit_patternbayes_' modelname '.mat'])
+MU = mean(bestFitParam);
+SIGMA = cov(bestFitParam);
+
 fprintf('\n simulating %s responses for participant...', modelname)
 for isimsubj = 1:nSubj;
     fprintf('...%d \n',isimsubj);
     
-    nnew_part = 150; nold_part = nnew_part; % setting to arbitrary values so while loop starts
+    nnew_part = [150 zeros(1,19)]; nold_part = nnew_part; % setting to arbitrary values so while loop starts
     while  sum(abs(nnew_part - nold_part)) > 1.8*150 || sum(abs(nnew_part- nold_part)) < .2*150 || (nnew_part(1)+ nnew_part(end)) >= 0.8*150 || (nold_part(1) + nold_part(end)) >= 0.8*150;
         % if the distribution is not being cut up by the bins, or are
         % overlapping
         
         % setting theta values
-        switch modelname
-            case 'FP'; theta = [5+randi(45) exp(-6)+rand*3];
-            case 'VP'; theta = [5+randi(45) rand*3 rand*3];
-            case 'FPheurs'; theta = [randi(50) rand*3];
-            case 'VPheurs'; theta = [randi(50) rand*3 rand*3];
-            case 'uneqVar'; theta = [rand*3-.5 rand*3+.5];
-            case 'REM'; theta = [5+randi(45) rand(1,3) randi(10)];
-        end
+        theta = mvnrnd(MU,SIGMA);
         
-        if (islogbinning)
-            theta = [theta rand*3 rand-.5];
-            if strcmp(modelname(end),'s');
-                theta(end) = -rand*15;
-            end
-        else% if linear binning
-            theta = [theta rand*-4 rand*4];
-        end
-        
+%         switch modelname
+%             case 'FP21'; 
+                modelname = 'FP';
+                binningfn = 2; 
+                memstrengthvar = 1;
+                
+                theta(1) = min([abs(round(theta(1))) 75]);
+                theta(5) = 0;
+                theta(2) = abs(theta(2));
+                theta(6) = abs(theta(6));
+%         end
+theta        
+
         if ~isempty(fixparams); theta(fixparams(1,:)) = fixparams(2,:); end % if some parameters are fixed
         
         % simulating number of response for each confidence value
         try
-        [nnew_part, nold_part] = simulate_data(modelname, theta, islogbinning);
+            [pnew, pold] = nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, nold_part);
+            nnew_part = round(pnew.*150);
+            nold_part = round(pold'.*150);
         end
     end
     
@@ -98,10 +97,4 @@ for isimsubj = 1:nSubj;
     responses.old(isimsubj,:) = nold_part;
     
 end
-
-% saving the data
-if (savedata)
-    save(['simresp_' char(modelname) '.mat'],'filename','modelname','simresp','trueParam')
-end
-
 
