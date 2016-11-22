@@ -475,3 +475,18 @@ while size(trueparams,1)<nSubj;
 end
 
 trueparams =     tempparams(:,5) = 0; % d0
+
+%% checking that panel A is same as datamodel.mat
+
+pNew_mod = bsxfun(@rdivide,nNew_mod,sum(nNew_mod,2));
+pOld_mod = bsxfun(@rdivide,nOld_mod,sum(nOld_mod,2));
+
+for isubj = 1:14;
+    subplot(4,4,isubj)
+    plot(pNew_mod(isubj,:)); hold on
+    plot(pOld_mod(isubj,:))
+    ylim([0 0.55])
+    plot_panelA_Aspen(isubj)
+    defaultplot
+end
+

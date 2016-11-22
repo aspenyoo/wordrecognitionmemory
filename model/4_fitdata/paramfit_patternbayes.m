@@ -136,14 +136,17 @@ end
         end
         
         % setting sigma_mc parameters
-        if ~strcmp(modelname,'UVSD')
+%         if ~strcmp(modelname,'UVSD')
             lb = [lb 0];
             ub = [ub 10];
             plb = [plb 0];
             pub = [pub 3];
-        end
-        
+%         end
+
         starttheta = [bsxfun(@plus,randi(pub(1)-plb(1),nStartVals,1),plb(1)) bsxfun(@plus,bsxfun(@times,rand(nStartVals,size(lb,2)-1),pub(2:end)-plb(2:end)),plb(2:end))];
+        if strcmp(modelname,'UVSD')
+            starttheta(:,1) = rand(size(starttheta,1),1)*pub(1);
+        end
         
         %deleting fix parameter values
         if ~isempty(fixparams)

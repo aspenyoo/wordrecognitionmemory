@@ -334,6 +334,15 @@ switch nargout
         varargout = {pnew, pold};
     case 5;
         if strcmp(modelname,'UVSD')
+            mu_old = theta(1);
+            sigma_old = theta(2);
+            
+            x = linspace(min([0 mu_old]-nSDs.*[1 sigma_old]),max([0 mu_old]+nSDs.*[1 sigma_old]),nSamples);
+            pold_x = normpdf(x,mu_old,sigma_old);
+            pnew_x = normpdf(x,0,1);
+            d = -log(sigma_old) - 1/2.*( ((x-mu_old).^2)./sigma_old.^2 - x.^2);
+            
+            counts_new = pnew_x.*d;
             centers_new = linspace(-3,3,50);
             centers_old = linspace(theta(1)-3*theta(2),theta(1)+3*theta(2),50);
             counts_new = normpdf(centers_new);
@@ -364,7 +373,7 @@ switch nargout
                     switch memstrengthvar
                         case 0 % LPR
                         case 1 % p(corr)
-                            binvalues = 1:(nConf/2 -0.5);                           
+                            binvalues = 1.5:(nConf/2 -0.5);                           
                             confbounds = exp((binvalues-b)./a);
 %                             confbounds = [1-fliplr(confbounds) 0.5 confbounds];
                         case 2 % 1/p(incorr)

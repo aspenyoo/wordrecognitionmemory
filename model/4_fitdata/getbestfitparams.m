@@ -13,7 +13,7 @@ if nargin < 6; filepath = ['model' filesep '4_fitdata' filesep 'BPSfits' filesep
 
 switch modelname
     case 'UVSD'
-        nParams = 1;
+        nParams = 2;
     case {'FP','FPheurs'}
         nParams = 2;
     case 'REM'

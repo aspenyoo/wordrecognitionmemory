@@ -26,7 +26,7 @@ filepath = 'wordrecognitionmemory/model/4_fitdata/BPSfits/';
 
 switch testmodelname
     case 'UVSD'
-        nParams = 1; % would normally be two here, but since no metacognitive noise, did one less here
+        nParams = 2; 
     case {'FP','FPheurs'}
         nParams = 2;
     case {'VP','VPheurs'}
@@ -40,7 +40,7 @@ switch binningfn
     case 2      % logarithmic
         nParams = nParams + 4;
     case 3      % power law
-        nParams = nParams + 5; 
+        nParams = nParams + 5;  
 end
 % 
 % if strcmp(optimMethod,'GS'); nGridsVec = fixparams; clear fixparams; end
