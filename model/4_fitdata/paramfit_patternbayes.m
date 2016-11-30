@@ -61,7 +61,7 @@ nll(exitflag < 0) = Inf;
 nLL = min(nll);
 bestFitParam =  bfp((nll == min(nll)),:);
 Output = outputt{nll == min(nll)};
-if ~isempty(fixparams);
+if ~isempty(fixparams)
     nParams = size(fixparams,2) + length(bestFitParam);
     unfixparams = 1:nParams;
     unfixparams(fixparams(1,:)) = [];
@@ -121,18 +121,24 @@ end
                 ub = [ub 100 100 30];
                 plb = [plb 0 -10 -1];
                 pub = [pub 10 10 1];
-                if memstrengthvar == 2; % if 1/(1-p(correct))
+                if memstrengthvar == 2 % if 1/(1-p(correct))
                     % a
                     plb(end-2) = -10;
                     pub(end-2) = 0;
                 end
-                if binningfn == 3; % power law binning
+                if binningfn == 3 % power law binning
                     % lambda
                     lb = [lb -30];
                     ub = [ub 30];
                     plb = [plb -5];
                     pub = [pub 5];
                 end
+            case 4 % weibull binning
+                % scale, shift, d0
+                lb = [lb 0 0 -10];
+                ub = [ub 10 10 10];
+                plb = [plb 0 0 -3];
+                pub = [pub 10 10 3];
         end
         
         % setting sigma_mc parameters

@@ -35,12 +35,12 @@ switch testmodelname
         nParams = 5;
 end
 switch binningfn
-    case {0,1}; % linear, logistic
+    case {0,1} % linear, logistic
         nParams = nParams + 3;
-    case 2      % logarithmic
+    case {2,4}      % logarithmic
         nParams = nParams + 4;
     case 3      % power law
-        nParams = nParams + 5;  
+        nParams = nParams + 5;
 end
 % 
 % if strcmp(optimMethod,'GS'); nGridsVec = fixparams; clear fixparams; end
@@ -63,19 +63,19 @@ permission = 'a+'; % open or create new file for reading and writing. append dat
 formatSpec = repmat('%4.4f \t ',1,2*nParams+2);
 formatSpec = [formatSpec(1:end-3) '\r\n'];
 
-for iM = 1:nMs;
-    if (size(fixparams,2) > 1) && (size(fixparams,1) < 2); % if it is a vector of Ms, instead of a 2 x fixed parameter things
+for iM = 1:nMs
+    if (size(fixparams,2) > 1) && (size(fixparams,1) < 2) % if it is a vector of Ms, instead of a 2 x fixed parameter things
         fixparam = [1; fixparams(iM)];
     else
         fixparam = fixparams;
     end
     
-    for istartval = 1:nStartVals;
+    for istartval = 1:nStartVals
         istartval
         switch optimMethod
             case 'patternbayes'
                 filename = [filepath 'paramfit_patternbayes_' testmodelname num2str(binningfn) num2str(memstrengthvar) '_subj' num2str(isubj) '.txt'];
-                if isubj > 14;
+                if isubj > 14
                     filename = [filepath 'modelrecovery_patternbayes_' testmodelname num2str(binningfn) num2str(memstrengthvar) '_' truemodelname 'subj' num2str(isubj) '.txt'];
                 end
                 

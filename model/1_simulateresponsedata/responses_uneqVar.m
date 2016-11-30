@@ -43,6 +43,12 @@ switch binningfn
         d0 = theta(end-1);
         lambda = theta(end);
         nParams = 6;
+    case 4              % weibull mapping
+        scale = theta(end-3);
+        shape = theta(end-2);
+        d0 = theta(end-1);
+        sigma_mc = theta(end);
+        nParams = 6;
 end
 
 assert(nParams == length(theta),'check number of parameters');
@@ -55,7 +61,7 @@ assert(nParams == length(theta),'check number of parameters');
 % end
 
 % calculate confBounds
-if (binningfn ~= 2)
+if ~any(binningfn == [2 4])
     ratingBounds = [ -Inf 1.5:(nConf - 0.5) Inf];
     decisionboundary = fminsearch(@(x) abs(normpdf(x,mu_old,sigma_old) - normpdf(x)),rand); % finding decisionboundary and shifting the distributions over by it so that 0 is decision boundary
     switch binningfn
@@ -69,6 +75,11 @@ if (binningfn ~= 2)
             confBounds(confBounds < 0) = 0;
             confBounds = [-confBounds(11:-1:2) confBounds]+decisionboundary;
         case 3 % power law
+% % %         case 4 % weibull %% I don't think this is correct
+%             ratingBounds = [ 0 1.5:(nConf/2 - 0.5) Inf];
+%             confBounds = -scale/shape.*log(ratingBounds - 1);
+%             confBounds(confBounds < 0) = 0;
+%             confBounds = [-confBounds(11:-1:2) confBounds]+decisionboundary;
     end
     
     try
@@ -105,8 +116,13 @@ else % logarithmic binning on |d|
     % put through nonlinearity;
     d = -log(sigma_old) - 1/2.*( ((x-mu_old).^2)./sigma_old.^2 - x.^2);
     [yy,dd] = meshgrid(y,d); % get 2D values of x and y
-    conf = round(a.*log(abs(dd)) + b + yy);
-    conf(conf < 1) = 1; 
+    switch binningfn
+        case 2
+            conf = round(a.*log(abs(dd)) + b + yy);
+        case 4
+            conf = 1 - exp(-(abs(dd)./scale).^shape);
+    end
+    conf(conf < 1) = 1;
     conf(conf > nConf/2) = nConf/2;
     
     % get proportion of responses 
@@ -114,7 +130,7 @@ else % logarithmic binning on |d|
     idx_old = dd >= 0; % indices corresponding to "old" responses
     pold = nan(1,nConf);
     pnew = nan(1,nConf);
-    for iconf = 1:nConf/2;
+    for iconf = 1:nConf/2
         
         % indices that correspond to the current confidence value and resp
         idx_new_conf = idx_new & (conf == iconf);

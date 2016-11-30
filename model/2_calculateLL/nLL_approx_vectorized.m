@@ -55,11 +55,11 @@ else % if FP, FPheurs, or REM
 
     % parameter names
     switch modelname
-        case {'FP','FPheurs'};
+        case {'FP','FPheurs'}
             M = theta(1);
             sigma = theta(2);
             nParams = 2;
-        case 'REM';
+        case 'REM'
             M = theta(1);                   % number of features
             g = theta(2);                   % probability of success (for geometric distribution
             ustar = theta(3);               % probability of encoding something
