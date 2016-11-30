@@ -1,4 +1,4 @@
-function [ varargout ] = nLL_approx_vectorized( modelname, theta, nnew_part, nold_part, fixparams, nX, nS, nConf )
+function [ varargout ] = nLL_approx_vectorized( modelname, theta, binningfn, nnew_part, nold_part, fixparams, nX, nS, nConf )
 % nLL_approx calculates the negative log likelihood using an approximation
 % method
 %
@@ -9,8 +9,7 @@ function [ varargout ] = nLL_approx_vectorized( modelname, theta, nnew_part, nol
 % MODELNAME: 'FP','FPheurs','VP','VPheurs','uneqVar', 'REM'
 % THETA: parameter values
 % BINNINGFN: mapping from MEMSTRENGTHVAR to confidence reports. 0: linear,
-% 1: logistic, 2: log, 3: power law mapping
-% MEMSTRENGTHVAR: variable used for "memory strength). 0: LPR, 1: p(correct), 2: 1/(p(incorrect)))
+% 1: logistic, 2: log, 3: power law mapping, 4: weibull
 % NNEW_PART: 1x20 vector of responses for new distribution (total 150)
 % NOLD_PART: 1x20 vector of responses for old distribution (total 150)
 % FIXPARAMS: a 2xn matrix in which first row corresponds to index of which
@@ -23,12 +22,12 @@ function [ varargout ] = nLL_approx_vectorized( modelname, theta, nnew_part, nol
 % ===== OUTPUT VARIABLES =====
 % NLL: negative log likelihood
 %
-% Aspen Yoo - Aug 19, 2016
+% Aspen Yoo - Aug 20, 2016
 
-if nargin < 7; fixparams = []; end
-if nargin < 8; nX = 30; end
-if nargin < 9; nS = 50; end
-if nargin < 10; nConf = 20; end
+if nargin < 6; fixparams = []; end
+if nargin < 7; nX = 30; end
+if nargin < 8; nS = 50; end
+if nargin < 9; nConf = 20; end
 
 rng('shuffle')
 
@@ -60,11 +59,11 @@ else % if FP, FPheurs, or REM
     
     % parameter names
     switch modelname
-        case {'FP','FPheurs'};
+        case {'FP','FPheurs'}
             M = theta(1);
             sigma = theta(2);
             nParams = 2;
-        case 'REM';
+        case 'REM'
             M = theta(1);                   % number of features
             g = theta(2);                   % probability of success (for geometric distribution
             ustar = theta(3);               % probability of encoding something
@@ -128,7 +127,7 @@ else % if FP, FPheurs, or REM
         % using absolute value for mapping
         d_new_sign = sign(d_new(:)+d0); % -1 for respond new, +1 for respond old
         q = abs(d_new(:)+d0);
-
+        
         % non-rounded confidence values
         conf = a.*(1-exp(-(q./gamma).^k)) + b;
         
@@ -189,23 +188,42 @@ switch nargout
         varargout = {pnew, pold};
     case 5;
         if strcmp(modelname,'UVSD')
+            mu_old = theta(1);
+            sigma_old = theta(2);
+            
+            x = linspace(min([0 mu_old]-nSDs.*[1 sigma_old]),max([0 mu_old]+nSDs.*[1 sigma_old]),nSamples);
+            pold_x = normpdf(x,mu_old,sigma_old);
+            pnew_x = normpdf(x,0,1);
+            d = -log(sigma_old) - 1/2.*( ((x-mu_old).^2)./sigma_old.^2 - x.^2);
+            
+            counts_new = pnew_x.*d;
             centers_new = linspace(-3,3,50);
             centers_old = linspace(theta(1)-3*theta(2),theta(1)+3*theta(2),50);
             counts_new = normpdf(centers_new);
             counts_old = normpdf(centers_old,theta(1),theta(2));
         else
-            binvalues = 1.5:(nConf/2 - 0.5);
-            tempp = 1-((binvalues-b)./a);
-            tempp(tempp < 0) = nan;
-%             tempp(tempp > 1) = nan;
-            confbounds = gamma.*(-log(tempp)).^(1/k) - d0;
             
-%             xx = linspace(0,10,100);
-%             figure;
-%             plot(xx,a.*(1-exp(-(xx./gamma).^k)) + b,'k-')
-%             hold on;
-%             plot(confbounds+d0,binvalues,'or')
+            switch binningfn
+                case 0 % linear
+                    binvalues = 1.5:(nConf-0.5);
+                    confbounds = (binvalues-nConf/2-0.5)./k - d0;
+                case 1 % logistic
+                    binvalues = 1.5:(nConf-0.5);
+                    confbounds = -k.*log((nConf+0.5)./(binvalues-0.5)-1);
+                case 2 % logarithmic
+                    binvalues = 1.5:(nConf/2 -0.5);
+                    confbounds = exp((binvalues-b)./a);
+                case 3 % power law
 
+            end
+            
+            
+            %             xx = linspace(0,10,100);
+            %             figure;
+            %             plot(xx,a.*(1-exp(-(xx./gamma).^k)) + b,'k-')
+            %             hold on;
+            %             plot(confbounds+d0,binvalues,'or')
+            
             [counts_new,centers_new] = hist(d_newtotal(:),50);
             [counts_old,centers_old] = hist(d_old(:),50);
         end
