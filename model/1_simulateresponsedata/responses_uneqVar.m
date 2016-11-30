@@ -38,10 +38,11 @@ switch binningfn
         sigma_mc = theta(end);
         nParams = 6;
     case 3              % power law mapping from p(correct)
-        a = theta(end-3);
-        b = theta(end-2);
-        d0 = theta(end-1);
-        lambda = theta(end);
+        a = theta(end-4);
+        b = theta(end-3);
+        d0 = theta(end-2);
+        lambda = theta(end-1);
+        sigma_mc = theta(end);
         nParams = 6;
     case 4              % weibull mapping
         scale = theta(end-3);
@@ -61,7 +62,7 @@ assert(nParams == length(theta),'check number of parameters');
 % end
 
 % calculate confBounds
-if ~any(binningfn == [2 4])
+if ~(sigma_mc)
     ratingBounds = [ -Inf 1.5:(nConf - 0.5) Inf];
     decisionboundary = fminsearch(@(x) abs(normpdf(x,mu_old,sigma_old) - normpdf(x)),rand); % finding decisionboundary and shifting the distributions over by it so that 0 is decision boundary
     switch binningfn
@@ -69,12 +70,12 @@ if ~any(binningfn == [2 4])
             confBounds = (ratingBounds-d0-nConf/2-0.5)./k +decisionboundary;
         case 1
             confBounds = -k.*log(nConf./(ratingBounds - 0.5)-1)+d0+decisionboundary;
-        case 2 % logarithmic
-            ratingBounds = [ 0 1.5:(nConf/2 - 0.5) Inf];
-            confBounds = exp((ratingBounds-b)./a)-d0;
-            confBounds(confBounds < 0) = 0;
-            confBounds = [-confBounds(11:-1:2) confBounds]+decisionboundary;
-        case 3 % power law
+%         case 2 % logarithmic
+%             ratingBounds = [ 0 1.5:(nConf/2 - 0.5) Inf];
+%             confBounds = exp((ratingBounds-b)./a)-d0;
+%             confBounds(confBounds < 0) = 0;
+%             confBounds = [-confBounds(11:-1:2) confBounds]+decisionboundary;
+%         case 3 % power law
 % % %         case 4 % weibull %% I don't think this is correct
 %             ratingBounds = [ 0 1.5:(nConf/2 - 0.5) Inf];
 %             confBounds = -scale/shape.*log(ratingBounds - 1);
@@ -119,8 +120,10 @@ else % logarithmic binning on |d|
     switch binningfn
         case 2
             conf = round(a.*log(abs(dd)) + b + yy);
+        case 3 % power law
+            conf = round(a.*((abs(dd).^lambda - 1)./lambda) + b + yy); 
         case 4
-            conf = 1 - exp(-(abs(dd)./scale).^shape);
+            conf = round(1 - exp(-(abs(dd)./scale).^shape));
     end
     conf(conf < 1) = 1;
     conf(conf > nConf/2) = nConf/2;
