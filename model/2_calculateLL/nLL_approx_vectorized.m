@@ -22,7 +22,7 @@ function [ varargout ] = nLL_approx_vectorized( modelname, theta, binningfn, nne
 % ===== OUTPUT VARIABLES =====
 % NLL: negative log likelihood
 %
-% Aspen Yoo - Aug 20, 2016
+% Aspen Yoo - Nov 30, 2016
 
 if nargin < 6; fixparams = []; end
 if nargin < 7; nX = 30; end
@@ -43,18 +43,12 @@ if ~isempty(fixparams)
 end
 
 if strcmp(modelname,'UVSD') % if uneqVar
-    [pnew, pold, confbounds] = responses_uneqVar(theta);
-    size(pnew)
-    size(pold)
-    size(nnew_part)
-    size(nold_part)
-    
+    [pnew, pold, confbounds] = responses_uneqVar(theta, binningfn);
     nLL = -sum(log(pnew).*nnew_part) - sum(log(pold).*nold_part);
 else % if FP, FPheurs, or REM
     
     % stuff that doesn't depend on model, mapping, or memstrengthvar
     Nold = sum(nold_part); Nnew = sum(nnew_part);
-    L = nConf/2;
     lapse = 0.01;             % lapse rate
     
     % parameter names
@@ -65,7 +59,7 @@ else % if FP, FPheurs, or REM
             nParams = 2;
         case 'REM'
             M = theta(1);                   % number of features
-            g = theta(2);                   % probability of success (for geometric distribution
+            g = theta(2);                   % probability of success (for geometric distribution)
             ustar = theta(3);               % probability of encoding something
             c = theta(4);                   % probability of encoding correct feature value
             m = theta(5);                   % number of storage attempts
@@ -81,8 +75,8 @@ else % if FP, FPheurs, or REM
     d0 = theta(end-4);
     a = theta(end-3);
     b = theta(end-2);
-    gamma = theta(end-1);
-    k = theta(end);
+    scale = theta(end-1);
+    shift = theta(end);
     nParams = nParams +6;
     
     % check to make sure the length of theta is correct
@@ -129,7 +123,14 @@ else % if FP, FPheurs, or REM
         q = abs(d_new(:)+d0);
         
         % non-rounded confidence values
-        conf = a.*(1-exp(-(q./gamma).^k)) + b;
+        switch binningfn
+            case 0 % linear
+            case 1 % logistic
+            case 2 % logarithmic
+            case 3 % power law
+            case 4 % weibull
+                conf = a.*(1-exp(-(q./scale).^shift)) + b;
+        end
         
         % binning with or without metacognitive noise
         if (sigma_mc)
@@ -155,8 +156,15 @@ else % if FP, FPheurs, or REM
     q = abs(d_old(:)+d0);
     
     % non-rounded confidence values
-    conf = a.*(1-exp(-(q./gamma).^k)) + b;
-    
+    switch binningfn
+        case 0 % linear
+        case 1 % logistic
+        case 2 % logarithmic
+        case 3 % power law
+        case 4 % weibull
+            conf = a.*(1-exp(-(q./scale).^shift)) + b;
+    end
+
     % histograms of confidence
     if (sigma_mc) % if there is metacognitive noise
         oldHist = [zeros(length(conf),nConf/2) 0.5+0.5.*erf(bsxfun(@minus,[1.5:(nConf/2-0.5) Inf],conf)./(sigma_mc*sqrt(2))) - ...
@@ -206,14 +214,15 @@ switch nargout
             switch binningfn
                 case 0 % linear
                     binvalues = 1.5:(nConf-0.5);
-                    confbounds = (binvalues-nConf/2-0.5)./k - d0;
+                    confbounds = (binvalues-nConf/2-0.5)./shift - d0;
                 case 1 % logistic
                     binvalues = 1.5:(nConf-0.5);
-                    confbounds = -k.*log((nConf+0.5)./(binvalues-0.5)-1);
+                    confbounds = -shift.*log((nConf+0.5)./(binvalues-0.5)-1);
                 case 2 % logarithmic
                     binvalues = 1.5:(nConf/2 -0.5);
                     confbounds = exp((binvalues-b)./a);
                 case 3 % power law
+                case 4 % weibull
 
             end
             

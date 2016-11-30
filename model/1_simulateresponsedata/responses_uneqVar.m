@@ -1,4 +1,4 @@
-function [pnew, pold, confBounds] = responses_uneqVar( theta, nConf, cplot, dplot)
+function [pnew, pold, confBounds] = responses_uneqVar( theta, binningfn, nConf, cplot, dplot)
 % [pnew, pold] = function responses_uneqVar( THETA, PPLOT, RPLOT) gives
 % probability of "old" and "new" response confidences.
 %

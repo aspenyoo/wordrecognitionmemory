@@ -52,7 +52,7 @@ startTheta = genStartTheta;
 bfp = nan(size(startTheta));
 nll = nan(nStartVals,1); exitflag = nll;
 for istartval = 1:nStartVals;
-    obj_func = @(x) nLL_approx_vectorized(modelname, x, nnew_part, nold_part, fixparams, nX, nS, nConf );
+    obj_func = @(x) nLL_approx_vectorized(modelname, x, binningfn, nnew_part, nold_part, fixparams, nX, nS, nConf );
     [bfp(istartval,:) ,nll(istartval), exitflag(istartval), outputt{istartval}] = bps(obj_func,startTheta(istartval,:),lb,ub,plb,pub,options);
 end
 

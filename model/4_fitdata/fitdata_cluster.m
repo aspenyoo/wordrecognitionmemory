@@ -38,11 +38,17 @@ end
 
 switch binningfn
     case {0,1} % linear, logistic
+        % slope, y-int, sigma_mc
         nParams = nParams + 3;
-    case {2,4}      % logarithmic
+    case 2     % logarithmic
+        % a, b, d0, sigma_mc
         nParams = nParams + 4;
     case 3      % power law
+        % a, b, gamma, d0, sigma_mc
         nParams = nParams + 5;
+    case 4 % weibull
+        % a, b, shape, scale, d0, sigma_mc
+        nParams = nParams + 6;
 end
 
 
@@ -68,9 +74,9 @@ for iM = 1:nMs
         istartval
         switch optimMethod
             case 'patternbayes'
-                filename = [filepath 'paramfit_patternbayes_' testmodelname num2str(binningfn) num2str(memstrengthvar) '_subj' num2str(isubj) '.txt'];
+                filename = [filepath 'paramfit_patternbayes_' testmodelname num2str(binningfn) '_subj' num2str(isubj) '.txt'];
                 if isubj > 14
-                    filename = [filepath 'modelrecovery_patternbayes_' testmodelname num2str(binningfn) num2str(memstrengthvar) '_' truemodelname 'subj' num2str(isubj) '.txt'];
+                    filename = [filepath 'modelrecovery_patternbayes_' testmodelname num2str(binningfn) '_' truemodelname 'subj' num2str(isubj) '.txt'];
                 end
                 
                 [bestFitParam, nLL_est, startTheta, outputt] = paramfit_patternbayes(testmodelname, nnew_part, nold_part, fixparam ,1);
