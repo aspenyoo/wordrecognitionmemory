@@ -1,12 +1,11 @@
-function [bestFitParam, nLL_est, startTheta, outputt] = fitdata_cluster(isubj, testmodelname, optimMethod, fixparams, truemodelname, nConf, nStartVals)
+function [bestFitParam, nLL_est, startTheta, outputt] = fitdata_cluster(isubj, testmodelname, binningfn, fixparams, truemodelname, nConf, nStartVals)
 
-if nargin < 3; optimMethod = 'patternbayes'; end
 if nargin < 4; fixparams = []; end
 if nargin < 5; truemodelname = []; end
 if isempty(truemodelname); truemodelname = testmodelname; end
 if nargin < 6; nConf = 20; end
 if isempty(nConf); nConf = 20; end 
-if (size(fixparams,2) > 1) && (size(fixparams,1) < 2); % if it is a vector of Ms, instead of a 2 x fixed parameter things
+if (size(fixparams,2) > 1) && (size(fixparams,1) < 2) % if it is a vector of Ms, instead of a 2 x fixed parameter things
     nMs = length(fixparams);
     if nargin < 7; nStartVals = 1; end
 else
@@ -26,9 +25,7 @@ filepath = 'wordrecognitionmemory/model/4_fitdata/BPSfits/';
 %            1 x (number of different Ms) if 'patternbayes'
 
 switch testmodelname
-    case 'UVSD'
-        nParams = 2; 
-    case {'FP','FPheurs'}
+    case {'UVSD','FP','FPheurs'}
         nParams = 2;
     case {'VP','VPheurs'}
         nParams = 3;
@@ -72,21 +69,19 @@ for iM = 1:nMs
     
     for istartval = 1:nStartVals
         istartval
-        switch optimMethod
-            case 'patternbayes'
-                filename = [filepath 'paramfit_patternbayes_' testmodelname num2str(binningfn) '_subj' num2str(isubj) '.txt'];
-                if isubj > 14
-                    filename = [filepath 'modelrecovery_patternbayes_' testmodelname num2str(binningfn) '_' truemodelname 'subj' num2str(isubj) '.txt'];
-                end
-                
-                [bestFitParam, nLL_est, startTheta, outputt] = paramfit_patternbayes(testmodelname, nnew_part, nold_part, fixparam ,1);
-                fileID = fopen(filename,permission);
-                A1 = [bestFitParam, nLL_est, startTheta, outputt.fsd];
-                fprintf(fileID, formatSpec, A1); % save stuff in txt file
-                disp('saved')
-                fclose(fileID);
-                
+        
+        filename = [filepath 'paramfit_patternbayes_' testmodelname num2str(binningfn) '_subj' num2str(isubj) '.txt'];
+        if isubj > 14
+            filename = [filepath 'modelrecovery_patternbayes_' testmodelname num2str(binningfn) '_' truemodelname 'subj' num2str(isubj) '.txt'];
         end
+        
+        [bestFitParam, nLL_est, startTheta, outputt] = paramfit_patternbayes(testmodelname, binningfn, nnew_part, nold_part, fixparam ,1);
+        fileID = fopen(filename,permission);
+        A1 = [bestFitParam, nLL_est, startTheta, outputt.fsd];
+        fprintf(fileID, formatSpec, A1); % save stuff in txt file
+        disp('saved')
+        fclose(fileID);
+                
     end
 end
 

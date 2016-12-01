@@ -70,14 +70,40 @@ else % if FP, FPheurs, or REM
             pQ = 1 - p0 - pM;               % probability drawn randomly (mismatch)
     end
     
+    switch binningfn
+        case 0
+            slope = theta(end-2);
+            nParams = nParams + 2;
+        case 1
+            k = theta(end-2);
+            nParams = nParams + 2;
+        case 2 % logarithmic
+            a = theta(end-3);
+            b = theta(end-2);
+            nParams = nParams + 4;
+        case 3 % power law
+            a = theta(end-4);
+            b = theta(end-3);
+            gamma = theta(end-2);
+            nParams = nParams + 5;
+        case 4 % weibull
+            scale = theta(end-5);
+            shift = theta(end-4);
+            a = theta(end-3);
+            b = theta(end-2);
+            nParams = nParams + 6;
+    end
+    d0 = theta(end-1);
+    sigma_mc = theta(end);
     
-    sigma_mc = theta(end-5);
-    d0 = theta(end-4);
-    a = theta(end-3);
-    b = theta(end-2);
-    scale = theta(end-1);
-    shift = theta(end);
-    nParams = nParams +6;
+    % old parameterization of REM and FP fits
+%     sigma_mc = theta(end-5);
+%     d0 = theta(end-4);
+%     a = theta(end-3);
+%     b = theta(end-2);
+%     scale = theta(end-1);
+%     shift = theta(end);
+%     nParams = nParams +6;
     
     % check to make sure the length of theta is correct
     assert(nParams == length(theta),'length of theta is not correct')
@@ -87,7 +113,7 @@ else % if FP, FPheurs, or REM
     d_old = nan(Nold*nS,nX);
     d_newtotal = nan(Nnew*nS,nX);
     newHisttotal = nan(nX,nConf);
-    for iX = 1:nX;
+    for iX = 1:nX
         
         % calculate d
         switch modelname
@@ -125,9 +151,12 @@ else % if FP, FPheurs, or REM
         % non-rounded confidence values
         switch binningfn
             case 0 % linear
+                conf = slope.*q + d0;
             case 1 % logistic
             case 2 % logarithmic
+                conf = a.*log(q) + b;
             case 3 % power law
+                conf = a.*((q.^gamma - 1)./gamma) + b; 
             case 4 % weibull
                 conf = a.*(1-exp(-(q./scale).^shift)) + b;
         end
@@ -187,14 +216,14 @@ else % if FP, FPheurs, or REM
 end
 
 switch nargout
-    case 1;
+    case 1
         varargout = {nLL};
-    case 2;
+    case 2
         if ~strcmp(modelname,'UVSD')
             pnew = sum(newHisttotal)/sum(newHisttotal(:));
         end
         varargout = {pnew, pold};
-    case 5;
+    case 5
         if strcmp(modelname,'UVSD')
             mu_old = theta(1);
             sigma_old = theta(2);
