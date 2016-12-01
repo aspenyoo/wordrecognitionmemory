@@ -6,7 +6,7 @@ function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelna
 % data.
 %
 % ===== INPUT VARIABLES =====
-% MODELNAME: 'FP','FPheurs','VP','VPheurs',or 'UVSD', or 'REM'
+% MODELNAME: 'FP','VP','VPheurs',or 'UVSD', or 'REM'
 % BINNINGFN: 0: linear, 1: logistic, 2: log, 3: power, 4: weibull
 % NNEW_PART: 1x20 vector of responses for new distribution (total 150)
 % NOLD_PART: 1x20 vector of responses for old distribution (total 150)
@@ -79,7 +79,7 @@ end
         
         % getting model specific parameters
         switch modelname
-            case {'FP','FPheurs'}
+            case 'FP'
                 %  M, sigma
                 lb = [1 1e-3];
                 ub = [100 6 ];
@@ -102,50 +102,37 @@ end
         % setting binnfn parameters
         switch binningfn
             case {0,1} % linear or logistic mapping
-                % k, d0
-                if strcmp(modelname,'FPheurs') % FP heurs model spans (-Inf, 0], so -d0 should be be negative
-                    lb = [lb 1e-3 0];
-                    ub = [ub 10 100];
-                    plb = [plb 1e-3 0];
-                    pub = [pub 2 50];
-                else
-                    % slope y-int
-                    lb = [lb 1e-3 -50];
-                    ub = [ub 10 50];
-                    plb = [plb 1e-3 -10];
-                    pub = [pub 5 10];
-                end
-            case {2,3} % log or power law mapping
-                % a, b, d0
+                % k
+                % slope y-int
+                lb = [lb 1e-3];
+                ub = [ub 10];
+                plb = [plb 1e-3];
+                pub = [pub 5];
+            case 2      % log
+                % a, b
+                lb = [lb 0 -100];
+                ub = [ub 100 100];
+                plb = [plb 0 -10];
+                pub = [pub 10 10];
+            case 3      % power law
+                % a, b, gamma
                 lb = [lb 0 -100 -30];
                 ub = [ub 100 100 30];
-                plb = [plb 0 -10 -1];
-                pub = [pub 10 10 1];
-                if memstrengthvar == 2 % if 1/(1-p(correct))
-                    % a
-                    plb(end-2) = -10;
-                    pub(end-2) = 0;
-                end
-                if binningfn == 3 % power law binning
-                    % lambda
-                    lb = [lb -30];
-                    ub = [ub 30];
-                    plb = [plb -5];
-                    pub = [pub 5];
-                end
+                plb = [plb 0 -10 -5];
+                pub = [pub 10 10 5];
             case 4 % weibull binning
-                % scale, shift, a, b, d0
-                lb = [lb 0 0 0 -10 -10];
-                ub = [ub 10 10 10 10 10];
-                plb = [plb 0 0 0 -3 -3];
-                pub = [pub 10 10 3 3 3];
+                % scale, shift, a, b
+                lb = [lb 0 0 0 -10];
+                ub = [ub 10 10 10 10];
+                plb = [plb 0 0 0 -3];
+                pub = [pub 10 10 3 3];
         end
         
-        % sigma_mc
-        lb = [lb 1e-6];
-        ub = [ub 10];
-        plb = [plb 1e-6];
-        pub = [pub 3];
+        % d0, sigma_mc
+        lb = [lb -30 1e-6];
+        ub = [ub 30 10];
+        plb = [plb -3 1e-6];
+        pub = [pub 3 3];
 
         starttheta = [bsxfun(@plus,randi(pub(1)-plb(1),nStartVals,1),plb(1)) bsxfun(@plus,bsxfun(@times,rand(nStartVals,size(lb,2)-1),pub(2:end)-plb(2:end)),plb(2:end))];
         if strcmp(modelname,'UVSD')

@@ -1,4 +1,4 @@
-function cluster_wrap2(modelname, subjids, jobnum, joblistfile, fixparams)
+function cluster_wrap2(modelname, binningfn, subjids, jobnum, joblistfile, fixparams)
 % a wrapper to fit multiple parameter values iteratively, so that the
 % length of one job will be 48 hours.
 %
@@ -31,7 +31,7 @@ for isubj = 1:nSubj;
     
     for iM = 1:length(MVec);
         fixparams(2,1) = MVec(iM)
-        fitdata_cluster(subjid, modelname, 'patternbayes', fixparams,[],[],nStartVals);
+        fitdata_cluster(subjid, modelname, binningfn, fixparams,[],[],nStartVals);
     end
     
 end

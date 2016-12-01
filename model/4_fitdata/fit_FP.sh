@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l nodes=1:ppn=1
-#PBS -l walltime=16:00:00
+#PBS -l walltime=48:00:00
 #PBS -j oe
 #PBS -M aspen.yoo@nyu.edu
 #PBS -l mem=4GB
@@ -23,12 +23,20 @@ modelname = 'REM';
 
 if $index > 100;
     blah = num2str($index);
-    isubj = str2double(blah(1:end-2));
+    isubj = str2double(blah(1:end-3));
+    binningfn = str2double(blah(end-2));
     joblistnum = str2double(blah(end-1:end)); 
 end
-joblistfile = 'joblist_08012016.txt'; % will do a different job per person. (if you want same for all, write joblist name)
+switch binningfn
+	case 3
+		fixparams = [1 6; nan 0];
+	case 4
+		fixparams = [1 7; nan 0];
+end
 
-cluster_wrap2(modelname, isubj, joblistnum,joblistfile,[1; nan])
+joblistfile = 'joblist_12012016.txt'; % will do a different job per person. (if you want same for all, write joblist name)
+
+cluster_wrap2(modelname, binningfn, isubj, joblistnum, joblistfile, fixparams)
 
 EOF
 

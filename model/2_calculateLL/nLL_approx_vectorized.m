@@ -187,9 +187,12 @@ else % if FP, FPheurs, or REM
     % non-rounded confidence values
     switch binningfn
         case 0 % linear
+            conf = slope.*q + d0;
         case 1 % logistic
         case 2 % logarithmic
+            conf = a.*log(q) + b;
         case 3 % power law
+            conf = a.*((q.^gamma - 1)./gamma) + b; 
         case 4 % weibull
             conf = a.*(1-exp(-(q./scale).^shift)) + b;
     end
