@@ -1,4 +1,4 @@
-function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelname, nnew_part, nold_part, fixparams,nStartVals, nConf)
+function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelname, binningfn, nnew_part, nold_part, fixparams,nStartVals, nConf)
 %
 % paramfit_patternbayes(MODELNAME) uses bayesian patternsearch (one of Luigi
 % Acerbi's optimization algorithms) to find the best fit parameters (and
@@ -6,8 +6,8 @@ function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelna
 % data.
 %
 % ===== INPUT VARIABLES =====
-% MODELNAME: 'FP','FPheurs','VP','VPheurs',or 'uneqVar'
-% ISLOGBINNING: 1: logistic. 0: linear
+% MODELNAME: 'FP','VP','VPheurs',or 'UVSD', or 'REM'
+% BINNINGFN: 0: linear, 1: logistic, 2: log, 3: power, 4: weibull
 % NNEW_PART: 1x20 vector of responses for new distribution (total 150)
 % NOLD_PART: 1x20 vector of responses for old distribution (total 150)
 % FIXPARAMS: a 2xn matrix in which first row corresponds to index of which
@@ -27,9 +27,9 @@ function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelna
 % Aspen Yoo -- January 28, 2016
 %
 
-if nargin < 4; fixparams = []; end
-if nargin < 5; nStartVals = 1; end
-if nargin < 6; nConf = 20; end
+if nargin < 5; fixparams = []; end
+if nargin < 6; nStartVals = 1; end
+if nargin < 7; nConf = 20; end
 nX = 30;
 nS = 50;
 
@@ -51,8 +51,8 @@ options.NoiseSize = 1;                  % Estimated noise magnitude
 startTheta = genStartTheta;
 bfp = nan(size(startTheta));
 nll = nan(nStartVals,1); exitflag = nll;
-for istartval = 1:nStartVals;
-    obj_func = @(x) nLL_approx_vectorized(modelname, x, nnew_part, nold_part, fixparams, nX, nS, nConf );
+for istartval = 1:nStartVals
+    obj_func = @(x) nLL_approx_vectorized(modelname, x, binningfn, nnew_part, nold_part, fixparams, nX, nS, nConf );
     [bfp(istartval,:) ,nll(istartval), exitflag(istartval), outputt{istartval}] = bps(obj_func,startTheta(istartval,:),lb,ub,plb,pub,options);
 end
 
@@ -61,7 +61,7 @@ nll(exitflag < 0) = Inf;
 nLL = min(nll);
 bestFitParam =  bfp((nll == min(nll)),:);
 Output = outputt{nll == min(nll)};
-if ~isempty(fixparams);
+if ~isempty(fixparams)
     nParams = size(fixparams,2) + length(bestFitParam);
     unfixparams = 1:nParams;
     unfixparams(fixparams(1,:)) = [];
@@ -79,41 +79,65 @@ end
         
         % getting model specific parameters
         switch modelname
-            case {'FP','FPheurs'}
-                %                 starttheta = [ randi(30,nStartVals,1) 1e-3+rand(nStartVals,1).*3 1e-3+rand(nStartVals,1).*3 rand(nStartVals,1)-.5];
+            case 'FP'
+                %  M, sigma
                 lb = [1 1e-3];
                 ub = [100 6 ];
                 plb = [1 1e-3 ];
                 pub = [50 3 ];
             case 'UVSD'
-                %                 starttheta = [3*rand(nStartVals,1) 3*rand(nStartVals,1)+1e-3 1e-3+rand(nStartVals,1).*3  rand(nStartVals,1)-.5];
+                % mu, sigma
                 lb = [0 1e-3];
                 ub = [10 10];
                 plb = [0 1e-3];
                 pub = [2 5];
             case 'REM'
-                %                 starttheta = [5+randi(50,nStartVals,1) rand(nStartVals,3) randi(15) 1e-3+rand(nStartVals,1).*3 rand(nStartVals,1)-.5];
+                %  M g ustar c m
                 lb = [ 1 1e-3 1e-3 1e-3 1];
                 ub = [50 1 1 1 50];
                 plb = [1 1e-3 1e-3 1e-3 1];
                 pub = [50 1 1 1 15];
         end
-        
-        % d0, a, b, gamma, k
-        lb = [lb 0 -10 -50 -50 0 0];
-        ub = [ub 10 10 50 50 50 50];
-        plb = [plb 0 0 20 0 0 0];
-        pub = [pub 3 1 25 10 2 2];
-        
-        % deleting sigma_mc parameter for UVSD model
-        if strcmp(modelname,'UVSD')
-            lb(3) = [];
-            ub(3) = [];
-            plb(3) = [];
-            pub(3) = []; 
+
+        % setting binnfn parameters
+        switch binningfn
+            case {0,1} % linear or logistic mapping
+                % k
+                % slope y-int
+                lb = [lb 1e-3];
+                ub = [ub 10];
+                plb = [plb 1e-3];
+                pub = [pub 5];
+            case 2      % log
+                % a, b
+                lb = [lb 0 -100];
+                ub = [ub 100 100];
+                plb = [plb 0 -10];
+                pub = [pub 10 10];
+            case 3      % power law
+                % a, b, gamma
+                lb = [lb 0 -100 -30];
+                ub = [ub 100 100 30];
+                plb = [plb 0 -10 -5];
+                pub = [pub 10 10 5];
+            case 4 % weibull binning
+                % scale, shift, a, b
+                lb = [lb 0 0 0 -10];
+                ub = [ub 10 10 10 10];
+                plb = [plb 0 0 0 -3];
+                pub = [pub 10 10 3 3];
         end
         
+        % d0, sigma_mc
+        lb = [lb -30 1e-6];
+        ub = [ub 30 10];
+        plb = [plb -3 1e-6];
+        pub = [pub 3 3];
+
         starttheta = [bsxfun(@plus,randi(pub(1)-plb(1),nStartVals,1),plb(1)) bsxfun(@plus,bsxfun(@times,rand(nStartVals,size(lb,2)-1),pub(2:end)-plb(2:end)),plb(2:end))];
+        if strcmp(modelname,'UVSD')
+            starttheta(:,1) = rand(size(starttheta,1),1)*pub(1);
+        end
         
         %deleting fix parameter values
         if ~isempty(fixparams)

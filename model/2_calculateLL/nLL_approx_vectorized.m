@@ -1,4 +1,4 @@
-function [ varargout ] = nLL_approx_vectorized( modelname, theta, nnew_part, nold_part, fixparams, nX, nS, nConf )
+function [ varargout ] = nLL_approx_vectorized( modelname, theta, binningfn, nnew_part, nold_part, fixparams, nX, nS, nConf )
 % nLL_approx calculates the negative log likelihood using an approximation
 % method
 %
@@ -9,8 +9,7 @@ function [ varargout ] = nLL_approx_vectorized( modelname, theta, nnew_part, nol
 % MODELNAME: 'FP','FPheurs','VP','VPheurs','uneqVar', 'REM'
 % THETA: parameter values
 % BINNINGFN: mapping from MEMSTRENGTHVAR to confidence reports. 0: linear,
-% 1: logistic, 2: log, 3: power law mapping
-% MEMSTRENGTHVAR: variable used for "memory strength). 0: LPR, 1: p(correct), 2: 1/(p(incorrect)))
+% 1: logistic, 2: log, 3: power law mapping, 4: weibull
 % NNEW_PART: 1x20 vector of responses for new distribution (total 150)
 % NOLD_PART: 1x20 vector of responses for old distribution (total 150)
 % FIXPARAMS: a 2xn matrix in which first row corresponds to index of which
@@ -23,12 +22,12 @@ function [ varargout ] = nLL_approx_vectorized( modelname, theta, nnew_part, nol
 % ===== OUTPUT VARIABLES =====
 % NLL: negative log likelihood
 %
-% Aspen Yoo - Aug 20, 2016
+% Aspen Yoo - Nov 30, 2016
 
-if nargin < 7; fixparams = []; end
-if nargin < 8; nX = 30; end
-if nargin < 9; nS = 50; end
-if nargin < 10; nConf = 20; end
+if nargin < 6; fixparams = []; end
+if nargin < 7; nX = 30; end
+if nargin < 8; nS = 50; end
+if nargin < 9; nConf = 20; end
 
 rng('shuffle')
 
@@ -44,29 +43,23 @@ if ~isempty(fixparams)
 end
 
 if strcmp(modelname,'UVSD') % if uneqVar
-    [pnew, pold, confbounds] = responses_uneqVar(theta);
-    size(pnew)
-    size(pold)
-    size(nnew_part)
-    size(nold_part)
-    
+    [pnew, pold, confbounds] = responses_uneqVar(theta, binningfn);
     nLL = -sum(log(pnew).*nnew_part) - sum(log(pold).*nold_part);
 else % if FP, FPheurs, or REM
     
     % stuff that doesn't depend on model, mapping, or memstrengthvar
     Nold = sum(nold_part); Nnew = sum(nnew_part);
-    L = nConf/2;
     lapse = 0.01;             % lapse rate
     
     % parameter names
     switch modelname
-        case {'FP','FPheurs'};
+        case {'FP','FPheurs'}
             M = theta(1);
             sigma = theta(2);
             nParams = 2;
-        case 'REM';
+        case 'REM'
             M = theta(1);                   % number of features
-            g = theta(2);                   % probability of success (for geometric distribution
+            g = theta(2);                   % probability of success (for geometric distribution)
             ustar = theta(3);               % probability of encoding something
             c = theta(4);                   % probability of encoding correct feature value
             m = theta(5);                   % number of storage attempts
@@ -77,14 +70,40 @@ else % if FP, FPheurs, or REM
             pQ = 1 - p0 - pM;               % probability drawn randomly (mismatch)
     end
     
+    switch binningfn
+        case 0
+            slope = theta(end-2);
+            nParams = nParams + 2;
+        case 1
+            k = theta(end-2);
+            nParams = nParams + 2;
+        case 2 % logarithmic
+            a = theta(end-3);
+            b = theta(end-2);
+            nParams = nParams + 4;
+        case 3 % power law
+            a = theta(end-4);
+            b = theta(end-3);
+            gamma = theta(end-2);
+            nParams = nParams + 5;
+        case 4 % weibull
+            scale = theta(end-5);
+            shift = theta(end-4);
+            a = theta(end-3);
+            b = theta(end-2);
+            nParams = nParams + 6;
+    end
+    d0 = theta(end-1);
+    sigma_mc = theta(end);
     
-    sigma_mc = theta(end-5);
-    d0 = theta(end-4);
-    a = theta(end-3);
-    b = theta(end-2);
-    gamma = theta(end-1);
-    k = theta(end);
-    nParams = nParams +6;
+    % old parameterization of REM and FP fits
+%     sigma_mc = theta(end-5);
+%     d0 = theta(end-4);
+%     a = theta(end-3);
+%     b = theta(end-2);
+%     scale = theta(end-1);
+%     shift = theta(end);
+%     nParams = nParams +6;
     
     % check to make sure the length of theta is correct
     assert(nParams == length(theta),'length of theta is not correct')
@@ -94,7 +113,7 @@ else % if FP, FPheurs, or REM
     d_old = nan(Nold*nS,nX);
     d_newtotal = nan(Nnew*nS,nX);
     newHisttotal = nan(nX,nConf);
-    for iX = 1:nX;
+    for iX = 1:nX
         
         % calculate d
         switch modelname
@@ -128,9 +147,19 @@ else % if FP, FPheurs, or REM
         % using absolute value for mapping
         d_new_sign = sign(d_new(:)+d0); % -1 for respond new, +1 for respond old
         q = abs(d_new(:)+d0);
-
+        
         % non-rounded confidence values
-        conf = a.*(1-exp(-(q./gamma).^k)) + b;
+        switch binningfn
+            case 0 % linear
+                conf = slope.*q + d0;
+            case 1 % logistic
+            case 2 % logarithmic
+                conf = a.*log(q) + b;
+            case 3 % power law
+                conf = a.*((q.^gamma - 1)./gamma) + b; 
+            case 4 % weibull
+                conf = a.*(1-exp(-(q./scale).^shift)) + b;
+        end
         
         % binning with or without metacognitive noise
         if (sigma_mc)
@@ -156,8 +185,18 @@ else % if FP, FPheurs, or REM
     q = abs(d_old(:)+d0);
     
     % non-rounded confidence values
-    conf = a.*(1-exp(-(q./gamma).^k)) + b;
-    
+    switch binningfn
+        case 0 % linear
+            conf = slope.*q + d0;
+        case 1 % logistic
+        case 2 % logarithmic
+            conf = a.*log(q) + b;
+        case 3 % power law
+            conf = a.*((q.^gamma - 1)./gamma) + b; 
+        case 4 % weibull
+            conf = a.*(1-exp(-(q./scale).^shift)) + b;
+    end
+
     % histograms of confidence
     if (sigma_mc) % if there is metacognitive noise
         oldHist = [zeros(length(conf),nConf/2) 0.5+0.5.*erf(bsxfun(@minus,[1.5:(nConf/2-0.5) Inf],conf)./(sigma_mc*sqrt(2))) - ...
@@ -180,32 +219,52 @@ else % if FP, FPheurs, or REM
 end
 
 switch nargout
-    case 1;
+    case 1
         varargout = {nLL};
-    case 2;
+    case 2
         if ~strcmp(modelname,'UVSD')
             pnew = sum(newHisttotal)/sum(newHisttotal(:));
         end
         varargout = {pnew, pold};
-    case 5;
+    case 5
         if strcmp(modelname,'UVSD')
+            mu_old = theta(1);
+            sigma_old = theta(2);
+            
+            x = linspace(min([0 mu_old]-nSDs.*[1 sigma_old]),max([0 mu_old]+nSDs.*[1 sigma_old]),nSamples);
+            pold_x = normpdf(x,mu_old,sigma_old);
+            pnew_x = normpdf(x,0,1);
+            d = -log(sigma_old) - 1/2.*( ((x-mu_old).^2)./sigma_old.^2 - x.^2);
+            
+            counts_new = pnew_x.*d;
             centers_new = linspace(-3,3,50);
             centers_old = linspace(theta(1)-3*theta(2),theta(1)+3*theta(2),50);
             counts_new = normpdf(centers_new);
             counts_old = normpdf(centers_old,theta(1),theta(2));
         else
-            binvalues = 1.5:(nConf/2 - 0.5);
-            tempp = 1-((binvalues-b)./a);
-            tempp(tempp < 0) = nan;
-%             tempp(tempp > 1) = nan;
-            confbounds = gamma.*(-log(tempp)).^(1/k) - d0;
             
-%             xx = linspace(0,10,100);
-%             figure;
-%             plot(xx,a.*(1-exp(-(xx./gamma).^k)) + b,'k-')
-%             hold on;
-%             plot(confbounds+d0,binvalues,'or')
+            switch binningfn
+                case 0 % linear
+                    binvalues = 1.5:(nConf-0.5);
+                    confbounds = (binvalues-nConf/2-0.5)./shift - d0;
+                case 1 % logistic
+                    binvalues = 1.5:(nConf-0.5);
+                    confbounds = -shift.*log((nConf+0.5)./(binvalues-0.5)-1);
+                case 2 % logarithmic
+                    binvalues = 1.5:(nConf/2 -0.5);
+                    confbounds = exp((binvalues-b)./a);
+                case 3 % power law
+                case 4 % weibull
 
+            end
+            
+            
+            %             xx = linspace(0,10,100);
+            %             figure;
+            %             plot(xx,a.*(1-exp(-(xx./gamma).^k)) + b,'k-')
+            %             hold on;
+            %             plot(confbounds+d0,binvalues,'or')
+            
             [counts_new,centers_new] = hist(d_newtotal(:),50);
             [counts_old,centers_old] = hist(d_old(:),50);
         end

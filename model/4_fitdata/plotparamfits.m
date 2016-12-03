@@ -1,12 +1,12 @@
-function plotparamfits(modelname, bestFitParam, nConf, fakedata, subjnum, selectiveplot)
+function plotparamfits(modelname, bestFitParam, binningfn, nConf, fakedata, subjnum, selectiveplot)
 % function that plots confdist (data and model overlaid)
 
 nSubj = size(bestFitParam,1);
-if nargin < 3; nConf = 20; end
-if nargin < 4; fakedata = 0; end % default: real subject data
-if nargin < 5; subjnum = 1:nSubj; end
+if nargin < 4; nConf = 20; end
+if nargin < 5; fakedata = 0; end % default: real subject data
+if nargin < 6; subjnum = 1:nSubj; end
 if isempty(subjnum); subjnum = 1:nSubj; end
-if nargin < 6; selectiveplot = [1 1 1 0]; end % automaticlyy plots everything
+if nargin < 7; selectiveplot = [1 1 1 0]; end % automaticlyy plots everything
 
 
 subplotsize = ceil(sqrt(nSubj));
@@ -44,7 +44,7 @@ if any(selectiveplot(1:2))
     for isubjnum = 1:nSubj;
         
         subjnum(isubjnum)
-        [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = nLL_approx_vectorized(modelname, bestFitParam(isubjnum,:), nNew_part(isubjnum,:), nOld_part(isubjnum,:), [], nX, nS, nConf );
+        [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = nLL_approx_vectorized(modelname, bestFitParam(isubjnum,:), binningfn, nNew_part(isubjnum,:), nOld_part(isubjnum,:), [], nX, nS, nConf );
     end
 end
 
@@ -246,7 +246,7 @@ if (selectiveplot(3))
         isubj = subjnum(isubjnum);
         subplot(subplotsize,subplotsize,isubjnum);
         
-        [centers_new, counts_new, centers_old, counts_old, confBounds] = nLL_approx_vectorized( modelname, bestFitParam(isubjnum,:), nNew_part(isubj,:), nOld_part(isubj,:), [], nX, nS, nConf );
+        [centers_new, counts_new, centers_old, counts_old, confBounds] = nLL_approx_vectorized( modelname, bestFitParam(isubjnum,:), binningfn, nNew_part(isubj,:), nOld_part(isubj,:), [], nX, nS, nConf );
         
         % plots
         subplot(subplotsize,subplotsize,isubjnum); hold on;

@@ -157,9 +157,18 @@ nLL = nan(1,length(subjids));
 for isubj = subjids;
     isubj
     nLL(isubj) = nLL_approx_vectorized( modelname, bestFitParam(isubj,:), binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
+<<<<<<< HEAD
     %     nLL2(isubj) = nLL_approx_vectorized( modelname, [bestFitParam(isubj,1:end-1) 0], binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
     %     nLL3(isubj) = nLL_approx_vectorized( modelname, [bestFitParam(isubj,1:end-1) 1e-3], binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
     %     nLL2(isubj) = nLL_approx_vectorized_old( modelname, bestFitParam(isubj,1:end-1), binningfn, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
+=======
+    %     bfp = [bestFitParam(isubj,[1 2 end 5 3 4]) 1e-3 1]; % for binningfn = 2, memstrengthvar = 1;
+    %     bfp = [bestFitParam(isubj,[1 2 5 4]) 1 0 2 bestFitParam(isubj,3)]; % for binningfn = 1; memstrength = 0
+    %     bfp = [bestFitParam(isubj,[1 2 5 4 3]) 0 2 1 ];
+    bfp = [bestFitParam(isubj,[1 2 5 4 3]) 0 2 1]; % 01: pcorr --> lin
+    memstrengthfn = 1;
+    nLL2(isubj) = nLL_approx_vectorized2( modelname, bfp, memstrengthfn, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
+>>>>>>> 6016dae27e38bf129bd1732ac15dcc970083d872
 end
 
 [nLL_est(subjids) nLL' nLL2'] % nLL3']
@@ -428,9 +437,9 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 %% =====================================================
 %       DOING STUFF WITH FIT PARAMETERS
 % ======================================================
-clear all
+% clear all
 
-modelname = 'REM';
+modelname = 'FP';
 optimMethod = 'patternbayes';
 subjids = [1:14];
 
@@ -446,7 +455,7 @@ getbestfitparams(modelname,subjids)
 load(['paramfit_' optimMethod '_' modelname '.mat'])
 
 %% plot best fit parameters
-subjids = [1];
+subjids = [1:14];
 plotparamfits(modelname,bestFitParam(subjids,:),20, 0, subjids, [1 1 1 0])
 
 %% calculate pnew and pold and save in file for ronald
@@ -466,7 +475,10 @@ save(['model/4_fitdata/BPSfits/' modelname num2str(binningfn) num2str(memstrengt
 %% getting the nLL of MLE estimate for each M
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6016dae27e38bf129bd1732ac15dcc970083d872
 %% plotting binning function
 
 xx = linspace(0,10,100);
@@ -500,6 +512,25 @@ for isubj = 1:nSubj;
     
 end
 
+<<<<<<< HEAD
+=======
+%% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+%  PARAMETER RECOVERY
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+
+modelname = 'FP21';
+load(['paramfit_patternbayes_' modelname '.mat'])
+m = mean(bestFitParam);
+covv = cov(bestFitParam);
+
+nSubj = 50;
+trueparams = mvnrnd(m,covv,nSubj);
+trueparams(:,5) = 0;
+
+for isubj = 1:nSubj;
+    
+end
+>>>>>>> 6016dae27e38bf129bd1732ac15dcc970083d872
 
 %% % % % % % % % % % % % % % % % % % %
 %   SIMULATING DATA WITH COVARIANCE STRUCTURE
@@ -525,5 +556,24 @@ while size(trueparams,1)<nSubj;
     trueparams = [trueparams; tempparams];
 end
 
+<<<<<<< HEAD
 trueparams =     tempparams(:,5) = 0; % d0
+=======
+trueparams = tempparams(:,5) == 0; % d0
+
+%% checking that panel A is same as datamodel.mat
+
+pNew_mod = bsxfun(@rdivide,nNew_mod,sum(nNew_mod,2));
+pOld_mod = bsxfun(@rdivide,nOld_mod,sum(nOld_mod,2));
+
+for isubj = 1:14;
+    subplot(4,4,isubj)
+    plot(pNew_mod(isubj,:)); hold on
+    plot(pOld_mod(isubj,:))
+    ylim([0 0.55])
+    plot_panelA_Aspen(isubj)
+    defaultplot
+end
+
+>>>>>>> 6016dae27e38bf129bd1732ac15dcc970083d872
 
