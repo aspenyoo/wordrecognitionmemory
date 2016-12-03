@@ -73,10 +73,10 @@ else % if FP, FPheurs, or REM
     switch binningfn
         case 0
             slope = theta(end-2);
-            nParams = nParams + 2;
+            nParams = nParams + 3;
         case 1
             k = theta(end-2);
-            nParams = nParams + 2;
+            nParams = nParams + 3;
         case 2 % logarithmic
             a = theta(end-3);
             b = theta(end-2);

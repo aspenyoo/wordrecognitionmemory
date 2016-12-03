@@ -28,20 +28,35 @@ end
 gold = aspencolors('dustygold');
 greyblue = aspencolors('greyblue');
 
-% switch modelname
-%     case {'FP','FPheurs','uneqVar'}
-%         nParams = 4;
-%     case 'REM'
-%         nParams = 7;
-% end
-% if any(binningfn == [2 3 4]); nParams = nParams + 2; end 
-% if binningfn == 5; nParams = nParams + 3; end
+switch modelname
+    case 'UVSD'
+        nParams = 2;
+    case {'FP','FPheurs'}
+        nParams = 2;
+    case 'REM'
+        nParams = 5;
+end
+
+switch binningfn
+    case {0,1} % linear, logistic
+        % slope, y-int, sigma_mc
+        nParams = nParams + 3;
+    case 2     % logarithmic
+        % a, b, d0, sigma_mc
+        nParams = nParams + 4;
+    case 3      % power law
+        % a, b, gamma, d0, sigma_mc
+        nParams = nParams + 5;
+    case 4 % weibull
+        % a, b, shape, scale, d0, sigma_mc
+        nParams = nParams + 6;
+end
 
 nX = 30; nS = 50;
 % getting simulated data
 if any(selectiveplot(1:2))
     pNew_est = nan(nSubj,20); pOld_est = pNew_est;
-    for isubjnum = 1:nSubj;
+    for isubjnum = 1:nSubj
         
         subjnum(isubjnum)
         [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = nLL_approx_vectorized(modelname, bestFitParam(isubjnum,:), binningfn, nNew_part(isubjnum,:), nOld_part(isubjnum,:), [], nX, nS, nConf );
@@ -53,11 +68,11 @@ end
 % pNew_est = pNew_est/N;
 % pOld_est = pOld_est/N;
 
-if nConf ~= 20 && (size(pNew_est,2)==20);
+if nConf ~= 20 && (size(pNew_est,2)==20)
     pNew_esttemp = nan(nSubj,nConf);
     pOld_esttemp = pNew_esttemp;
     num = round(20/nConf);
-    for i = 1:nConf-1;
+    for i = 1:nConf-1
         pNew_esttemp(:,i) = sum(pNew_est(:,num*(i-1)+1:num*i),2);
         pOld_esttemp(:,i) = sum(pOld_est(:,num*(i-1)+1:num*i),2);
     end
