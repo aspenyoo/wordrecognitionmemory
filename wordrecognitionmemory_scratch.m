@@ -62,16 +62,9 @@ plot(xx,yy,'k',xx,yy2,'r'); defaultplot
 ylim([ 1 20])
 % blahhist = hist(yy,1:nConf)
 
-%% debugging paramfit_parforsubj.sh
-fixparam = 15;
-modelname = 'REM';
-nStartVals = 1;
-
-parfor isubj = 8:10;
-    isubj
-    fitdata_cluster(isubj,modelname,'patternbayes', [1; fixparam],[],[],nStartVals);
-end
-exit;
+% =======================================
+%     MODEL FITTING RELATED
+% =======================================
 
 %% checking which jobs need to be resubmitted
 
@@ -81,10 +74,10 @@ optimMethod = 'patternbayes';
 nSubj = 14;
 z = nan(50,2);
 
-for isubj = 1:nSubj;
+for isubj = 1:nSubj
     removetxtspaces(modelname,binningfn,isubj,optimMethod)
     isubj
-    for i=1:50;
+    for i=1:50
         z(i,2) = countnum2(modelname,binningfn,isubj,[1; i]);
         z(i,1)=i;
     end
@@ -106,11 +99,11 @@ maxTime = 8;
 nJobs = [];
 nStartVals = 10;
 
-for isubj = subjids;
+for isubj = subjids
     subjid = isubj;%subjids(isubj);
     
     jobnumVec = []; estTimeVec = [];
-    for iM = 1:Mmax;
+    for iM = 1:Mmax
         counts = max([nStartVals - countnum2(modelname, binningfn,memstrengthvar,subjid, [1;iM]) 0]);
         jobnumVec = [jobnumVec repmat(iM,1,counts)];
         estTimeVec = [estTimeVec repmat(approxTime(iM),1,counts)];
@@ -154,21 +147,15 @@ subjids = 1;
 
 load('subjdata.mat')
 nLL = nan(1,length(subjids));
-for isubj = subjids;
+for isubj = subjids
     isubj
     nLL(isubj) = nLL_approx_vectorized( modelname, bestFitParam(isubj,:), binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
-<<<<<<< HEAD
-    %     nLL2(isubj) = nLL_approx_vectorized( modelname, [bestFitParam(isubj,1:end-1) 0], binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
-    %     nLL3(isubj) = nLL_approx_vectorized( modelname, [bestFitParam(isubj,1:end-1) 1e-3], binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
-    %     nLL2(isubj) = nLL_approx_vectorized_old( modelname, bestFitParam(isubj,1:end-1), binningfn, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
-=======
     %     bfp = [bestFitParam(isubj,[1 2 end 5 3 4]) 1e-3 1]; % for binningfn = 2, memstrengthvar = 1;
     %     bfp = [bestFitParam(isubj,[1 2 5 4]) 1 0 2 bestFitParam(isubj,3)]; % for binningfn = 1; memstrength = 0
     %     bfp = [bestFitParam(isubj,[1 2 5 4 3]) 0 2 1 ];
     bfp = [bestFitParam(isubj,[1 2 5 4 3]) 0 2 1]; % 01: pcorr --> lin
     memstrengthfn = 1;
     nLL2(isubj) = nLL_approx_vectorized2( modelname, bfp, memstrengthfn, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
->>>>>>> 6016dae27e38bf129bd1732ac15dcc970083d872
 end
 
 [nLL_est(subjids) nLL' nLL2'] % nLL3']
@@ -205,7 +192,7 @@ for isample = 1:nSamples;
     oldnLL(isample) = nLL_approx_vectorized_old( modelname, bestFitParam(isubj,:), binningfn2, nNew_part(isubj,:), nOld_part(isubj,:), [], 50, 30 );
 end
 
-if nSamples > 10;
+if nSamples > 10
     figure
     [counts,centers] = hist(newnLL);
     [counts2,centers2] = hist(oldnLL);
@@ -226,7 +213,7 @@ nParamsold = 4; % how many parameters does the old way have
 filepath = 'model/4_fitdata/BPSfits/';
 
 nSubj = 14;
-for isubj = 1:nSubj;
+for isubj = 1:nSubj
     % load old file
     filename = ['paramfit_patternbayes_' modelname num2str(binningfnold) ...
         '_subj' num2str(isubj) '.txt'];
@@ -290,7 +277,7 @@ save('datamodel_forRonald.mat','data','model');
 
 nSubj = 14;
 nnew_part = nan(nSubj,20); nold_part = nnew_part;
-for isubj = 1:nSubj;
+for isubj = 1:nSubj
     [nnew_part(isubj,:), nold_part(isubj,:)] = loadsubjdata(isubj);
 end
 
@@ -356,7 +343,7 @@ subjid = 2;
 % load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
 
 nLLVec = nan(1,nSamples); timeVec = nan(1,nSamples);
-for isamp = 1:nSamples;
+for isamp = 1:nSamples
     isamp
     t0 = GetSecs;
     nLLVec(isamp) = nLL_approx_vectorized(modelname,bestFitParam(subjid,:),binningfn,memstrengthvar,nnew_part,nold_part,[],30,50);
@@ -437,14 +424,15 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 %% =====================================================
 %       DOING STUFF WITH FIT PARAMETERS
 % ======================================================
-% clear all
+ clear all
 
 modelname = 'FP';
+binningfn = 4;
 optimMethod = 'patternbayes';
 subjids = [1:14];
 
 %% remove txt spacing
-for isubj = subjids;
+for isubj = subjids
     removetxtspaces(modelname,isubj,optimMethod);
 end
 
@@ -452,18 +440,18 @@ end
 getbestfitparams(modelname,subjids)
 
 %% load MLE parameter estimates
-load(['paramfit_' optimMethod '_' modelname '.mat'])
+load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
 
 %% plot best fit parameters
 subjids = [1:14];
-plotparamfits(modelname,bestFitParam(subjids,:),20, 0, subjids, [1 1 1 0])
+plotparamfits(modelname,bestFitParam(subjids,:),binningfn, 20, 0, subjids, [1 1 0 0])
 
 %% calculate pnew and pold and save in file for ronald
 load('subjdata.mat')
 
 nSubj = 14;
 nNew_mod = nan(nSubj,20); nOld_mod = nan(nSubj,20);
-for isubj = 1:nSubj;
+for isubj = 1:nSubj
     isubj
     [nNew_mod(isubj,:),nOld_mod(isubj,:)] = nLL_approx_vectorized(modelname,bestFitParam(isubj,:),binningfn, memstrengthvar, nNew_part(isubj,:), nOld_part(isubj,:), [], 100, 50);
 end
@@ -475,10 +463,6 @@ save(['model/4_fitdata/BPSfits/' modelname num2str(binningfn) num2str(memstrengt
 %% getting the nLL of MLE estimate for each M
 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 6016dae27e38bf129bd1732ac15dcc970083d872
 %% plotting binning function
 
 xx = linspace(0,10,100);
@@ -486,24 +470,57 @@ nSubj = size(bestFitParam,1);
 nConf = 20;
 
 figure;
-for isubj = 1:nSubj;
+for isubj = 1:nSubj
     theta = bestFitParam(isubj,:);
     
-    sigma_mc = theta(end-5);
-    d0 = theta(end-4);
-    a = theta(end-3);
-    b = theta(end-2);
-    gamma = theta(end-1);
-    k = theta(end);
+    switch modelname
+        case {'FP','FPheurs'}
+            M = theta(1);
+            sigma = theta(2);
+        case 'REM'
+            M = theta(1);                   % number of features
+            g = theta(2);                   % probability of success (for geometric distribution)
+            ustar = theta(3);               % probability of encoding something
+            c = theta(4);                   % probability of encoding correct feature value
+            m = theta(5);                   % number of storage attempts
+            
+            p0 = (1-ustar)^m;               % probability of x_ij= 0
+            pM = (1-p0)*geocdf(m-1,c);      % probability of x_ij = s_ij (match)
+            pQ = 1 - p0 - pM;               % probability drawn randomly (mismatch)
+    end
     
     binvalues = 1.5:(nConf/2 - 0.5);
-    tempp = 1-((binvalues-b)./a);
-    tempp(tempp < 0) = nan;
-    tempp(tempp > 1) = nan;
-    confbounds = gamma.*(-log(tempp)).^(1/k) - d0;
+    switch binningfn
+        case 0
+            slope = theta(end-2);
+        case 1
+            k = theta(end-2);
+        case 2 % logarithmic
+            a = theta(end-3);
+            b = theta(end-2);
+        case 3 % power law
+            a = theta(end-4);
+            b = theta(end-3);
+            gamma = theta(end-2);
+            yy = a.*((xx.^gamma - 1)./gamma) + b;
+            tempp = gamma.*(binvalues -b)./a + 1;
+            tempp(tempp < 0) = nan;
+            confbounds = tempp.^(1/gamma);
+        case 4 % weibull
+            scale = theta(end-5);
+            shift = theta(end-4);
+            a = theta(end-3);
+            b = theta(end-2);
+            yy = a.*(1-exp(-(xx./scale).^shift)) + b;
+            tempp = 1 - (binvalues -b)./a;
+            tempp(tempp < 0) = nan;
+            tempp(tempp > 1) = nan;
+            confbounds = scale.*(-log(tempp)).^(1/shift);
+    end
+    d0 = theta(end-1);
     
     subplot(4,4,isubj);
-    plot(xx,a.*(1-exp(-(xx./gamma).^k)) + b,'k-')
+    plot(xx,yy,'k-')
     hold on;
     plot(confbounds+d0,binvalues,'ok')
     defaultplot
@@ -512,8 +529,7 @@ for isubj = 1:nSubj;
     
 end
 
-<<<<<<< HEAD
-=======
+
 %% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
 %  PARAMETER RECOVERY
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
@@ -527,10 +543,10 @@ nSubj = 50;
 trueparams = mvnrnd(m,covv,nSubj);
 trueparams(:,5) = 0;
 
-for isubj = 1:nSubj;
+for isubj = 1:nSubj
     
 end
->>>>>>> 6016dae27e38bf129bd1732ac15dcc970083d872
+
 
 %% % % % % % % % % % % % % % % % % % %
 %   SIMULATING DATA WITH COVARIANCE STRUCTURE
@@ -556,24 +572,5 @@ while size(trueparams,1)<nSubj;
     trueparams = [trueparams; tempparams];
 end
 
-<<<<<<< HEAD
-trueparams =     tempparams(:,5) = 0; % d0
-=======
 trueparams = tempparams(:,5) == 0; % d0
-
-%% checking that panel A is same as datamodel.mat
-
-pNew_mod = bsxfun(@rdivide,nNew_mod,sum(nNew_mod,2));
-pOld_mod = bsxfun(@rdivide,nOld_mod,sum(nOld_mod,2));
-
-for isubj = 1:14;
-    subplot(4,4,isubj)
-    plot(pNew_mod(isubj,:)); hold on
-    plot(pOld_mod(isubj,:))
-    ylim([0 0.55])
-    plot_panelA_Aspen(isubj)
-    defaultplot
-end
-
->>>>>>> 6016dae27e38bf129bd1732ac15dcc970083d872
 

@@ -1,4 +1,4 @@
-function getbestfitparams(modelname, subjids,paramrange, filepath)
+function getbestfitparams(modelname,binningfn,subjids,paramrange,filepath)
 % gets the best fitting parameters from txt file across subjects and
 % compiles it into a .mat file
 % 
@@ -8,8 +8,8 @@ function getbestfitparams(modelname, subjids,paramrange, filepath)
 % PARAMRANGE: a 3 x (number of parameters you want to enforce a range)
 % matrix, where the first row is the parameter number, second row is the
 % lower bound of that parameter, and third row is the upper bound of that parameter. 
-if nargin < 3; paramrange = []; end
-if nargin < 4; filepath = ['model' filesep '4_fitdata' filesep 'BPSfits' filesep]; end
+if nargin < 4; paramrange = []; end
+if nargin < 5; filepath = ['model' filesep '4_fitdata' filesep 'BPSfits' filesep]; end
 
 switch modelname
     case 'UVSD'
@@ -20,19 +20,32 @@ switch modelname
         nParams = 5;
 end
 
-nParams = nParams + 6; 
+switch binningfn
+    case {0,1} % linear, logistic
+        % slope, y-int, sigma_mc
+        nParams = nParams + 3;
+    case 2     % logarithmic
+        % a, b, d0, sigma_mc
+        nParams = nParams + 4;
+    case 3      % power law
+        % a, b, gamma, d0, sigma_mc
+        nParams = nParams + 5;
+    case 4 % weibull
+        % a, b, shape, scale, d0, sigma_mc
+        nParams = nParams + 6;
+end
 
 nLLcol = nParams + 1; % column corresponding to nLLs for FP, FPheurs, and uneqVar models
 nSubj = length(subjids);
 
 bestdata = nan(nSubj,nLLcol*2);
-for isubj = 1:nSubj;
+for isubj = 1:nSubj
     subjid = subjids(isubj);
-    filename = [filepath 'paramfit_patternbayes_' modelname '_subj' num2str(subjid) '.txt'];
+    filename = [filepath 'paramfit_patternbayes_' modelname num2str(binningfn) '_subj' num2str(subjid) '.txt'];
     alldata = dlmread(filename);
     
     datasorted = sortrows(alldata,nLLcol);
-    for iparam = 1:size(paramrange,2); % how many ranges you are imposing
+    for iparam = 1:size(paramrange,2) % how many ranges you are imposing
         idx = datasorted(:,iparam) < paramrange(2,iparam); % deleting things to small
         datasorted(idx,:) = [];
         
@@ -48,5 +61,5 @@ nLL_est = bestdata(:,nLLcol);
 % startTheta = bestdata(:,6:9);
 nLL_SD = bestdata(:,end);
 
-matfilename = [ filepath 'paramfit_patternbayes_' modelname '.mat'];
+matfilename = [ filepath 'paramfit_patternbayes_' modelname num2str(binningfn) '.mat'];
 save(matfilename,'subjids','modelname','bestFitParam','nLL_est','nLL_SD');
