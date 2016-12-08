@@ -69,7 +69,7 @@ ylim([ 1 20])
 %% checking which jobs need to be resubmitted
 
 modelname = 'FP';
-binningfn = 5;
+binningfn = 3;
 optimMethod = 'patternbayes';
 nSubj = 14;
 z = nan(50,2);
@@ -87,29 +87,28 @@ end
 %% separate jobs for each person
 clear
 
-modelname = 'FP';
-binningfn = 2;
-memstrengthvar = 1;
+modelname = 'REM';
+binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = 14;
 Mmax = 50;
 filepath = 'model/4_fitdata/';
 approxTime = linspace(.22*1000/3600,4.61*1000/3600,50);
-maxTime = 8;
-nJobs = [];
+maxTime = 48;
+nJobs = 15;
 nStartVals = 10;
 
-for isubj = subjids
+for isubj = 1:subjids
     subjid = isubj;%subjids(isubj);
     
     jobnumVec = []; estTimeVec = [];
     for iM = 1:Mmax
-        counts = max([nStartVals - countnum2(modelname, binningfn,memstrengthvar,subjid, [1;iM]) 0]);
+        counts = max([nStartVals - countnum2(modelname, binningfn,subjid, [1;iM]) 0]);
         jobnumVec = [jobnumVec repmat(iM,1,counts)];
         estTimeVec = [estTimeVec repmat(approxTime(iM),1,counts)];
     end
     
-    jobfilename = [filepath 'joblist_' modelname num2str(binningfn) num2str(memstrengthvar) '_subj' num2str(subjid) '.txt' ];
+    jobfilename = [filepath 'joblist_' modelname num2str(binningfn) '_subj' num2str(subjid) '.txt' ];
     create_joblist(jobfilename, jobnumVec, estTimeVec, maxTime, nJobs)
 end
 

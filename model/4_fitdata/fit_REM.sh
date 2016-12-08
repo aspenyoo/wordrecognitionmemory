@@ -34,7 +34,7 @@ switch binningfn
 		fixparams = [1 10; nan 0];
 end
 
-joblistfile = 'joblist_12012016.txt'; % will do a different job per person. (if you want same for all, write joblist name)
+joblistfile = []; % will do a different job per person. (if you want same for all, write joblist name)
 
 cluster_wrap2(modelname, binningfn, isubj, joblistnum, joblistfile, fixparams)
 
