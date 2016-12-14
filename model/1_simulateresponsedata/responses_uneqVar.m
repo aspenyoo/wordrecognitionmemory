@@ -29,8 +29,8 @@ sigma_old = theta(2);
 
 switch binningfn
     case {0,1}              % linear (0) and logistic (1) mapping
-        k = theta(end-1);
-        nParams = 4;
+        k = theta(end-2);
+        nParams = 5;
     case 2        % logarithmic mapping on d (not other x axis)
         a = theta(end-3);
         b = theta(end-2);
