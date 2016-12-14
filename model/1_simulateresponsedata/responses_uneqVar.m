@@ -19,9 +19,9 @@ function [pnew, pold, confBounds] = responses_uneqVar( theta, binningfn, nConf, 
 % rplot = 1;
 
 % -----------------------------------------------------------------------
-if nargin < 2; nConf = 20; end
-if nargin < 3; cplot = 0;end
-if nargin < 4; dplot = 0; end
+if nargin < 3; nConf = 20; end
+if nargin < 4; cplot = 0;end
+if nargin < 5; dplot = 0; end
 
 % getting parameter names
 mu_old = theta(1);
@@ -30,28 +30,25 @@ sigma_old = theta(2);
 switch binningfn
     case {0,1}              % linear (0) and logistic (1) mapping
         k = theta(end-1);
-        d0 = theta(end);
         nParams = 4;
     case 2        % logarithmic mapping on d (not other x axis)
         a = theta(end-3);
         b = theta(end-2);
-        d0 = theta(end-1);
-        sigma_mc = theta(end);
         nParams = 6;
     case 3              % power law mapping from p(correct)
         a = theta(end-4);
         b = theta(end-3);
-        d0 = theta(end-2);
-        lambda = theta(end-1);
-        sigma_mc = theta(end);
-        nParams = 6;
+        gamma = theta(end-2);
+        nParams = 7;
     case 4              % weibull mapping
-        scale = theta(end-3);
-        shape = theta(end-2);
-        d0 = theta(end-1);
-        sigma_mc = theta(end);
-        nParams = 6;
+        scale = theta(end-5);
+        shape = theta(end-4);
+        a = theta(end-3);
+        b = theta(end-2);
+        nParams = 8;
 end
+d0 = theta(end-1);
+sigma_mc = theta(end);
 
 assert(nParams == length(theta),'check number of parameters');
 
@@ -114,7 +111,7 @@ else % logarithmic binning on |d|
         case 2
             conf = round(a.*log(abs(dd)) + b + yy);
         case 3 % power law
-            conf = round(a.*((abs(dd).^lambda - 1)./lambda) + b + yy); 
+            conf = round(a.*((abs(dd).^gamma - 1)./gamma) + b + yy); 
         case 4
             conf = round(1 - exp(-(abs(dd)./scale).^shape));
     end
