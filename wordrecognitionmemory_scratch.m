@@ -396,15 +396,14 @@ plot(repmat(confBounds(:),1,2)', repmat([0 max([counts_new(:); counts_old(:)])],
 clear all
 
 modelname = 'UVSD';
-binningfn = 1;
-optimMethod = 'patternbayes';
-fixparams = [4; 0];
-memstrengthvar = [];
+binningfn = 4;
+fixparams = [6; 0];
+nStartVals = 2;
 
 blah = GetSecs;
-for isubj = 1:14;
+for isubj = 1:14
     isubj
-    fitdata_cluster(isubj, modelname, binningfn, memstrengthvar, optimMethod, fixparams,[],[],3);
+    fitdata_cluster(isubj, modelname, binningfn, fixparams,[],[],nStartVals);
 end
 timee = GetSecs - blah
 
