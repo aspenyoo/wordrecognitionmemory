@@ -450,25 +450,26 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 % ======================================================
  clear all
 
-modelname = 'FP';
-binningfn = 4;
+modelname = 'REM';
+binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = [1:14];
 
 %% remove txt spacing
 for isubj = subjids
-    removetxtspaces(modelname,isubj,optimMethod);
+    removetxtspaces(modelname,binningfn,isubj,optimMethod);
 end
 
 %% get MLE parameter estimates
-getbestfitparams(modelname,subjids)
+nStartVals = 10;
+getbestfitparams(modelname,binningfn,subjids,nStartVals)
 
 %% load MLE parameter estimates
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
 
 %% plot best fit parameters
 subjids = [1:14];
-plotparamfits(modelname,bestFitParam(subjids,:),binningfn, 20, 0, subjids, [1 1 0 0])
+plotparamfits(modelname,bestFitParam(subjids,:),binningfn, 20, 0, subjids, [1 1 1 0])
 
 %% calculate pnew and pold and save in file for ronald
 load('subjdata.mat')

@@ -1,4 +1,4 @@
-function getbestfitparams(modelname,binningfn,subjids,paramrange,filepath)
+function getbestfitparams(modelname,binningfn,subjids,nStartVals,paramrange,filepath)
 % gets the best fitting parameters from txt file across subjects and
 % compiles it into a .mat file
 % 
@@ -8,8 +8,11 @@ function getbestfitparams(modelname,binningfn,subjids,paramrange,filepath)
 % PARAMRANGE: a 3 x (number of parameters you want to enforce a range)
 % matrix, where the first row is the parameter number, second row is the
 % lower bound of that parameter, and third row is the upper bound of that parameter. 
-if nargin < 4; paramrange = []; end
-if nargin < 5; filepath = ['model' filesep '4_fitdata' filesep 'BPSfits' filesep]; end
+if nargin < 4; nStartVals = []; end
+if nargin < 5; paramrange = []; end
+if nargin < 6; filepath = ['model' filesep '4_fitdata' filesep 'BPSfits' filesep]; end
+
+Mmax = 50;
 
 switch modelname
     case 'UVSD'
@@ -44,14 +47,25 @@ for isubj = 1:nSubj
     filename = [filepath 'paramfit_patternbayes_' modelname num2str(binningfn) '_subj' num2str(subjid) '.txt'];
     alldata = dlmread(filename);
     
+    % deleting entries that exceed nStartVals
+    if ~isempty(nStartVals)
+        for iM = 1:Mmax
+            idx = find(alldata(:,1) == iM);
+            if length(idx) > nStartVals
+                alldata(idx(nStartVals+1:end),:) = [];
+            end
+        end
+    end
+    
     datasorted = sortrows(alldata,nLLcol);
     for iparam = 1:size(paramrange,2) % how many ranges you are imposing
-        idx = datasorted(:,iparam) < paramrange(2,iparam); % deleting things to small
+        idx = datasorted(:,iparam) < paramrange(2,iparam); % deleting things too small
         datasorted(idx,:) = [];
         
-        idx = datasorted(:,iparam) > paramrange(3,iparam); % deleting things to large
+        idx = datasorted(:,iparam) > paramrange(3,iparam); % deleting things too large
         datasorted(idx,:) = [];
     end
+    
     bestdata(isubj,:) = datasorted(1,:);
     
 end
