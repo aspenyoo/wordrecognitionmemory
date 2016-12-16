@@ -254,8 +254,17 @@ switch nargout
                     binvalues = 1.5:(nConf/2 -0.5);
                     confbounds = exp((binvalues-b)./a);
                 case 3 % power law
+                    binvalues = 1.5:(nConf/2 -0.5);
+                    tempp = gamma.*(binvalues -b)./a + 1;
+                    tempp(tempp < 0) = nan;
+                    confbounds = tempp.^(1/gamma);
                 case 4 % weibull
-
+                    binvalues = 1.5:(nConf/2 -0.5);
+                    tempp = 1 - (binvalues -b)./a;
+                    tempp(tempp < 0) = nan;
+                    tempp(tempp > 1) = nan;
+                    confbounds = scale.*(-log(tempp)).^(1/shift);
+                    
             end
             
             
