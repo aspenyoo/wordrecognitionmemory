@@ -66,9 +66,34 @@ ylim([ 1 20])
 %     MODEL FITTING RELATED
 % =======================================
 
+
+%% remove txt spacing for models and subjects
+
+modelVec = {'FP','REM'};
+binningfnVec = [3 4];
+optimMethod = 'patternbayes';
+
+nModels = length(modelVec);
+nBinningfns = length(binningfnVec);
+nSubj = 14;
+
+
+for imodel = 1:nModels
+    model = modelVec{imodel};
+    
+    for ibinningfn = 1:nBinningfns
+        binningfn = binningfnVec(ibinningfn);
+        
+        for isubj = 1:nSubj
+            removetxtspaces(model,binningfn,isubj,optimMethod);
+        end
+    end
+end
+
+
 %% checking which jobs need to be resubmitted
 
-modelname = 'FP';
+modelname = 'REM';
 binningfn = 3;
 optimMethod = 'patternbayes';
 nSubj = 14;
@@ -87,7 +112,7 @@ end
 %% separate jobs for each person
 clear
 
-modelname = 'REM';
+modelname = 'FP';
 binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = 14;
@@ -99,6 +124,7 @@ nJobs = 15;
 nStartVals = 10;
 
 for isubj = 1:subjids
+    isubj
     subjid = isubj;%subjids(isubj);
     
     jobnumVec = []; estTimeVec = [];
