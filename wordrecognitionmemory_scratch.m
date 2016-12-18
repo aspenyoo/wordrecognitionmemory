@@ -93,8 +93,8 @@ end
 
 %% checking which jobs need to be resubmitted
 
-modelname = 'REM';
-binningfn = 3;
+modelname = 'FP';
+binningfn = 4;
 optimMethod = 'patternbayes';
 nSubj = 14;
 z = nan(50,2);
@@ -113,7 +113,7 @@ end
 clear
 
 modelname = 'FP';
-binningfn = 3;
+binningfn = 4;
 optimMethod = 'patternbayes';
 subjids = 14;
 Mmax = 50;
@@ -450,7 +450,7 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 % ======================================================
  clear all
 
-modelname = 'REM';
+modelname = 'FP';
 binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = [1:14];
