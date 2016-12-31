@@ -2,7 +2,7 @@ function [bestFitParam, nLL_est, startTheta, outputt] = fitdata_cluster(isubj, t
 
 if nargin < 4; fixparams = []; end
 if nargin < 5; truemodelname = []; end
-if isempty(truemodelname); truemodelname = testmodelname; end
+if isempty(truemodelname); truemodelname = [testmodelname num2str(binningfn)]; end
 if nargin < 6; nConf = 20; end
 if isempty(nConf); nConf = 20; end 
 if (size(fixparams,2) > 1) && (size(fixparams,1) < 2) % if it is a vector of Ms, instead of a 2 x fixed parameter things

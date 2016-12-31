@@ -1,11 +1,11 @@
-function [nnew_part, nold_part] = loadsubjdata(isubj,modelname, nConf)
+function [nnew_part, nold_part] = loadsubjdata(isubj,modelname,nConf)
 if nargin < 2; modelname = []; end
 if nargin < 3; nConf = 20; end
 
 % subjects 2-6 and 9 don't have exactly 150 trials on both old and new.
 
 load('subjdata.mat')
-if isubj <= 14;
+if isubj <= 14
     nnew_part = nNew_part(isubj,:);
     nold_part = nOld_part(isubj,:);
 else
@@ -13,7 +13,7 @@ else
     nold_part = simdata.(modelname).nold(isubj,:);
 end
 
-if nConf ~= 20;
+if nConf ~= 20
     num = round(20/nConf);
     for i = 1:nConf-1;
         nnew_parttemp(i) = sum(nnew_part(num*(i-1)+1:num*i));

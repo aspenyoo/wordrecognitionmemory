@@ -113,7 +113,7 @@ end
 clear
 
 modelname = 'FP';
-binningfn = 4;
+binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = 14;
 Mmax = 50;
@@ -451,7 +451,7 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
  clear all
 
 modelname = 'FP';
-binningfn = 3;
+binningfn = 4;
 optimMethod = 'patternbayes';
 subjids = [1:14];
 
@@ -559,43 +559,60 @@ end
 %  PARAMETER RECOVERY
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
 
-modelname = 'FP21';
+
+%% SIMULATING DATA WITH COVARIANCE STRUCTURE
+
+modelname = 'REM4';
 load(['paramfit_patternbayes_' modelname '.mat'])
-m = mean(bestFitParam);
-covv = cov(bestFitParam);
-
-nSubj = 50;
-trueparams = mvnrnd(m,covv,nSubj);
-trueparams(:,5) = 0;
-
-for isubj = 1:nSubj
-    
-end
-
-
-%% % % % % % % % % % % % % % % % % % %
-%   SIMULATING DATA WITH COVARIANCE STRUCTURE
-% % % % % % % % % % % % % % % % % % %
-
-modelname = 'FP21';
-load(['paramfit_patternbayes_' modelname '.mat'])
+modelname = 'REM4';
+d0idx = 10;
 
 MU = mean(bestFitParam);
 SIGMA = cov(bestFitParam);
+nParams = length(MU);
 
 nSubj = 50;
 trueparams = [];
-while size(trueparams,1)<nSubj;
+while size(trueparams,1)<nSubj
     tempparams = mvnrnd(MU,SIGMA,nSubj-size(trueparams,1));
     
     tempparams(:,1) = round(tempparams(:,1)); % M
     tempparams(tempparams(:,1)>75,:) = []; % deleting M larger than 75
     tempparams(tempparams(:,1)<0,:) = []; % negative M
-    tempparams(tempparams(:,2)<0,:) = []; % negative sigma
     tempparams(tempparams(:,end)<0,:) = []; % negative MC noise
+    
+    switch modelname(1:end-1)
+        case 'FP'
+            tempparams(tempparams(:,2)<0,:) = []; % negative sigma
+        case 'REM'
+            tempparams(tempparams(:,2)<0,:) = []; % negative g: probability of success (for geometric distribution)
+            tempparams(tempparams(:,2)>1,:) = [];
+            tempparams(tempparams(:,3)<0,:) = []; % negative ustar: probability of encoding something
+            tempparams(tempparams(:,3)>1,:) = [];
+            tempparams(tempparams(:,4)<0,:) = []; % negative c: probability of encoding correct feature value
+            tempparams(tempparams(:,4)>1,:) = [];
+            tempparams(tempparams(:,5)<0,:) = []; % number of storage attempts
+            tempparams(:,5) = round(tempparams(:,5)); 
+    end
     
     trueparams = [trueparams; tempparams];
 end
 
-trueparams = tempparams(:,5) == 0; % d0
+trueparams(:,d0idx) = 0; % d0
 
+% generate sim data
+nnew_part = [150 zeros(1,19)];
+nold_part = nnew_part;
+nNew = nan(nSubj,20); nOld = nNew;
+for isubj = 1:nSubj
+    isubj
+    theta = trueparams(isubj,:);
+    [nNew(isubj,:), nOld(isubj,:)] = nLL_approx_vectorized( modelname(1:end-1), theta, str2double(modelname(end)), nnew_part, nold_part);
+end
+
+% save sim data 
+load('model/subjdata.mat')
+simdata.(modelname).nnew = 4;
+simdata.(modelname).nold = 4;
+simdata.(modelname).trueparam = [nan(14,nParams); trueparams];
+save('model/subjdata.mat','nNew_part','nOld_part','simdata')
