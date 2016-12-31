@@ -113,14 +113,13 @@ end
 clear
 
 modelname = 'FP';
-binningfn = 3;
-optimMethod = 'patternbayes';
+binningfn = 4;
 subjids = 14;
 Mmax = 50;
 filepath = 'model/4_fitdata/';
 approxTime = linspace(.22*1000/3600,4.61*1000/3600,50);
-maxTime = 48;
-nJobs = 15;
+maxTime = 12;
+nJobs = [];
 nStartVals = 10;
 
 for isubj = 1:subjids
