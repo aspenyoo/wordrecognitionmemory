@@ -84,6 +84,8 @@ for imodel = 1:nModels
     for ibinningfn = 1:nBinningfns
         binningfn = binningfnVec(ibinningfn);
         
+        disp([model num2str(binningfn)])
+        
         for isubj = 1:nSubj
             removetxtspaces(model,binningfn,isubj,optimMethod);
         end
@@ -113,7 +115,7 @@ end
 clear
 
 modelname = 'FP';
-binningfn = 4;
+binningfn = 3;
 subjids = 14;
 Mmax = 50;
 filepath = 'model/4_fitdata/';
