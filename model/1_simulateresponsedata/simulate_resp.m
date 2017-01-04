@@ -52,7 +52,7 @@ MU = mean(bestFitParam);
 SIGMA = cov(bestFitParam);
 
 fprintf('\n simulating %s responses for participant...', modelname)
-for isimsubj = 1:nSubj;
+for isimsubj = 1:nSubj
     fprintf('...%d \n',isimsubj);
     
     nnew_part = [150 zeros(1,19)]; nold_part = nnew_part; % setting to arbitrary values so while loop starts
