@@ -451,8 +451,8 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 % ======================================================
  clear all
 
-modelname = 'FP';
-binningfn = 4;
+modelname = 'REM';
+binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = [1:14];
 
@@ -562,11 +562,27 @@ end
 
 
 %% SIMULATING DATA WITH COVARIANCE STRUCTURE
+clear
 
-modelname = 'REM4';
-load(['paramfit_patternbayes_' modelname '.mat'])
-modelname = 'REM4';
-d0idx = 10;
+modelname = 'FP';
+binningfn = 4;
+load(['paramfit_patternbayes_' modelname num2str(binningfn) '.mat'])
+switch modelname
+    case 'FP'
+        switch binningfn
+            case 3
+                d0idx = 6;
+            case 4 
+                d0idx = 7;
+        end
+    case 'REM'
+        switch binningfn
+            case 3
+                d0idx = 9;
+            case 4 
+                d0idx = 10;
+        end
+end
 
 MU = mean(bestFitParam);
 SIGMA = cov(bestFitParam);
@@ -582,7 +598,7 @@ while size(trueparams,1)<nSubj
     tempparams(tempparams(:,1)<0,:) = []; % negative M
     tempparams(tempparams(:,end)<0,:) = []; % negative MC noise
     
-    switch modelname(1:end-1)
+    switch modelname
         case 'FP'
             tempparams(tempparams(:,2)<0,:) = []; % negative sigma
         case 'REM'
@@ -594,6 +610,13 @@ while size(trueparams,1)<nSubj
             tempparams(tempparams(:,4)>1,:) = [];
             tempparams(tempparams(:,5)<0,:) = []; % number of storage attempts
             tempparams(:,5) = round(tempparams(:,5)); 
+    end
+    
+    switch binningfn
+        case 3
+            
+        case 4
+            tempparams(tempparams(:,end-5)<0,:) = []; % positive scale
     end
     
     trueparams = [trueparams; tempparams];
@@ -608,12 +631,30 @@ nNew = nan(nSubj,20); nOld = nNew;
 for isubj = 1:nSubj
     isubj
     theta = trueparams(isubj,:);
-    [nNew(isubj,:), nOld(isubj,:)] = nLL_approx_vectorized( modelname(1:end-1), theta, str2double(modelname(end)), nnew_part, nold_part);
+    [nNew(isubj,:), nOld(isubj,:)] = nLL_approx_vectorized( modelname, theta, binningfn, nnew_part, nold_part);
 end
 
 % save sim data 
 load('model/subjdata.mat')
-simdata.(modelname).nnew = 4;
-simdata.(modelname).nold = 4;
-simdata.(modelname).trueparam = [nan(14,nParams); trueparams];
+modname = [modelname num2str(binningfn)];
+simdata.(modname).nnew = [nan(14,20); nNew];
+simdata.(modname).nold = [nan(14,20); nOld];
+simdata.(modname).trueparam = [nan(14,nParams); trueparams];
 save('model/subjdata.mat','nNew_part','nOld_part','simdata')
+
+
+%% plot some simulated subjects
+
+clear all
+modelname = 'REM';
+binningfn = 3;
+nSubj = 25;
+modname = [modelname num2str(binningfn)];
+load('model/subjdata.mat')
+
+figure;
+for isubj = 1:nSubj;
+    subplot(5,5,isubj)
+    plot(1:20,simdata.(modname).nnew(isubj+14,:)); hold on
+    plot(1:20,simdata.(modname).nold(isubj+14,:))
+end
