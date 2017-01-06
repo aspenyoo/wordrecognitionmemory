@@ -451,8 +451,8 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 % ======================================================
  clear all
 
-modelname = 'FP';
-binningfn = 4;
+modelname = 'REM';
+binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = [1:14];
 
@@ -563,10 +563,25 @@ end
 
 %% SIMULATING DATA WITH COVARIANCE STRUCTURE
 
-modelname = 'REM4';
-load(['paramfit_patternbayes_' modelname '.mat'])
-modelname = 'REM4';
-d0idx = 10;
+modelname = 'REM';
+binningfn = 4;
+load(['paramfit_patternbayes_' modelname num2str(binningfn) '.mat'])
+switch modelname
+    case 'FP'
+        switch binningfn
+            case 3
+                d0idx = 6;
+            case 4 
+                d0idx = 7;
+        end
+    case 'REM'
+        switch binningfn
+            case 3
+                d0idx = 9;
+            case 4 
+                d0idx = 10;
+        end
+end
 
 MU = mean(bestFitParam);
 SIGMA = cov(bestFitParam);
@@ -608,12 +623,13 @@ nNew = nan(nSubj,20); nOld = nNew;
 for isubj = 1:nSubj
     isubj
     theta = trueparams(isubj,:);
-    [nNew(isubj,:), nOld(isubj,:)] = nLL_approx_vectorized( modelname(1:end-1), theta, str2double(modelname(end)), nnew_part, nold_part);
+    [nNew(isubj,:), nOld(isubj,:)] = nLL_approx_vectorized( modelname, theta, binningfn, nnew_part, nold_part);
 end
 
 % save sim data 
 load('model/subjdata.mat')
-simdata.(modelname).nnew = 4;
-simdata.(modelname).nold = 4;
-simdata.(modelname).trueparam = [nan(14,nParams); trueparams];
+modname = [modelname num2str(binningfn)];
+simdata.(modname).nnew = 4;
+simdata.(modname).nold = 4;
+simdata.(modname).trueparam = [nan(14,nParams); trueparams];
 save('model/subjdata.mat','nNew_part','nOld_part','simdata')
