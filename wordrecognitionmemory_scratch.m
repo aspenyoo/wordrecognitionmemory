@@ -562,8 +562,9 @@ end
 
 
 %% SIMULATING DATA WITH COVARIANCE STRUCTURE
+clear
 
-modelname = 'REM';
+modelname = 'FP';
 binningfn = 4;
 load(['paramfit_patternbayes_' modelname num2str(binningfn) '.mat'])
 switch modelname
@@ -597,7 +598,7 @@ while size(trueparams,1)<nSubj
     tempparams(tempparams(:,1)<0,:) = []; % negative M
     tempparams(tempparams(:,end)<0,:) = []; % negative MC noise
     
-    switch modelname(1:end-1)
+    switch modelname
         case 'FP'
             tempparams(tempparams(:,2)<0,:) = []; % negative sigma
         case 'REM'
@@ -609,6 +610,13 @@ while size(trueparams,1)<nSubj
             tempparams(tempparams(:,4)>1,:) = [];
             tempparams(tempparams(:,5)<0,:) = []; % number of storage attempts
             tempparams(:,5) = round(tempparams(:,5)); 
+    end
+    
+    switch binningfn
+        case 3
+            
+        case 4
+            tempparams(tempparams(:,end-5)<0,:) = []; % positive scale
     end
     
     trueparams = [trueparams; tempparams];
@@ -629,7 +637,24 @@ end
 % save sim data 
 load('model/subjdata.mat')
 modname = [modelname num2str(binningfn)];
-simdata.(modname).nnew = 4;
-simdata.(modname).nold = 4;
+simdata.(modname).nnew = [nan(14,20); nNew];
+simdata.(modname).nold = [nan(14,20); nOld];
 simdata.(modname).trueparam = [nan(14,nParams); trueparams];
 save('model/subjdata.mat','nNew_part','nOld_part','simdata')
+
+
+%% plot some simulated subjects
+
+clear all
+modelname = 'REM';
+binningfn = 3;
+nSubj = 25;
+modname = [modelname num2str(binningfn)];
+load('model/subjdata.mat')
+
+figure;
+for isubj = 1:nSubj;
+    subplot(5,5,isubj)
+    plot(1:20,simdata.(modname).nnew(isubj+14,:)); hold on
+    plot(1:20,simdata.(modname).nold(isubj+14,:))
+end
