@@ -115,7 +115,7 @@ end
 clear
 
 modelname = 'FP';
-binningfn = 4;
+binningfn = 3;
 subjids = 14;
 Mmax = 50;
 filepath = 'model/4_fitdata/';
