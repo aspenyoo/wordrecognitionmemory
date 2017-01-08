@@ -637,8 +637,8 @@ end
 % save sim data 
 load('model/subjdata.mat')
 modname = [modelname num2str(binningfn)];
-simdata.(modname).nnew = [nan(14,20); nNew];
-simdata.(modname).nold = [nan(14,20); nOld];
+simdata.(modname).nnew = [nan(14,20); round(150.*nNew)];
+simdata.(modname).nold = [nan(14,20); round(150.*nOld)];
 simdata.(modname).trueparam = [nan(14,nParams); trueparams];
 save('model/subjdata.mat','nNew_part','nOld_part','simdata')
 
