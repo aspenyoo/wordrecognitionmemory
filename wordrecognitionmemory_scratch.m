@@ -451,7 +451,7 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 % ======================================================
  clear all
 
-modelname = 'REM';
+modelname = 'FP';
 binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = [1:14];
@@ -564,8 +564,8 @@ end
 %% SIMULATING DATA WITH COVARIANCE STRUCTURE
 clear
 
-modelname = 'FP';
-binningfn = 4;
+modelname = 'REM';
+binningfn = 3;
 load(['paramfit_patternbayes_' modelname num2str(binningfn) '.mat'])
 switch modelname
     case 'FP'

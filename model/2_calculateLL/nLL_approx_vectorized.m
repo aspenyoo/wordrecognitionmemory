@@ -25,8 +25,8 @@ function [ varargout ] = nLL_approx_vectorized( modelname, theta, binningfn, nne
 % Aspen Yoo - Nov 30, 2016
 
 if nargin < 6; fixparams = []; end
-if nargin < 7; nX = 10; end
-if nargin < 8; nS = 10; end
+if nargin < 7; nX = 30; end
+if nargin < 8; nS = 50; end
 if nargin < 9; nConf = 20; end
 
 rng('shuffle')
@@ -264,6 +264,7 @@ switch nargout
                     tempp(tempp < 0) = nan;
                     tempp(tempp > 1) = nan;
                     confbounds = scale.*(-log(tempp)).^(1/shift);
+                    
             end
             
             
