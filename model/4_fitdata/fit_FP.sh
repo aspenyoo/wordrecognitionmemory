@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l nodes=1:ppn=1
-#PBS -l walltime=24:00:00
+#PBS -l walltime=48:00:00
 #PBS -j oe
 #PBS -M aspen.yoo@nyu.edu
 #PBS -l mem=4GB
@@ -34,7 +34,7 @@ switch binningfn
 		fixparams = [1 7; nan 0];
 end
 
-joblistfile = []; % will do a different job per person. (if you want same for all, write joblist name)
+joblistfile = 'joblist_08012016.txt'; %[]; % will do a different job per person. (if you want same for all, write joblist name)
 
 cluster_wrap2(modelname, binningfn, isubj, joblistnum, joblistfile, fixparams)
 
