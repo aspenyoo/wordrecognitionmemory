@@ -53,46 +53,62 @@ sigma_mc = theta(end);
 assert(nParams == length(theta),'check number of parameters');
 
 if ~(sigma_mc)
-    ratingBounds = [ -Inf 1.5:(nConf - 0.5) Inf];
-    decisionboundary = fminsearch(@(x) abs(normpdf(x,mu_old,sigma_old) - normpdf(x)),rand); % finding decisionboundary and shifting the distributions over by it so that 0 is decision boundary
-    switch binningfn
-        case 0 % linear
-            confBounds = (ratingBounds-d0-nConf/2-0.5)./k +decisionboundary;
-        case 1
-            confBounds = -k.*log(nConf./(ratingBounds - 0.5)-1)+d0+decisionboundary;
-%         case 2 % logarithmic
-%             ratingBounds = [ 0 1.5:(nConf/2 - 0.5) Inf];
-%             confBounds = exp((ratingBounds-b)./a)-d0;
-%             confBounds(confBounds < 0) = 0;
-%             confBounds = [-confBounds(11:-1:2) confBounds]+decisionboundary;
-%         case 3 % power law
-% % %         case 4 % weibull %% I don't think this is correct
-%             ratingBounds = [ 0 1.5:(nConf/2 - 0.5) Inf];
-%             confBounds = -scale/shape.*log(ratingBounds - 1);
-%             confBounds(confBounds < 0) = 0;
-%             confBounds = [-confBounds(11:-1:2) confBounds]+decisionboundary;
-    end
-    
-    try
-        switch binningfn
-            case {0,1}
-                pnew = normcdf(confBounds(2:end)) - normcdf(confBounds(1:end-1));
-                pold = normcdf(confBounds(2:end),mu_old,sigma_old) - normcdf(confBounds(1:end-1),mu_old,sigma_old);
-            case {2,3}
-                pnew = normcdf(confBounds(2:end)) - normcdf(confBounds(1:end-1));
-                pold = normcdf(confBounds(2:end),mu_old,sigma_old) - normcdf(confBounds(1:end-1),mu_old,sigma_old);
-        end
-    catch
-        pnew = zeros(1,nConf);
-        pold = zeros(1,nConf);
-    end
-else % logarithmic binning on |d|
-    
-    nSamples = 100;
+    nSamples = 10000;
     nSDs = 4; % how far out you wanna bin
     
-    % finding a good region to numerically integrate over
+    % x: value of gaussian distribution
     x = linspace(min([0 mu_old]-nSDs.*[1 sigma_old]),max([0 mu_old]+nSDs.*[1 sigma_old]),nSamples);
+    
+    % y: value of sample from metacognitive noise distribution
+    y = linspace(-nSDs.*sigma_mc,nSDs.*sigma_mc,nSamples);
+    
+    % calculate probability distribution
+    pold_x = normpdf(x,mu_old,sigma_old);
+    pnew_x = normpdf(x,0,1);
+    
+    % normalize
+    pold_x = pold_x/sum(pold_x(:));
+    pnew_x = pnew_x/sum(pnew_x(:));
+    
+    % calculate decision variable
+    d = -log(sigma_old) - 1/2.*( ((x-mu_old).^2)./sigma_old.^2 - x.^2);
+    switch binningfn
+        case 2 % logarithmic
+            conf = round(a.*log(abs(d)) + b);
+        case 3 % power law
+            conf = round(a.*((abs(d).^gamma - 1)./gamma) + b); 
+        case 4 % weibull
+            conf = round(a.*(1 - exp(-(abs(d)./scale).^shape)) + b);
+    end
+    conf(conf < 1) = 1;
+    conf(conf > nConf/2) = nConf/2;
+    
+    % get proportion of responses 
+    idx_new = d < 0; % indices corresponding to "new" responses
+    idx_old = d >= 0; % indices corresponding to "old" responses
+    pold = nan(1,nConf);
+    pnew = nan(1,nConf);
+    for iconf = 1:nConf/2
+        
+        % indices that correspond to the current confidence value and resp
+        idx_new_conf = idx_new & (conf == iconf);
+        idx_old_conf = idx_old & (conf == iconf);
+        pnew(iconf+nConf/2) = sum(sum(pnew_x.*idx_old_conf)); 
+        pnew(nConf/2 + 1 - iconf) = sum(sum(pnew_x.*idx_new_conf)); 
+        pold(iconf+nConf/2) = sum(sum(pold_x.*idx_old_conf)); 
+        pold(nConf/2 + 1 - iconf) = sum(sum(pold_x.*idx_new_conf)); 
+    end    
+    confBounds = nan(1,nConf);
+
+else % metacognitive noise noise
+    
+    nSamples = 10000;
+    nSDs = 4; % how far out you wanna bin
+    
+    % x: value of gaussian distribution
+    x = linspace(min([0 mu_old]-nSDs.*[1 sigma_old]),max([0 mu_old]+nSDs.*[1 sigma_old]),nSamples);
+    
+    % y: value of sample from metacognitive noise distribution
     y = linspace(-nSDs.*sigma_mc,nSDs.*sigma_mc,nSamples);
     
     % calculate joint probability distribution
@@ -104,16 +120,16 @@ else % logarithmic binning on |d|
     jointdist_old = jointdist_old/sum(jointdist_old(:)); % normalize
     jointdist_new = jointdist_new/sum(jointdist_new(:));
     
-    % put through nonlinearity;
+    % calculate decision variable
     d = -log(sigma_old) - 1/2.*( ((x-mu_old).^2)./sigma_old.^2 - x.^2);
     [yy,dd] = meshgrid(y,d); % get 2D values of x and y
     switch binningfn
-        case 2
+        case 2 % logarithmic
             conf = round(a.*log(abs(dd)) + b + yy);
         case 3 % power law
             conf = round(a.*((abs(dd).^gamma - 1)./gamma) + b + yy); 
-        case 4
-            conf = round(1 - exp(-(abs(dd)./scale).^shape));
+        case 4 % weibull
+            conf = round(a.*(1 - exp(-(abs(dd)./scale).^shape)) + b + yy);
     end
     conf(conf < 1) = 1;
     conf(conf > nConf/2) = nConf/2;

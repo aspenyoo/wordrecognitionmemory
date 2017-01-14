@@ -451,7 +451,7 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 % ======================================================
  clear all
 
-modelname = 'FP';
+modelname = 'UVSD';
 binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = [1:14];
