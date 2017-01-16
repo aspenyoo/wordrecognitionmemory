@@ -1,8 +1,21 @@
-function removetxtspaces(modelname,binningfn,isubj,optimMethod,filepath)
-if nargin < 4; optimMethod = 'patternbayes'; end
-if nargin < 5; filepath = 'model/4_fitdata/BPSfits/'; end
+function removetxtspaces(modelname,binningfn,isubj,truemodelname,optimMethod,filepath)
+if nargin < 4; truemodelname = []; end
+if nargin < 5; optimMethod = 'patternbayes'; end
+if nargin < 6; filepath = 'model/4_fitdata/BPSfits/'; end
 
-filename = [filepath 'paramfit_' optimMethod '_' modelname num2str(binningfn) '_subj' num2str(isubj) '.txt'];
+% TRUEMODELNAME: should have modelname and binningfn. e.g., 'FP3' rather
+% than just 'FP'
+
+% subject IDs greater than 14 are always fake subjects
+if (isubj > 14) && isempty(truemodelname);
+    truemodelname = [modelname num2str(binningfn)];
+end
+
+if (truemodelname) % if there is a true model. i.e., if parameter/model recovery
+    filename = [filepath 'modelrecovery_' optimMethod '_' modelname num2str(binningfn) '_' truemodelname 'subj' num2str(isubj) '.txt'];
+else
+    filename = [filepath 'paramfit_' optimMethod '_' modelname num2str(binningfn) '_subj' num2str(isubj) '.txt'];
+end
 
 % Read the file as cell string line by line
 fid = fopen(filename,'r');

@@ -69,13 +69,13 @@ ylim([ 1 20])
 
 %% remove txt spacing for models and subjects
 
-modelVec = {'FP','REM'};
+modelVec = {'FP'};
 binningfnVec = [3 4];
-optimMethod = 'patternbayes';
 
 nModels = length(modelVec);
 nBinningfns = length(binningfnVec);
-nSubj = 14;
+subjidVec = 15:36;
+nSubj = length(subjidVec);
 
 
 for imodel = 1:nModels
@@ -87,7 +87,8 @@ for imodel = 1:nModels
         disp([model num2str(binningfn)])
         
         for isubj = 1:nSubj
-            removetxtspaces(model,binningfn,isubj,optimMethod);
+            subjid = subjidVec(isubj)
+            removetxtspaces(model,binningfn,subjid);
         end
     end
 end
@@ -115,8 +116,9 @@ end
 clear
 
 modelname = 'FP';
-binningfn = 3;
-subjids = 14;
+binningfn = 4;
+subjidVec = 15:36;
+nSubj = length(subjidVec);
 Mmax = 50;
 filepath = 'model/4_fitdata/';
 approxTime = linspace(.22*1000/3600,4.61*1000/3600,50);
@@ -124,9 +126,9 @@ maxTime = 12;
 nJobs = [];
 nStartVals = 10;
 
-for isubj = 1:subjids
-    isubj
-    subjid = isubj;%subjids(isubj);
+for isubj = 1:nSubj
+    
+    subjid = subjidVec(isubj)
     
     jobnumVec = []; estTimeVec = [];
     for iM = 1:Mmax
@@ -383,23 +385,52 @@ nLLVec
 
 clear all
 
-modelnames = {'FP','FP'};
-binningfns = [3 5];
+modelnameVec = {'UVSD3','FP3','FP4','REM3','REM4'};
 optimMethod = 'patternbayes';
-nModels = length(modelnames);
+nModels = length(modelnameVec);
 nSubj = 14;
+numObs = 300;
 
-AICVec = nan(nSubj,nModels);
+BICMat = nan(nSubj,nModels);
+AICMat = nan(nSubj,nModels);
 nLLMat = nan(nSubj,nModels);
 for imodel = 1:nModels;
-    modelname = modelnames{imodel};
-    binningfn = binningfns(imodel);
-    load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat']) % load bestFitParam
-    k = size(bestFitParam,2) -1
+    modelname = modelnameVec{imodel};
+    load(['paramfit_' optimMethod '_' modelname '.mat']) % load bestFitParam
+    k = size(bestFitParam,2) - 1;
     
     nLLMat(:,imodel) = nLL_est;
-    AICVec(:,imodel) = 2*(k + nLL_est);
+    AICMat(:,imodel) = 2*(k + nLL_est);
+    BICMat(:,imodel) = 2*nLL_est + k.*log(numObs);
 end
+
+%% plot model comparison
+
+refmodelidx = 1; % which column is the reference model
+
+
+blah = bsxfun(@minus,AICMat,AICMat(:,refmodelidx));
+mean_AICMat = mean(blah);
+sem_AICMat = std(blah)./sqrt(size(AICMat,1));
+figure;
+bar(blah')
+hold on;
+errorbar(1:size(AICMat,2),mean_AICMat,sem_AICMat);
+title('\Delta AIC')
+defaultplot
+set(gca,'XTickLabel',modelnameVec)
+
+
+bleh = bsxfun(@minus,BICMat,BICMat(:,refmodelidx));
+mean_BICMat = mean(bleh);
+sem_BICMat = std(bleh)./sqrt(size(BICMat,1));
+figure;
+bar(bleh')
+hold on;
+errorbar(1:size(BICMat,2),mean_BICMat,sem_BICMat);
+title('\Delta BIC')
+defaultplot
+set(gca,'XTickLabel',modelnameVec)
 
 %% get UVSD binning to work
 % 08.26.2016
@@ -424,8 +455,13 @@ clear all
 
 modelname = 'UVSD';
 binningfn = 4;
-fixparams = [6; 0];
-nStartVals = 2;
+switch binningfn
+    case 3
+        fixparams = [6; 0];
+    case 4
+        fixparams = [7; 0];
+end
+nStartVals = 4;
 
 blah = GetSecs;
 for isubj = 1:14
