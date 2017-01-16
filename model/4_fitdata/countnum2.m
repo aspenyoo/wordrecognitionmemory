@@ -1,5 +1,5 @@
 function count = countnum2(testmodelname,binningfn,isubj,fixparams, truemodelname, optimMethod)
-if nargin < 5; truemodelname = testmodelname; end
+if nargin < 5; truemodelname = [testmodelname num2str(binningfn)]; end
 if nargin < 6; optimMethod = 'patternbayes'; end
 
 filename = ['paramfit_' optimMethod '_' testmodelname num2str(binningfn) '_subj' num2str(isubj) '.txt'];

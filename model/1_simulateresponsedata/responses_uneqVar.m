@@ -53,7 +53,7 @@ sigma_mc = theta(end);
 assert(nParams == length(theta),'check number of parameters');
 
 if ~(sigma_mc)
-    nSamples = 10000;
+    nSamples = 100;
     nSDs = 4; % how far out you wanna bin
     
     % x: value of gaussian distribution
@@ -72,13 +72,14 @@ if ~(sigma_mc)
     
     % calculate decision variable
     d = -log(sigma_old) - 1/2.*( ((x-mu_old).^2)./sigma_old.^2 - x.^2);
+    q = abs(d + d0);
     switch binningfn
         case 2 % logarithmic
-            conf = round(a.*log(abs(d)) + b);
+            conf = round(a.*log(q) + b);
         case 3 % power law
-            conf = round(a.*((abs(d).^gamma - 1)./gamma) + b); 
+            conf = round(a.*((q.^gamma - 1)./gamma) + b); 
         case 4 % weibull
-            conf = round(a.*(1 - exp(-(abs(d)./scale).^shape)) + b);
+            conf = round(a.*(1 - exp(-(q./scale).^shape)) + b);
     end
     conf(conf < 1) = 1;
     conf(conf > nConf/2) = nConf/2;
@@ -102,7 +103,7 @@ if ~(sigma_mc)
 
 else % metacognitive noise noise
     
-    nSamples = 10000;
+    nSamples = 100;
     nSDs = 4; % how far out you wanna bin
     
     % x: value of gaussian distribution
@@ -122,21 +123,22 @@ else % metacognitive noise noise
     
     % calculate decision variable
     d = -log(sigma_old) - 1/2.*( ((x-mu_old).^2)./sigma_old.^2 - x.^2);
-    [yy,dd] = meshgrid(y,d); % get 2D values of x and y
+    q = abs(d + d0);
+    [yy,qq] = meshgrid(y,q); % get 2D values of x and y
     switch binningfn
         case 2 % logarithmic
-            conf = round(a.*log(abs(dd)) + b + yy);
+            conf = round(a.*log(qq) + b + yy);
         case 3 % power law
-            conf = round(a.*((abs(dd).^gamma - 1)./gamma) + b + yy); 
+            conf = round(a.*((qq.^gamma - 1)./gamma) + b + yy); 
         case 4 % weibull
-            conf = round(a.*(1 - exp(-(abs(dd)./scale).^shape)) + b + yy);
+            conf = round(a.*(1 - exp(-(qq./scale).^shape)) + b + yy);
     end
     conf(conf < 1) = 1;
     conf(conf > nConf/2) = nConf/2;
     
     % get proportion of responses 
-    idx_new = dd < 0; % indices corresponding to "new" responses
-    idx_old = dd >= 0; % indices corresponding to "old" responses
+    idx_new = qq < 0; % indices corresponding to "new" responses
+    idx_old = qq >= 0; % indices corresponding to "old" responses
     pold = nan(1,nConf);
     pnew = nan(1,nConf);
     for iconf = 1:nConf/2
