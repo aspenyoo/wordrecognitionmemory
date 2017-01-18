@@ -160,6 +160,11 @@ filepath = 'model/4_fitdata/';
 jobfilename = [filepath 'joblist_09052016.txt'];
 create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 
+%% % % % % % % % % % % % % % % % % % % % % % % % % % % 
+%           CHECKING THINGS
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+
+
 
 %% checking nLLs are consistent (debugging)
 % 08.15.2016
@@ -380,12 +385,14 @@ end
 
 nLLVec
 
-%% model comparison (AIC)
+%% % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% model comparison (AIC)
 % 08182016
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % 
 
 clear all
 
-modelnameVec = {'UVSD3','FP3','FP4','REM3','REM4'};
+modelnameVec = {'UVSD3','UVSD4','FP3','FP4','REM3','REM4'};
 optimMethod = 'patternbayes';
 nModels = length(modelnameVec);
 nSubj = 14;
@@ -406,7 +413,7 @@ end
 
 %% plot model comparison
 
-refmodelidx = 1; % which column is the reference model
+refmodelidx = 4; % which column is the reference model
 
 
 blah = bsxfun(@minus,AICMat,AICMat(:,refmodelidx));
@@ -464,11 +471,11 @@ end
 nStartVals = 4;
 
 blah = GetSecs;
-for isubj = 1:14
+for isubj = 13:14
     isubj
     fitdata_cluster(isubj, modelname, binningfn, fixparams,[],[],nStartVals);
 end
-timee = GetSecs - blah
+% timee = GetSecs - blah
 
 %% looking at how confhist is calculated. debugging
 % 08.29.2016
@@ -488,13 +495,13 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
  clear all
 
 modelname = 'UVSD';
-binningfn = 3;
+binningfn = 4;
 optimMethod = 'patternbayes';
 subjids = [1:14];
 
 %% remove txt spacing
 for isubj = subjids
-    removetxtspaces(modelname,binningfn,isubj,optimMethod);
+    removetxtspaces(modelname,binningfn,isubj);
 end
 
 %% get MLE parameter estimates
@@ -506,7 +513,7 @@ load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
 
 %% plot best fit parameters
 subjids = [1:14];
-plotparamfits(modelname,bestFitParam(subjids,:),binningfn, 20, 0, subjids, [1 1 1 0])
+plotparamfits(modelname,bestFitParam(subjids,:),binningfn, 20, 0, subjids, [ 0 0 1 0])
 
 %% calculate pnew and pold and save in file for ronald
 load('subjdata.mat')

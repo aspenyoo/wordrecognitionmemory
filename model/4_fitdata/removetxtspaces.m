@@ -26,8 +26,9 @@ fclose(fid);
 
 % remove empty lines
 idxsMat = [];
-for i = 1:9
-    tempidx = cellfun(@(x) min([find(x == num2str(i)) Inf]),Data{1},'UniformOutput',false);
+digitss = 0:9;
+for i = 1:10
+    tempidx = cellfun(@(x) min([find(x == num2str(digitss(i))) Inf]),Data{1},'UniformOutput',false);
     idxsMat = [idxsMat tempidx];
 end
 idxMat = min(cell2mat(idxsMat),[],2);

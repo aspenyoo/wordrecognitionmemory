@@ -124,6 +124,7 @@ else % metacognitive noise noise
     % calculate decision variable
     d = -log(sigma_old) - 1/2.*( ((x-mu_old).^2)./sigma_old.^2 - x.^2);
     q = abs(d + d0);
+    [~,dd] = meshgrid(y,d); % get 2D of d
     [yy,qq] = meshgrid(y,q); % get 2D values of x and y
     switch binningfn
         case 2 % logarithmic
@@ -137,8 +138,8 @@ else % metacognitive noise noise
     conf(conf > nConf/2) = nConf/2;
     
     % get proportion of responses 
-    idx_new = qq < 0; % indices corresponding to "new" responses
-    idx_old = qq >= 0; % indices corresponding to "old" responses
+    idx_new = dd < 0; % indices corresponding to "new" responses
+    idx_old = dd >= 0; % indices corresponding to "old" responses
     pold = nan(1,nConf);
     pnew = nan(1,nConf);
     for iconf = 1:nConf/2
