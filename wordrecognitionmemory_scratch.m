@@ -74,7 +74,7 @@ binningfnVec = [3 4];
 
 nModels = length(modelVec);
 nBinningfns = length(binningfnVec);
-subjidVec = 15:36;
+subjidVec = 15:29;
 nSubj = length(subjidVec);
 
 
@@ -97,9 +97,9 @@ end
 %% separate jobs for each person
 clear
 
-modelname = 'FP';
-binningfn = 3;
-subjidVec = 15:36;
+modelname = 'REM';
+binningfn = 4;
+subjidVec = 15:29;
 nSubj = length(subjidVec);
 Mmax = 50;
 filepath = 'model/4_fitdata/';
