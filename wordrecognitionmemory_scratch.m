@@ -380,16 +380,14 @@ nModels = length(modelnameVec);
 nSubj = 14;
 numObs = 300;
 
-BICMat = nan(nSubj,nModels);
-AICMat = nan(nSubj,nModels);
-nLLMat = nan(nSubj,nModels);
+[BICMat, AICcMat, nLLMat] = deal(nan(nSubj,nModels));
 for imodel = 1:nModels;
     modelname = modelnameVec{imodel};
     load(['paramfit_' optimMethod '_' modelname '.mat']) % load bestFitParam
     k = size(bestFitParam,2) - 1;
     
     nLLMat(:,imodel) = nLL_est;
-    AICMat(:,imodel) = 2*(k + nLL_est);
+    AICcMat(:,imodel) = 2*(k + nLL_est) + (2*(k+1)*(k+2))/(numObs-k-2);
     BICMat(:,imodel) = 2*nLL_est + k.*log(numObs);
 end
 
@@ -398,14 +396,14 @@ end
 refmodelidx = 4; % which column is the reference model
 
 
-blah = bsxfun(@minus,AICMat,AICMat(:,refmodelidx));
+blah = bsxfun(@minus,AICcMat,AICcMat(:,refmodelidx));
 mean_AICMat = mean(blah);
-sem_AICMat = std(blah)./sqrt(size(AICMat,1));
+sem_AICMat = std(blah)./sqrt(size(AICcMat,1));
 figure;
 bar(blah')
 hold on;
-errorbar(1:size(AICMat,2),mean_AICMat,sem_AICMat);
-title('\Delta AIC')
+errorbar(1:size(AICcMat,2),mean_AICMat,sem_AICMat);
+title('\Delta AICc')
 defaultplot
 set(gca,'XTickLabel',modelnameVec)
 
