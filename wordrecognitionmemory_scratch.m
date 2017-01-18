@@ -69,7 +69,7 @@ ylim([ 1 20])
 
 %% remove txt spacing for models and subjects
 
-modelVec = {'FP'};
+modelVec = {'REM'};
 binningfnVec = [3 4];
 
 nModels = length(modelVec);
@@ -94,35 +94,17 @@ for imodel = 1:nModels
 end
 
 
-%% checking which jobs need to be resubmitted
-
-modelname = 'FP';
-binningfn = 4;
-optimMethod = 'patternbayes';
-nSubj = 14;
-z = nan(50,2);
-
-for isubj = 1:nSubj
-    removetxtspaces(modelname,binningfn,isubj,optimMethod)
-    isubj
-    for i=1:50
-        z(i,2) = countnum2(modelname,binningfn,isubj,[1; i]);
-        z(i,1)=i;
-    end
-    z'
-end
-
 %% separate jobs for each person
 clear
 
 modelname = 'FP';
-binningfn = 4;
+binningfn = 3;
 subjidVec = 15:36;
 nSubj = length(subjidVec);
 Mmax = 50;
 filepath = 'model/4_fitdata/';
 approxTime = linspace(.22*1000/3600,4.61*1000/3600,50);
-maxTime = 12;
+maxTime = 24;
 nJobs = [];
 nStartVals = 10;
 
