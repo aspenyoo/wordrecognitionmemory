@@ -85,7 +85,7 @@ end
 
 % ===== INDVL PLOT =====
 if (selectiveplot(1))
-    figure('units','normalized','outerposition',[0 0 1 1]);
+    if sum(selectiveplot)>1; figure('units','normalized','outerposition',[0 0 1 1]);end
     
     for isubjnum = 1:nSubj;
         
@@ -187,8 +187,9 @@ if (selectiveplot(2))
     sem_pOld_est = std(pOld_est)/sqrt(nSubj);
     
     % plots
-    figure('units','normalized','outerposition',[0 0 2/3 2/3]); hold on;
+    if sum(selectiveplot)>1; figure('units','normalized','outerposition',[0 0 2/3 2/3]); end
     
+    hold on;
     errfNew = fill([1:nConf, nConf:-1:1],[pNew_estSum-sem_pNew_est ...
         fliplr(pNew_estSum+sem_pNew_est) ], greyblue);
     errfOld = fill([1:nConf, nConf:-1:1],[pOld_estSum-sem_pOld_est ...
@@ -255,7 +256,7 @@ end
 % ===== INDVL DPLOT =====
 
 if (selectiveplot(3))
-    figure('units','normalized','outerposition',[0 0 1 1]);
+    if sum(selectiveplot)>1; figure('units','normalized','outerposition',[0 0 1 1]);end
     for isubjnum = 1:nSubj;
         
         isubj = subjnum(isubjnum);
@@ -297,8 +298,9 @@ end
 if (selectiveplot(4))
     
     % plots
-    figure('units','normalized','outerposition',[0 0 2/3 2/3]); hold on;
+    if sum(selectiveplot)>1; figure('units','normalized','outerposition',[0 0 2/3 2/3]); end
     
+    hold on;
     modelNew = boxplot(pNew_est       ,...
         'plotstyle'    , 'compact'  ,...
         'boxstyle'     ,'outline'   ,...
@@ -348,7 +350,7 @@ if (selectiveplot(4))
     % LABELS
     
     % label
-    text(.39,.39,'average participant');
+%     text(.39,.39,'average participant');
     title([modelname]);
     ylabel('Proportion');
     xlabel('Bin Number');
