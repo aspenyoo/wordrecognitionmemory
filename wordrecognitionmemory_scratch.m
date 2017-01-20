@@ -70,7 +70,7 @@ ylim([ 1 20])
 %% remove txt spacing for models and subjects
 
 modelVec = {'FP'};
-binningfnVec = [3];
+binningfnVec = [3 4];
 
 nModels = length(modelVec);
 nBinningfns = length(binningfnVec);
@@ -97,14 +97,14 @@ end
 %% separate jobs for each person
 clear
 
-modelname = 'FP';
-binningfn = 3;
-subjidVec = [15 17:36];
+modelname = 'REM';
+binningfn = 4;
+subjidVec = [30:36];
 nSubj = length(subjidVec);
 Mmax = 50;
 filepath = 'model/4_fitdata/';
 approxTime = linspace(.22*1000/3600,4.61*1000/3600,50);
-maxTime = 24;
+maxTime = 18;
 nJobs = [];
 nStartVals = 10;
 
