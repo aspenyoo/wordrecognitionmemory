@@ -69,12 +69,12 @@ ylim([ 1 20])
 
 %% remove txt spacing for models and subjects
 
-modelVec = {'FP'};
-binningfnVec = [3 4];
+modelVec = {'REM'};
+binningfnVec = [4];
 
 nModels = length(modelVec);
 nBinningfns = length(binningfnVec);
-subjidVec = [15 17:36];
+subjidVec = [15:29];
 nSubj = length(subjidVec);
 
 
@@ -98,8 +98,8 @@ end
 clear
 
 modelname = 'REM';
-binningfn = 4;
-subjidVec = [30:36];
+binningfn = 3;
+subjidVec = [20:36];
 nSubj = length(subjidVec);
 Mmax = 50;
 filepath = 'model/4_fitdata/';
