@@ -374,14 +374,14 @@ nLLVec
 
 clear all
 
-modelnameVec = {'UVSD3','UVSD4','FP3','FP4','REM3','REM4'};
+modelnameVec = {'FP3','FP4','UVSD3','UVSD4','REM3','REM4'};
 optimMethod = 'patternbayes';
 nModels = length(modelnameVec);
 nSubj = 14;
 numObs = 300;
 
 [BICMat, AICcMat, nLLMat] = deal(nan(nSubj,nModels));
-for imodel = 1:nModels;
+for imodel = 1:nModels
     modelname = modelnameVec{imodel};
     load(['paramfit_' optimMethod '_' modelname '.mat']) % load bestFitParam
     k = size(bestFitParam,2) - 1;
@@ -393,22 +393,22 @@ end
 
 %% plot model comparison
 
-refmodelidx = 4; % which column is the reference model
+refmodelidx = 1; % which column is the reference model
 
-
-blah = bsxfun(@minus,AICcMat,AICcMat(:,refmodelidx));
-mean_AICMat = mean(blah);
-sem_AICMat = std(blah)./sqrt(size(AICcMat,1));
+[blah, idx] = sortrows(bsxfun(@minus,AICcMat,AICcMat(:,refmodelidx)));
+mean_AICcMat = mean(blah);
+sem_AICcMat = std(blah)./sqrt(size(AICcMat,1));
 figure;
 bar(blah')
 hold on;
-errorbar(1:size(AICcMat,2),mean_AICMat,sem_AICMat);
+errorbar(1:size(AICcMat,2),mean_AICcMat,sem_AICcMat);
 title('\Delta AICc')
 defaultplot
 set(gca,'XTickLabel',modelnameVec)
 
 
 bleh = bsxfun(@minus,BICMat,BICMat(:,refmodelidx));
+bleh = bleh(idx,:);
 mean_BICMat = mean(bleh);
 sem_BICMat = std(bleh)./sqrt(size(BICMat,1));
 figure;
@@ -418,6 +418,22 @@ errorbar(1:size(BICMat,2),mean_BICMat,sem_BICMat);
 title('\Delta BIC')
 defaultplot
 set(gca,'XTickLabel',modelnameVec)
+
+%% get pairwise counts of winning models
+
+[counts_AICc, counts_BIC] = deal(nan(nModels));
+for imodel = 1:nModels
+    Delta_AICc = bsxfun(@minus,AICcMat,AICcMat(:,imodel));
+    Delta_BIC = bsxfun(@minus,BICMat,BICMat(:,imodel));
+    
+    counts_AICc(imodel,:) = sum(sign(Delta_AICc) == 1);
+    counts_BIC(imodel,:) = sum(sign(Delta_BIC) == 1);
+    
+end
+
+%% % % % % % % % % % % % % % %
+% UVSD STUFF
+% % % % % % % % % % % % % % % %
 
 %% get UVSD binning to work
 % 08.26.2016
