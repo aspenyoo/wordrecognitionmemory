@@ -490,8 +490,8 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 % ======================================================
  clear all
 
-modelname = 'UVSD';
-binningfn = 4;
+modelname = 'FP';
+binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = [1:14];
 
@@ -509,7 +509,7 @@ load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
 
 %% plot best fit parameters
 subjids = [1:14];
-plotparamfits(modelname,bestFitParam(subjids,:),binningfn, 20, 0, subjids, [ 0 0 1 0])
+plotparamfits(modelname,bestFitParam(subjids,:),binningfn, 20, 0, subjids, [ 1 0 0 0])
 
 %% calculate pnew and pold and save in file for ronald
 load('subjdata.mat')

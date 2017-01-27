@@ -7,8 +7,8 @@
 
 modelname = 'FP';
 binningfn = 3;
-thetaMat = [20 3.5 25 7 2.5 0 0;     % lower encoding strength
-            30 3.5 25 7 2.5 0 0];      % higher encoding strength
+thetaMat = [14    0.94    2    5.1995    0.527         0    1.2988;     % lower encoding strength
+            14    0.8    2    5.1995    0.527         0    1.2988];      % higher encoding strength
 islogbinning = 1; 
 nX = 10; 
 nS = 10;
