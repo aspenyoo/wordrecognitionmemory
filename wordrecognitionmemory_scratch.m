@@ -491,7 +491,7 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
  clear all
 
 modelname = 'FP';
-binningfn = 3;
+binningfn = 4;
 optimMethod = 'patternbayes';
 subjids = [1:14];
 

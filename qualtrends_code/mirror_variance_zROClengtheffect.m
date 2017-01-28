@@ -7,8 +7,13 @@
 
 modelname = 'FP';
 binningfn = 3;
-thetaMat = [14    0.94    2    5.1995    0.527         0    1.2988;     % lower encoding strength
-            14    0.8    2    5.1995    0.527         0    1.2988];      % higher encoding strength
+% thetaMat = [14    0.95    2.1518    5.2    0.1227        0    1;     % lower encoding strength
+%             16    0.95    2.1518    5.2    0.1227        0    1];      % higher encoding strength
+thetaMat = [14    0.95    2.1518    5.2    0.1227        0    1;     % lower encoding strength
+            14    0.7    2.1518    5.2    0.1227        0    1];      % higher encoding strength
+% binningfn = 4;
+% thetaMat = [14 1.2    1.1   1.4263    7.1316    1.2082         0    0.8328;       % lower encoding strength
+%             14 0.9    1.1   1.4263    7.1316    1.2082         0    0.8328];    % higher encoding strength
 islogbinning = 1; 
 nX = 10; 
 nS = 10;
@@ -36,12 +41,12 @@ for icond = 1:nCond
     mean_nold(icond,:) = squeeze(mean(nOld,1))./sum(squeeze(mean(nOld,1)));     % averaging across iterations and normalizing
 end
 
-figure;
-clf
+figure(1);
+subplot(2,2,3)
 colorss = [0.7*ones(1,3); zeros(1,3)];
 % newsimcolors = aspencolors(nCond+1,'blue');
 % oldsimcolors = [0.9 0.9 0.7; aspencolors('dustygold')];
-for icond = 1:nCond
+for icond = 1:2
     plot(1:20,mean_nnew(icond,:),'Color',colorss(icond,:)); hold on;
     plot(1:20,mean_nold(icond,:),'Color',colorss(icond,:));
 end
@@ -99,11 +104,11 @@ else
     display('zROC length effect DOES NOT hold!')
 end
 
-figure;
+subplot(2,2,4)
 plot(zSN,zSO,'Color',colorss(1,:));hold on
 plot(zWN,zWO,'Color',colorss(2,:)); % plot both zROCs
 defaultplot; xlabel('zFA'); ylabel('zHit')
-legend('strong condition','weak condition')
+legend('weak','strong')
 title('zROC')
 % axis([-3 1 -1 3])
 ax = gca; ax.XTick = -3;1; ax.YTick = -1:3;
