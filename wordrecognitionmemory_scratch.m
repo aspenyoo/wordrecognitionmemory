@@ -368,7 +368,7 @@ end
 nLLVec
 
 %% % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% model comparison (AIC)
+% model comparison
 % 08182016
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
 
@@ -393,31 +393,86 @@ end
 
 %% plot model comparison
 
-refmodelidx = 1; % which column is the reference model
+refmodelidx = 2; % which column is the reference model
+modelidxVec = 1:nModels;
+modelidxVec(refmodelidx) = [];
+fillamnt = 0.45;
 
 [blah, idx] = sortrows(bsxfun(@minus,AICcMat,AICcMat(:,refmodelidx)));
+% blah = bsxfun(@minus,AICcMat,AICcMat(:,refmodelidx));
+% idx = 1:14;
 mean_AICcMat = mean(blah);
 sem_AICcMat = std(blah)./sqrt(size(AICcMat,1));
-figure;
-bar(blah')
-hold on;
-errorbar(1:size(AICcMat,2),mean_AICcMat,sem_AICcMat);
+figure, hold on;
+for imodel = 1:nModels-1
+    currmodidx = modelidxVec(imodel);
+    
+    fill([imodel-fillamnt imodel+fillamnt imodel+fillamnt imodel-fillamnt],...
+        [mean_AICcMat(currmodidx)-sem_AICcMat(currmodidx) mean_AICcMat(currmodidx)-sem_AICcMat(currmodidx) ...
+        mean_AICcMat(currmodidx)+sem_AICcMat(currmodidx) mean_AICcMat(currmodidx)+sem_AICcMat(currmodidx)],...
+        0.8*ones(1,3),'EdgeColor','none')
+end
+bar(blah(:,modelidxVec)')
+% errorbar(1:size(AICcMat,2),mean_AICcMat,sem_AICcMat);
 title('\Delta AICc')
 defaultplot
-set(gca,'XTickLabel',modelnameVec)
+set(gca,'XTick',1:nModels-1,'XTickLabel',modelnameVec(modelidxVec))
 
 
 bleh = bsxfun(@minus,BICMat,BICMat(:,refmodelidx));
 bleh = bleh(idx,:);
 mean_BICMat = mean(bleh);
 sem_BICMat = std(bleh)./sqrt(size(BICMat,1));
-figure;
-bar(bleh')
-hold on;
-errorbar(1:size(BICMat,2),mean_BICMat,sem_BICMat);
+figure, hold on;
+for imodel = 1:nModels-1
+    currmodidx = modelidxVec(imodel);
+    
+    fill([imodel-fillamnt imodel+fillamnt imodel+fillamnt imodel-fillamnt],...
+        [mean_BICMat(currmodidx)-sem_BICMat(currmodidx) mean_BICMat(currmodidx)-sem_BICMat(currmodidx) ...
+        mean_BICMat(currmodidx)+sem_BICMat(currmodidx) mean_BICMat(currmodidx)+sem_BICMat(currmodidx)],...
+        0.8*ones(1,3),'EdgeColor','none')
+end
+bar(bleh(:,modelidxVec)')
 title('\Delta BIC')
 defaultplot
-set(gca,'XTickLabel',modelnameVec)
+set(gca,'XTick',1:nModels-1,'XTickLabel',modelnameVec(modelidxVec))
+
+%% just averaged bars for AICc BIC
+fillamnt = 0.45;
+sideamnt = 0.01;
+
+blah = bsxfun(@minus,AICcMat,AICcMat(:,refmodelidx));
+bleh = bsxfun(@minus,BICMat,BICMat(:,refmodelidx));
+
+figure, hold on;
+for imodel = 1:nModels-1
+    currmodidx = modelidxVec(imodel);
+    
+    % AICc average
+    fill([imodel-fillamnt imodel-sideamnt imodel-sideamnt imodel-fillamnt],...
+        [mean_AICcMat(currmodidx)-sem_AICcMat(currmodidx) mean_AICcMat(currmodidx)-sem_AICcMat(currmodidx) ...
+        mean_AICcMat(currmodidx)+sem_AICcMat(currmodidx) mean_AICcMat(currmodidx)+sem_AICcMat(currmodidx)],...
+        aspencolors('salmon'),'EdgeColor','none')
+    
+    % BIC average
+    fill([imodel+sideamnt imodel+fillamnt imodel+fillamnt imodel+sideamnt],...
+        [mean_BICMat(currmodidx)-sem_BICMat(currmodidx) mean_BICMat(currmodidx)-sem_BICMat(currmodidx) ...
+        mean_BICMat(currmodidx)+sem_BICMat(currmodidx) mean_BICMat(currmodidx)+sem_BICMat(currmodidx)],...
+        aspencolors('booger'),'EdgeColor','none')
+    
+    % AICc indvl
+    xx = linspace(imodel-fillamnt+2*sideamnt,imodel-4*sideamnt,nSubj);
+    plot(xx,blah(:,currmodidx),'.','Color',aspencolors('berry'))
+    
+    % BIC indvl
+    xx = linspace(imodel+2*sideamnt,imodel+fillamnt-2*sideamnt,nSubj);
+    plot(xx,bleh(:,currmodidx),'.','Color',aspencolors('green'))
+    
+end
+plot([0.5 5.5],[0 0],'k','LineWidth',1)
+legend('AICc','BIC')
+defaultplot
+set(gca,'XTick',1:nModels-1,'XTickLabel',modelnameVec(modelidxVec))
 
 %% get pairwise counts of winning models
 
@@ -426,8 +481,8 @@ for imodel = 1:nModels
     Delta_AICc = bsxfun(@minus,AICcMat,AICcMat(:,imodel));
     Delta_BIC = bsxfun(@minus,BICMat,BICMat(:,imodel));
     
-    counts_AICc(imodel,:) = sum(sign(Delta_AICc) == 1);
-    counts_BIC(imodel,:) = sum(sign(Delta_BIC) == 1);
+    counts_AICc(imodel,:) = sum(sign(Delta_AICc) == -1);
+    counts_BIC(imodel,:) = sum(sign(Delta_BIC) == -1);
     
 end
 
