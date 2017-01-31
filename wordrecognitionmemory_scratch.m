@@ -391,18 +391,28 @@ for imodel = 1:nModels
     BICMat(:,imodel) = 2*nLL_est + k.*log(numObs);
 end
 
-%% plot model comparison
+% % get means and SEMs of difference
 
 refmodelidx = 2; % which column is the reference model
 modelidxVec = 1:nModels;
 modelidxVec(refmodelidx) = [];
-fillamnt = 0.45;
 
-[blah, idx] = sortrows(bsxfun(@minus,AICcMat,AICcMat(:,refmodelidx)));
-% blah = bsxfun(@minus,AICcMat,AICcMat(:,refmodelidx));
-% idx = 1:14;
+% 
+% [blah, idx] = sortrows(bsxfun(@minus,AICcMat,AICcMat(:,refmodelidx)));
+blah = bsxfun(@minus,AICcMat,AICcMat(:,refmodelidx));
+idx = 1:14;
 mean_AICcMat = mean(blah);
 sem_AICcMat = std(blah)./sqrt(size(AICcMat,1));
+
+bleh = bsxfun(@minus,BICMat,BICMat(:,refmodelidx));
+bleh = bleh(idx,:);
+mean_BICMat = mean(bleh);
+sem_BICMat = std(bleh)./sqrt(size(BICMat,1));
+
+%% plot model comparison
+
+fillamnt = 0.45;
+
 figure, hold on;
 for imodel = 1:nModels-1
     currmodidx = modelidxVec(imodel);
@@ -418,11 +428,6 @@ title('\Delta AICc')
 defaultplot
 set(gca,'XTick',1:nModels-1,'XTickLabel',modelnameVec(modelidxVec))
 
-
-bleh = bsxfun(@minus,BICMat,BICMat(:,refmodelidx));
-bleh = bleh(idx,:);
-mean_BICMat = mean(bleh);
-sem_BICMat = std(bleh)./sqrt(size(BICMat,1));
 figure, hold on;
 for imodel = 1:nModels-1
     currmodidx = modelidxVec(imodel);
@@ -438,11 +443,9 @@ defaultplot
 set(gca,'XTick',1:nModels-1,'XTickLabel',modelnameVec(modelidxVec))
 
 %% just averaged bars for AICc BIC
+
 fillamnt = 0.45;
 sideamnt = 0.01;
-
-blah = bsxfun(@minus,AICcMat,AICcMat(:,refmodelidx));
-bleh = bsxfun(@minus,BICMat,BICMat(:,refmodelidx));
 
 figure, hold on;
 for imodel = 1:nModels-1
@@ -462,14 +465,16 @@ for imodel = 1:nModels-1
     
     % AICc indvl
     xx = linspace(imodel-fillamnt+2*sideamnt,imodel-4*sideamnt,nSubj);
-    plot(xx,blah(:,currmodidx),'.','Color',aspencolors('berry'))
+    plot(xx,blah(:,currmodidx),'.','Color',aspencolors('berry'),'MarkerSize',10)
     
     % BIC indvl
     xx = linspace(imodel+2*sideamnt,imodel+fillamnt-2*sideamnt,nSubj);
-    plot(xx,bleh(:,currmodidx),'.','Color',aspencolors('green'))
+    plot(xx,bleh(:,currmodidx),'.','Color',aspencolors('green'),'MarkerSize',10)
     
 end
 plot([0.5 5.5],[0 0],'k','LineWidth',1)
+axis([0.5 5.5 -150 100])
+set(gcf, 'Position', [0, 0, 500, 500]);
 legend('AICc','BIC')
 defaultplot
 set(gca,'XTick',1:nModels-1,'XTickLabel',modelnameVec(modelidxVec))

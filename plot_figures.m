@@ -102,8 +102,8 @@ end
 %% plot group fits for all models
 clear all
 
-fullmodelnameVec = {'FP3','FP4','UVSD3','UVSD4','REM3','REM4'};
-% fullmodelnameVec = {'FP3','UVSD3','REM3','FP4','UVSD4','REM4'};
+% fullmodelnameVec = {'FP3','FP4','UVSD3','UVSD4','REM3','REM4'};
+fullmodelnameVec = {'FP3','UVSD3','REM3','FP4','UVSD4','REM4'};
 % fullmodelnameVec = {'UVSD3','UVSD4'};
 subjids = [1:14];
 nModels = length(fullmodelnameVec);
@@ -114,7 +114,7 @@ for imodel = 1:nModels
     % load in information
     load(['paramfit_patternbayes_' fullmodelname '.mat'])
     
-    subplot(3,2,imodel)
+    subplot(2,3,imodel)
     plotparamfits(modelname,bestFitParam(subjids,:),str2double(fullmodelname(end)), 20, 0, subjids, [ 0 1 0 0])
     title(fullmodelname)
 end
