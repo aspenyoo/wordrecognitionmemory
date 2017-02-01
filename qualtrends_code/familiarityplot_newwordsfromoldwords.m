@@ -8,34 +8,28 @@
 % around old words)
 
 modelname = 'FP';
-theta = [20 1 4 0 nan];
-islogbinning = 1; 
-nX = 10; 
-nS = 10;
+theta = [20 1 4 0 0 nan];
+islogbinning = 0; 
+nX = 20; 
+nS = 20;
 nConf = 20;
 N = [150 150];
 
-nIter = 1;
 nSimilarities = 50;
 similarityVec = linspace(0,2,nSimilarities);%[0 0.5 1 1.5];
 % nSimilarities = length(similarityVec);
 
 
-nNew = nan(nIter,nSimilarities,nConf);
-nOld = nan(nIter,nSimilarities,nConf);
+pnew = nan(nSimilarities,nConf);
+pold = nan(nSimilarities,nConf);
 for isim = 1:nSimilarities;
-    theta(5) = similarityVec(isim);
-    
-    for iiter = 1:nIter;
-    [nNew(iiter,isim,:), nOld(iiter,isim,:)] = simulatedata_newwordsfromoldwords(modelname, theta, islogbinning, nX, nS, nConf, N);
-    end
-    
+    isim
+    theta(end) = similarityVec(isim);
+    [pnew(isim,:), pold(isim,:)] = simulatedata_newwordsfromoldwords(modelname, theta, islogbinning, nX, nS, nConf, N);
 end
 
-nNew = squeeze(mean(nNew,1))./N(1);     % averaging across iterations and normalizing
-nOld = squeeze(mean(nOld,1))./N(2);     % averaging across iterations and normalizing
-
-meanConfFA = sum(bsxfun(@times,11:20,bsxfun(@rdivide,nNew(:,11:20),sum(nNew(:,11:20),2))),2);
+normpnewFA = bsxfun(@rdivide, pnew(:,11:20),sum(pnew(:,11:20),2));
+meanConfFA = normpnewFA*[11:20]';
 
 % figure;
 % clf
@@ -56,7 +50,7 @@ meanConfFA = sum(bsxfun(@times,11:20,bsxfun(@rdivide,nNew(:,11:20),sum(nNew(:,11
 % ax.YTick = [0 0.5];
 
 figure;
-meanConf = sum(bsxfun(@times,1:20,nNew),2);
+meanConf = pnew*[1:20]';
 plot(similarityVec,meanConf,'Color',0.7*ones(1,3),'LineWidth',2)
 defaultplot;
 xlabel('\sigma_{new}')

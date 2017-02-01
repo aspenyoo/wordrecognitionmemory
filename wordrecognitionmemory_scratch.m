@@ -393,7 +393,7 @@ end
 
 % % get means and SEMs of difference
 
-refmodelidx = 2; % which column is the reference model
+refmodelidx = 1; % which column is the reference model
 modelidxVec = 1:nModels;
 modelidxVec(refmodelidx) = [];
 
@@ -474,7 +474,7 @@ for imodel = 1:nModels-1
 end
 plot([0.5 5.5],[0 0],'k','LineWidth',1)
 axis([0.5 5.5 -150 100])
-set(gcf, 'Position', [0, 0, 500, 500]);
+set(gcf, 'Position', [100, 100, 500, 400]);
 legend('AICc','BIC')
 defaultplot
 set(gca,'XTick',1:nModels-1,'XTickLabel',modelnameVec(modelidxVec))
@@ -757,3 +757,59 @@ for isubj = 1:nSubj;
     plot(1:20,simdata.(modname).nnew(isubj+14,:)); hold on
     plot(1:20,simdata.(modname).nold(isubj+14,:))
 end
+
+%% qualtrends: correlation for one subject
+
+clear all; close all
+
+operationalization = 'median';
+nSamples = 10000;
+
+% get theta
+modelname = 'FP';
+binningfn = 4;
+load(['paramfit_patternbayes_' modelname num2str(binningfn) '.mat'],'bestFitParam')
+isubj = 3;
+theta = bestFitParam(isubj,:);
+
+[rho, pvalue, slope] = deal(nan(1,nSamples));
+for isample = 1:nSamples;
+    [~, ~, rho(isample), pvalue(isample), b] = qualtrend_correlation(modelname, theta, binningfn, operationalization);
+    slope(isample) = b(2);
+end
+
+figure;
+hist(rho);
+
+rho = sort(rho); 
+pvalue = sort(pvalue);
+
+CI = [rho(.05*nSamples) rho(.95*nSamples)]
+CI2 = [pvalue(.05*nSamples) pvalue(.95*nSamples)]
+
+sum(pvalue > .05)/nSamples
+sum(pvalue > .01)/nSamples
+sum(pvalue > .001)/nSamples
+
+%% quualtrends: across subjects
+
+clear all; close all
+
+operationalization = 'min';
+modelname = 'FP';
+binningfn = 4;
+load(['paramfit_patternbayes_' modelname num2str(binningfn) '.mat'],'bestFitParam')
+
+nSubj = 14;
+nX = 30;
+nS = 20;
+
+[rho, pvalue, slope] = deal(nan(1,nSubj));
+for isubj = 1:nSubj;
+    theta = bestFitParam(isubj,:);
+    [~, ~, rho(isubj), pvalue(isubj), b] = qualtrend_correlation(modelname, theta, binningfn, operationalization, nX, nS);
+    slope(isubj) = b(2);
+end
+
+mean(rho)
+std(rho)/sqrt(nSubj)

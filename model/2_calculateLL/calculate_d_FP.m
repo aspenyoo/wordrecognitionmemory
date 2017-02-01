@@ -1,6 +1,5 @@
 function [d_new, d_old] = calculate_d_FP(M, sigma, nS, Nnew, Nold, SNew, SOld, X)
 % calculate log odds
-% function used as a basis for Luigi to code up C code!
 % 
 % ================ OUTPUT VARIABLES ==================
 % D_NEW: log odds of new trials. Nnew*nS x 1. (double)
@@ -15,14 +14,6 @@ function [d_new, d_old] = calculate_d_FP(M, sigma, nS, Nnew, Nold, SNew, SOld, X
 % SNEW: new words across S simulations. Nnew*nS x M (double)
 % SOLD: old words across S simulations. Nold*nS x M (double)
 % X: noisy memories. Nold x M (double)
-% 
-% 
-% Hi, Luigi. This is everything you need to calculate d for old and new
-% word trials. If forloops are faster than large matrix operations, let me
-% know because this can be computed over nS samples rather than being a
-% large matrix. 
-% Also, if generating samples from a normal distribution is quicker in C,
-% then we should generate SNew and SOld and maybe X in C as well. 
 
 J = 1/sigma.^2+1;
 d_new = M/2*log(1+1/sigma^2) + 0.5*sum(SNew.^2,2) + log(squeeze(mean(exp(-0.5*J*...
