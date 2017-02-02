@@ -14,7 +14,20 @@ xx = linspace(0,2.5,50);
 y = a.*(1-exp(-(xx./lambda).^k));
 plot(xx,y);
 
+%%
+for i= 1:6;
+    subplot(2,6,i)
+    xlim([1 20])
+    set(gca,'XTick',[1 10 20])
+end
 
+%%
+
+for i = 7:12;
+    subplot(2,6,i)
+    set(gca,'YTick',0:0.05:0.2,'XTick',[1 10 20])
+    xlim([1 20])
+end
 
 %% checking to see SD of nLLs for different model
 % 6/29/2016
@@ -393,7 +406,7 @@ end
 
 % % get means and SEMs of difference
 
-refmodelidx = 1; % which column is the reference model
+refmodelidx = 2; % which column is the reference model
 modelidxVec = 1:nModels;
 modelidxVec(refmodelidx) = [];
 
@@ -403,11 +416,17 @@ blah = bsxfun(@minus,AICcMat,AICcMat(:,refmodelidx));
 idx = 1:14;
 mean_AICcMat = mean(blah);
 sem_AICcMat = std(blah)./sqrt(size(AICcMat,1));
+median_AICcMat = median(blah);
+xx = sort(blah);
+IQR_AICcMat = [mean(xx(3:4,:)); mean(xx(10:11,:))];
 
 bleh = bsxfun(@minus,BICMat,BICMat(:,refmodelidx));
 bleh = bleh(idx,:);
 mean_BICMat = mean(bleh);
 sem_BICMat = std(bleh)./sqrt(size(BICMat,1));
+median_BICMat = median(bleh);
+xx = sort(bleh);
+IQR_BICMat = [mean(xx(3:4,:)); mean(xx(10:11,:))];
 
 %% plot model comparison
 
@@ -446,6 +465,7 @@ set(gca,'XTick',1:nModels-1,'XTickLabel',modelnameVec(modelidxVec))
 
 fillamnt = 0.45;
 sideamnt = 0.01;
+modelnameVec = {'MDG-P','MDG-W','UVSD-P','UVSD-W','REM-P','REM-W'}; 
 
 figure, hold on;
 for imodel = 1:nModels-1
@@ -453,31 +473,37 @@ for imodel = 1:nModels-1
     
     % AICc average
     fill([imodel-fillamnt imodel-sideamnt imodel-sideamnt imodel-fillamnt],...
-        [mean_AICcMat(currmodidx)-sem_AICcMat(currmodidx) mean_AICcMat(currmodidx)-sem_AICcMat(currmodidx) ...
-        mean_AICcMat(currmodidx)+sem_AICcMat(currmodidx) mean_AICcMat(currmodidx)+sem_AICcMat(currmodidx)],...
+        [IQR_AICcMat(1,currmodidx) IQR_AICcMat(1,currmodidx)...
+        IQR_AICcMat(2,currmodidx) IQR_AICcMat(2,currmodidx)],...
         aspencolors('salmon'),'EdgeColor','none')
     
     % BIC average
     fill([imodel+sideamnt imodel+fillamnt imodel+fillamnt imodel+sideamnt],...
-        [mean_BICMat(currmodidx)-sem_BICMat(currmodidx) mean_BICMat(currmodidx)-sem_BICMat(currmodidx) ...
-        mean_BICMat(currmodidx)+sem_BICMat(currmodidx) mean_BICMat(currmodidx)+sem_BICMat(currmodidx)],...
+        [IQR_BICMat(1,currmodidx) IQR_BICMat(1,currmodidx)...
+        IQR_BICMat(2,currmodidx) IQR_BICMat(2,currmodidx)],...
         aspencolors('booger'),'EdgeColor','none')
     
     % AICc indvl
-    xx = linspace(imodel-fillamnt+2*sideamnt,imodel-4*sideamnt,nSubj);
+    xx = imodel - fillamnt/2 - sideamnt;
     plot(xx,blah(:,currmodidx),'.','Color',aspencolors('berry'),'MarkerSize',10)
     
     % BIC indvl
-    xx = linspace(imodel+2*sideamnt,imodel+fillamnt-2*sideamnt,nSubj);
+    xx = imodel + fillamnt/2 - sideamnt;
     plot(xx,bleh(:,currmodidx),'.','Color',aspencolors('green'),'MarkerSize',10)
     
+    % median lines
+    plot([imodel-fillamnt imodel-sideamnt],median_AICcMat(:,currmodidx)*ones(1,2),'Color',aspencolors('berry'))
+    plot([imodel+sideamnt imodel+fillamnt],median_BICMat(:,currmodidx)*ones(1,2),'Color',aspencolors('green'))
+    
 end
-plot([0.5 5.5],[0 0],'k','LineWidth',1)
+plot([0.5 5.5],[0 0],'k--','LineWidth',1)
 axis([0.5 5.5 -150 100])
 set(gcf, 'Position', [100, 100, 500, 400]);
 legend('AICc','BIC')
 defaultplot
 set(gca,'XTick',1:nModels-1,'XTickLabel',modelnameVec(modelidxVec))
+xlabel('model')
+ylabel(['model - ' modelnameVec(refmodelidx)]);
 
 %% get pairwise counts of winning models
 
@@ -769,7 +795,10 @@ nSamples = 10000;
 modelname = 'FP';
 binningfn = 4;
 load(['paramfit_patternbayes_' modelname num2str(binningfn) '.mat'],'bestFitParam')
-isubj = 3;
+
+for isubj = 5:14;
+% isubj = 4;
+isubj
 theta = bestFitParam(isubj,:);
 
 [rho, pvalue, slope] = deal(nan(1,nSamples));
@@ -778,18 +807,37 @@ for isample = 1:nSamples;
     slope(isample) = b(2);
 end
 
-figure;
-hist(rho);
+% figure;
+% hist(rho);
 
 rho = sort(rho); 
 pvalue = sort(pvalue);
 
 CI = [rho(.05*nSamples) rho(.95*nSamples)]
-CI2 = [pvalue(.05*nSamples) pvalue(.95*nSamples)]
+end
+% CI2 = [pvalue(.05*nSamples) pvalue(.95*nSamples)]
+% 
+% sum(pvalue > .05)/nSamples
+% sum(pvalue > .01)/nSamples
+% sum(pvalue > .001)/nSamples
 
-sum(pvalue > .05)/nSamples
-sum(pvalue > .01)/nSamples
-sum(pvalue > .001)/nSamples
+
+% SUBJECTS AND CIs
+% median
+% 1: [-0.3646 -0.0428]
+% 2: [-0.3302 -0.0695]
+% 3: [-0.469 -0.208]
+% 4: [-0.4841 -0.2278]
+% 5: [-0.3675 -0.1095]
+% 6: [-0.4751 -0.1993]
+% 7: [-0.2656 0.0120]
+% 8: [-0.2904 -0.0258]
+% 9: [-0.3314 0.0248]
+% 10: [-0.4889 -0.2140]
+% 11: 
+% 12: 
+% 13:
+% 14: 
 
 %% quualtrends: across subjects
 

@@ -6,9 +6,9 @@
 clear all; close all
 
 modelnameVec = {'UVSD'};
-binningfnVec = [3 4];
+binningfnVec = [3];
 YN_indvlplots = 1;
-YN_aveplot = 1;
+YN_aveplot = 0;
 subjVec = 1:14;
 
 nModels = length(modelnameVec);
@@ -20,11 +20,11 @@ load('subjdata.mat')
 data_pNew = bsxfun(@rdivide,nNew_part,sum(nNew_part,2));
 data_pOld = bsxfun(@rdivide,nOld_part,sum(nOld_part,2));
 
-if (YN_aveplot) 
-    figure(1); hold on;
+
+%     figure(1); hold on;
     
-    data_cumHit = cumsum(flipud(data_pOld'))';
-    data_cumFA = cumsum(flipud(data_pNew'))';
+    data_cumHit = norminv(cumsum(flipud(data_pOld'))');
+    data_cumFA = norminv(cumsum(flipud(data_pNew'))');
     
     mean_data_cumHit = mean(data_cumHit);
     mean_data_cumFA = mean(data_cumFA);
@@ -33,7 +33,7 @@ if (YN_aveplot)
     
     errorbarxy(mean_data_cumFA,mean_data_cumHit,...
         sem_data_cumFA,sem_data_cumHit,{'k','k','k'})
-end
+
 
 figureidx = 1;
 for imodel = 1:nModels
@@ -60,8 +60,8 @@ for imodel = 1:nModels
             model_pOld(isubj,:) = model_pold;
             
             % calculate ROC
-            model_cumfa = cumsum(flipud(model_pnew(:)));
-            model_cumhit = cumsum(flipud(model_pold(:)));
+            model_cumfa = norminv(cumsum(flipud(model_pnew(:))));
+            model_cumhit = norminv(cumsum(flipud(model_pold(:))));
             
             if (YN_indvlplots)
                 % plot individual ROC plots
@@ -69,8 +69,9 @@ for imodel = 1:nModels
                 subplot(4,4,isubj)
                 plot(model_cumfa,model_cumhit,'-k'), hold on
                 plot(data_cumFA(isubj,:),data_cumHit(isubj,:),'ok')
-                axis([0 1 0 1])
+%                 axis([0 1 0 1])
                 defaultplot;
+                axis square
             else
                 
             end
@@ -119,5 +120,47 @@ for imodel = 1:nModels
     title(fullmodelname)
 end
 
+%% indvl and group fit for all models
+clear all; close all
+
+fullmodelnameVec = {'FP3','FP4','UVSD3','UVSD4','REM3','REM4'};
+modelnameVec = {'MDG-P','MDG-W','UVSD-P','UVSD-W','REM-P','REM-W'};
+subjids = [1:14];
+nModels = length(fullmodelnameVec);
+
+figure
+for imodel = 1:nModels
+    fullmodelname = fullmodelnameVec{imodel};
+    
+    % load in information
+    load(['paramfit_patternbayes_' fullmodelname '.mat'])
+    
+    subplot(2,6,6+imodel)
+    plotparamfits(modelname,bestFitParam(subjids,:),str2double(fullmodelname(end)), 20, 0, subjids, [ 0 1 0 0])
+end
 
 
+subjid = 4;
+for imodel = 1:nModels;
+    fullmodelname = fullmodelnameVec{imodel};
+    
+    % load in information
+    load(['paramfit_patternbayes_' fullmodelname '.mat'])
+    
+    % plot
+    subplot(2,6,imodel);
+    plotparamfits(modelname,bestFitParam(subjid,:),str2double(fullmodelname(end)),20,[],subjid,[1 0 0 0])
+    subplot(2,6,imodel);
+    ylim([0 0.4])
+    title(modelnameVec{imodel})
+end
+
+
+%% plot fig plots for each subject
+subjids = [2 5 7:14];
+for isubj = 1:length(subjids);
+    subjid = subjids(isubj);
+    
+    fig_qualtrends(subjid)
+    savefig(['qualtrends_subj' num2str(subjid) '.fig'])
+end

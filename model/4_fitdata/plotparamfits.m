@@ -92,11 +92,12 @@ if (selectiveplot(1))
         isubj = subjnum(isubjnum);
         
         % plots
-        subplot(subplotsize,subplotsize,isubjnum); hold on;
+        if nSubj > 1;  subplot(subplotsize,subplotsize,isubjnum); end
+        hold on;
         fNew = plot(pNew_est(isubjnum,:)); % pnewMat(:,MInd,sigInd,c1Ind,c2Ind) are best fit thing
         fOld = plot(pOld_est(isubjnum,:)); % poldMat(:,MInd,sigInd,c1Ind,c2Ind)
-        sNew = plot(pNew_part(isubjnum,:));
-        sOld = plot(pOld_part(isubjnum,:));
+        sNew = plot(pNew_part(isubj,:));
+        sOld = plot(pOld_part(isubj,:));
         
         defaultplot;
         % aesthetics
@@ -132,15 +133,15 @@ if (selectiveplot(1))
             'LineWidth'   , 1         );
         %  'YTick'       , 0:.25:.5    ,...%                 'YTick'       , 0:.25:.5    ,...
         % labels
-        labeltext = ['participant ' num2str(isubj)];
-        text(.39,.5,labeltext);
+%         labeltext = ['participant ' num2str(isubj)];
+%         text(.39,.5,labeltext);
         
         
     end
     
     %big title
     h = axes('Position',[0 0 1 1],'Visible','off'); %add an axes on the left side of your subplots
-    hTitle = text(0.45,0.95,[modelname]);
+%     hTitle = text(0.45,0.95,[modelname]);
     %big ylabel
     set(gcf,'CurrentAxes',h)
     hYlabel = text(.1,.45,'Proportion');
@@ -148,18 +149,18 @@ if (selectiveplot(1))
     set(gcf,'CurrentAxes',h)
     hXlabel = text(.45,0.05,'Bin Number');
     % legend
-    hLegend  = legend(...
-        [sNew, sOld, fNew, fOld],...
-        'New Words (participant)'       ,...
-        'Old Words (participant)'       ,...
-        'New Words (estimated)'         ,...
-        'Old Words (estimated)'         );
+%     hLegend  = legend(...
+%         [sNew, sOld, fNew, fOld],...
+%         'New Words (participant)'       ,...
+%         'Old Words (participant)'       ,...
+%         'New Words (estimated)'         ,...
+%         'Old Words (estimated)'         );
     
     
     % label aesthetics
-    set(hTitle,...
-        'FontSize'      , 18                ,...
-        'FontWeight'    ,'bold'             );
+%     set(hTitle,...
+%         'FontSize'      , 18                ,...
+%         'FontWeight'    ,'bold'             );
     set(hYlabel,...
         'VerticalAlignment'     ,'bottom'   ,...
         'HorizontalAlignment'   ,'left'     ,...

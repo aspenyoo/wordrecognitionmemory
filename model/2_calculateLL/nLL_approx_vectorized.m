@@ -66,7 +66,7 @@ switch binningfn
         nParams = nParams + 5;
     case 4 % weibull
         scale = theta(end-5);
-        shift = theta(end-4);
+        shape = theta(end-4);
         a = theta(end-3);
         b = theta(end-2);
         nParams = nParams + 6;
@@ -162,7 +162,7 @@ else % if FP, FPheurs, or REM
             case 3 % power law
                 conf = a.*((q.^gamma - 1)./gamma) + b;
             case 4 % weibull
-                conf = a.*(1-exp(-(q./scale).^shift)) + b;
+                conf = a.*(1-exp(-(q./scale).^shape)) + b;
         end
         
         % binning with or without metacognitive noise
@@ -198,7 +198,7 @@ else % if FP, FPheurs, or REM
         case 3 % power law
             conf = a.*((q.^gamma - 1)./gamma) + b;
         case 4 % weibull
-            conf = a.*(1-exp(-(q./scale).^shift)) + b;
+            conf = a.*(1-exp(-(q./scale).^shape)) + b;
     end
     
     % histograms of confidence
@@ -271,10 +271,10 @@ switch nargout
         switch binningfn
             case 0 % linear
                 binvalues = 1.5:(nConf-0.5);
-                confbounds = (binvalues-nConf/2-0.5)./shift - d0;
+                confbounds = (binvalues-nConf/2-0.5)./shape - d0;
             case 1 % logistic
                 binvalues = 1.5:(nConf-0.5);
-                confbounds = -shift.*log((nConf+0.5)./(binvalues-0.5)-1);
+                confbounds = -shape.*log((nConf+0.5)./(binvalues-0.5)-1);
             case 2 % logarithmic
                 binvalues = 1.5:(nConf/2 -0.5);
                 confbounds = exp((binvalues-b)./a);
@@ -288,7 +288,7 @@ switch nargout
                 tempp = 1 - (binvalues -b)./a;
                 tempp(tempp < 0) = nan;
                 tempp(tempp > 1) = nan;
-                confbounds = scale.*(-log(tempp)).^(1/shift);
+                confbounds = scale.*(-log(tempp)).^(1/shape);
         end
         
         varargout = {centers_new, counts_new, centers_old, counts_old, confbounds};
