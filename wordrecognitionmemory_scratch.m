@@ -574,10 +574,10 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 %% =====================================================
 %       DOING STUFF WITH FIT PARAMETERS
 % ======================================================
- clear all
+%  clear all
 
-modelname = 'FP';
-binningfn = 4;
+modelname = 'REM';
+binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = [1:14];
 
@@ -861,3 +861,42 @@ end
 
 mean(rho)
 std(rho)/sqrt(nSubj)
+
+%% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% POOR MAN'S HEIRARCHICAL MODELING: seeing which M fits the best
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+mVec = 1:50;
+nM = length(mVec);
+subjVec = 1:14;
+nSubj = length(subjVec);
+modelVec = {'FP3','FP4','REM3','REM4'};
+nModels = length(modelVec);
+
+bestnLL = struct;
+parameterestimates = struct;
+for imodel = 1:nModels;
+    model = modelVec{imodel};
+    
+    bestnLL.(model) = nan(nSubj,nM);
+    parameterestimates.(model) = cell(1,nM);
+    for iM = 1:nM;
+        M = mVec(iM);
+        
+        [bestFitParam, nLL_est] = getbestfitparams(model(1:end-1),str2double(model(end)),subjVec,[],[1; M; M]);
+        parameterestimates.(model){iM} = bestFitParam;
+        bestnLL.(model)(:,iM) = nLL_est;
+    end
+   
+end
+
+for imodel = 1:nModels;
+    model = modelVec{imodel};
+    
+    % get posteriors
+    postt = -sum(bestnLL.(model))./(14*300);
+    postt = exp(postt);
+    postt = postt./sum(postt);
+    posterior.(model) = postt;
+    plot(postt); pause
+end

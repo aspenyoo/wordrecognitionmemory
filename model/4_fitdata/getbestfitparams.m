@@ -1,4 +1,4 @@
-function getbestfitparams(modelname,binningfn,subjids,nStartVals,paramrange,filepath)
+function [bestFitParam, nLL_est] = getbestfitparams(modelname,binningfn,subjids,nStartVals,paramrange,filepath)
 % gets the best fitting parameters from txt file across subjects and
 % compiles it into a .mat file
 % 
@@ -59,10 +59,11 @@ for isubj = 1:nSubj
     
     datasorted = sortrows(alldata,nLLcol);
     for iparam = 1:size(paramrange,2) % how many ranges you are imposing
-        idx = datasorted(:,iparam) < paramrange(2,iparam); % deleting things too small
+        paramnum = paramrange(1,iparam);
+        idx = datasorted(:,paramnum) < paramrange(2,iparam); % deleting things too small
         datasorted(idx,:) = [];
         
-        idx = datasorted(:,iparam) > paramrange(3,iparam); % deleting things too large
+        idx = datasorted(:,paramnum) > paramrange(3,iparam); % deleting things too large
         datasorted(idx,:) = [];
     end
     
@@ -75,5 +76,7 @@ nLL_est = bestdata(:,nLLcol);
 % startTheta = bestdata(:,6:9);
 nLL_SD = bestdata(:,end);
 
-matfilename = [ filepath 'paramfit_patternbayes_' modelname num2str(binningfn) '.mat'];
-save(matfilename,'subjids','modelname','bestFitParam','nLL_est','nLL_SD');
+if nargout == 0; 
+    matfilename = [ filepath 'paramfit_patternbayes_' modelname num2str(binningfn) '.mat'];
+    save(matfilename,'subjids','modelname','bestFitParam','nLL_est','nLL_SD');
+end
