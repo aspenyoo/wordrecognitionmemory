@@ -3,8 +3,8 @@
 % fixed value of M and plot that for each subject. (and average)
 
 clear all
-modelname = 'FP21';
-MMax = 75;
+modelname = 'FP4';
+MMax = 50;
 MMin = 1;
 MVec = MMin:MMax;
 Mcol = 1;       % column with the M listed
@@ -23,11 +23,9 @@ for isubj = 1:nSubj;
     
     clear bestdata
     for iM = MMin:MMax;
-        try
-        datasorted = sortrows(alldata(alldata(:,1) == iM,:),nLLcol);
-        bestdata(iM,:) = datasorted(1,:);
-        nLLMat(isubj,iM) = datasorted(1,nLLcol);
-        end
+%         try
+            [bestdata(iM,:), nLLMat(isubj,iM)] = getbestfitparams(modelname(1:end-1),str2double(modelname(end)),isubj,[],[1; iM; iM]);
+%         end
     end
     sigmaVec(isubj,:) = bestdata(MMin:MMax,sigmacol)';
     
@@ -38,7 +36,7 @@ for isubj = 1:nSubj;
     
     % plot data
     subplot(subplotsize,subplotsize,isubj)
-    colormap('copper')
+    colormap('parula')
     scatter(MVec,sigmaVec(isubj,:),[],-nLLMat(isubj,MMin:MMax),'filled'); defaultplot
     colorbar;
     title(sprintf('Subject %d',isubj))

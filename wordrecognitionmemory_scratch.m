@@ -865,6 +865,7 @@ std(rho)/sqrt(nSubj)
 %% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % POOR MAN'S HEIRARCHICAL MODELING: seeing which M fits the best
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+clear all
 
 mVec = 1:50;
 nM = length(mVec);
@@ -899,4 +900,39 @@ for imodel = 1:nModels;
     postt = postt./sum(postt);
     posterior.(model) = postt;
     plot(postt); pause
+end
+
+%%
+subjid = 1;
+model = 'FP3';
+
+paramMat = nan(nM,2);
+for iM = 1:nM;
+    paramMat(iM,:) = parameterestimates.(model){iM}(subjid,1:2);
+end
+plot(paramMat(:,1),paramMat(:,2),'o')
+
+%% sample and calculate LL of best fit params 
+
+modelname = 'FP';
+binningfn = 3;
+load('allmodels_fits.mat')
+nSamples = 20;
+nSubjs = 14;
+nM = 50;
+
+nLLVec = cell(1,nM);
+for isubj = 1:nSubj;
+    isubj
+    [nnew_part, nold_part] = loadsubjdata(isubj);
+    
+    for iM = 1:nM;
+        iM
+        theta = parameterestimates.([modelname num2str(binningfn)]){iM}(isubj,:);
+        
+        nLLVec{iM} = nan(nSubjs,nSamples);
+        for isample = 1:nSamples
+            [ nLLVec{iM}(isubj,isample) ] = nLL_approx_vectorized( modelname, theta, binningfn, nnew_part, nold_part);
+        end
+    end
 end
