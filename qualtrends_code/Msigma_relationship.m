@@ -3,8 +3,8 @@
 % fixed value of M and plot that for each subject. (and average)
 
 clear all
-modelname = 'FP4';
-MMax = 50;
+modelname = 'FP3';
+MMax = 65;
 MMin = 1;
 MVec = MMin:MMax;
 Mcol = 1;       % column with the M listed
@@ -17,15 +17,19 @@ mu = sqrt(2)*(gamma((MVec + 1)/2))./(gamma(MVec/2));
 sigmaVec = nan(nSubj,MMax-MMin+1);
 nLLMat = nan(nSubj,MMax-MMin+1);
 for isubj = 1:nSubj;
+    isubj
     % get best fit parameter for each M
     filename = ['paramfit_patternbayes_' modelname '_subj' num2str(isubj) '.txt'];
     alldata = dlmread(filename);
     
     clear bestdata
     for iM = MMin:MMax;
-%         try
+        try
             [bestdata(iM,:), nLLMat(isubj,iM)] = getbestfitparams(modelname(1:end-1),str2double(modelname(end)),isubj,[],[1; iM; iM]);
-%         end
+        catch
+            bestdata(iM,:) = nan(1,size(bestdata,2));
+            nLLMat(isubj,iM) = nan;
+        end
     end
     sigmaVec(isubj,:) = bestdata(MMin:MMax,sigmacol)';
     

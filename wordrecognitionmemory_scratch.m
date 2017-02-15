@@ -142,7 +142,7 @@ end
 
 nStartVals = 10;
 esttimeVec = linspace(0.08,8,100);
-jobnumVec = repmat([51:65],1,nStartVals);
+jobnumVec = repmat([70:5:90],1,nStartVals);
 esttimeVec = esttimeVec(jobnumVec);
 maxTime = 36;
 filepath = 'model/4_fitdata/';
@@ -152,7 +152,7 @@ filepath = 'model/4_fitdata/';
 %     create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 % end
 
-jobfilename = [filepath 'joblist_50to65.txt'];
+jobfilename = [filepath 'joblist_70_5_90.txt'];
 create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 
 %% % % % % % % % % % % % % % % % % % % % % % % % % % % 
@@ -576,7 +576,7 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 % ======================================================
 %  clear all
 
-modelname = 'REM';
+modelname = 'FP';
 binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = [1:14];
