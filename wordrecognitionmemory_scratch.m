@@ -938,11 +938,11 @@ for isubj = 1:nSubj;
 end
 
 %% doing stuff with the above calculation (previoulsy calculated)
-clear all
+% clear all
 
 % load('FP3_nLLsamples.mat')
-nLLVec = cellfun(@(x) sum(mean(x,2)),nLLVec,'UniformOutput',false);
-
+nLL = cellfun(@(x) sum(mean(x,2)),nLLVec,'UniformOutput',false);
+nLL = cell2mat(nLL);
 
 %% calculate IQRs of parameters for each model
 clear
