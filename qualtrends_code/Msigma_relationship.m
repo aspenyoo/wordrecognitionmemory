@@ -4,9 +4,8 @@
 
 clear all
 modelname = 'FP3';
-MMax = 65;
-MMin = 1;
-MVec = MMin:MMax;
+MVec = [1:65 70:5:90];
+nMs = length(MVec);
 Mcol = 1;       % column with the M listed
 sigmacol = 2;   % column with the sigmas listed
 nLLcol = 7;     % column with the nLLs listed
@@ -14,8 +13,8 @@ nSubj = 14;
 subplotsize = 4;
 
 mu = sqrt(2)*(gamma((MVec + 1)/2))./(gamma(MVec/2));
-sigmaVec = nan(nSubj,MMax-MMin+1);
-nLLMat = nan(nSubj,MMax-MMin+1);
+sigmaVec = nan(nSubj,nMs);
+nLLMat = nan(nSubj,nMs);
 for isubj = 1:nSubj;
     isubj
     % get best fit parameter for each M
@@ -23,15 +22,16 @@ for isubj = 1:nSubj;
     alldata = dlmread(filename);
     
     clear bestdata
-    for iM = MMin:MMax;
+    for iM = 1:nMs;
+        M = MVec(iM);
         try
-            [bestdata(iM,:), nLLMat(isubj,iM)] = getbestfitparams(modelname(1:end-1),str2double(modelname(end)),isubj,[],[1; iM; iM]);
+            [bestdata(iM,:), nLLMat(isubj,iM)] = getbestfitparams(modelname(1:end-1),str2double(modelname(end)),isubj,[],[1; M; M]);
         catch
             bestdata(iM,:) = nan(1,size(bestdata,2));
             nLLMat(isubj,iM) = nan;
         end
     end
-    sigmaVec(isubj,:) = bestdata(MMin:MMax,sigmacol)';
+    sigmaVec(isubj,:) = bestdata(1:nMs,sigmacol)';
     
     % find bestfitline
     E_chi = @(x) x*sqrt(2)*(gamma((MVec+1)/2)./gamma(MVec/2));
@@ -41,7 +41,7 @@ for isubj = 1:nSubj;
     % plot data
     subplot(subplotsize,subplotsize,isubj)
     colormap('parula')
-    scatter(MVec,sigmaVec(isubj,:),[],-nLLMat(isubj,MMin:MMax),'filled'); defaultplot
+    scatter(MVec,sigmaVec(isubj,:),[],-nLLMat(isubj,1:nMs),'filled'); defaultplot
     colorbar;
     title(sprintf('Subject %d',isubj))
     if mod(isubj,4) == 1; ylabel('\sigma'); end
