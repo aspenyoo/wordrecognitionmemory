@@ -957,11 +957,10 @@ median = mean(bestFitParam(7:8,:))
 % plot?
 
 %% K-L divergence
-%% calculating K-L divergence between model and human data
 clear all
 
 modelVec = [1 5 7];
-subjVec = {'1','3','4','EL','ND'};
+subjVec = 1:14;
 
 nModels = length(modelVec);
 nSubj = length(subjVec);
@@ -1075,4 +1074,115 @@ for isubj = 1:nSubjs;
     
     nParamsVec(imodel) = size(bestFitParam,2);
 end
+%% % % % % % % % % % % % % % % % % % % % % % % 
+%             P L O T S ! 
+% % % % % % % % % % % % % % % % % % % % % % % 
+%% plot LL as a function of M for REM
+clear all
+
+load('allmodels_fits.mat')
+model = 'FP3';
+
+for isubj = 1:14;
+    subplot(4,4,isubj);
+    plot(1:50,bestnLL.(model)(isubj,:),'ko')
+    defaultplot
+end
+
+%% plot 2D likelihood landscape of all parameters for one subject
+
+clear all;
+
+modelname = 'REM';
+binningfn = 4;
+load(['paramfit_patternbayes_' modelname num2str(binningfn) '.mat'])
+
+switch modelname
+    case 'FP'
+        %  M, sigma
+        plb = [1 1e-3 ];
+        pub = [50 3 ];
+        paramlabels = {'M','sigma'};
+    case 'UVSD'
+        % mu, sigma
+        plb = [0 1e-3];
+        pub = [2 5];
+        paramlabels = {'mu','sigma'};
+    case 'REM'
+        %  M g ustar c m
+        plb = [1 1e-3 1e-3 1e-3 1];
+        pub = [50 1 1 1 15];
+        paramlabels = {'M','g','ustar','c','m'};
+end
+
+switch binningfn
+    case 3      % power law
+        % a, b, gamma
+        plb = [plb 0 -10 -5 1e-6];
+        pub = [pub 10 10 5 3];
+        paramlabels = [paramlabels,'a','b','gamma','sigma_mc'];
+    case 4 % weibull binning
+        % scale, shift, a, b
+        plb = [plb 0 0 0 -3];
+        pub = [pub 10 10 3 3];
+        paramlabels = [paramlabels,'scale','shift','gamma','sigma_mc'];
+end
+
+
+isubj = 7;
+theta = bestFitParam(isubj,:);
+theta(end-1) = []; % deleting d0. 
+[nnew_part, nold_part] = loadsubjdata(isubj);
+nParams = length(plb);
+assert(nParams == length(theta));
+
+compMat = nchoosek(1:nParams,2);
+nComps = size(compMat,1); % number of pairwise comparisons
+
+nn = 10;
+nLLMat = cell(1,nComps);
+for icomp = 1:nComps
+    icomp
+    idx_param1 = compMat(icomp,1);
+    idx_param2 = compMat(icomp,2);
+    temptheta = theta;
+    
+    param1Vec = linspace(plb(idx_param1),pub(idx_param1),nn);
+    param2Vec = linspace(plb(idx_param2),pub(idx_param2),nn);
+    
+    if sum(strcmp(modelname,{'FP','REM'})) && idx_param1 == 1; 
+        param1Vec = [1 10:5:50];
+    end
+    
+    for ip1 = 1:nn;
+        temptheta(idx_param1) = param1Vec(ip1);
+        for ip2 = 1:nn;
+            temptheta(idx_param2) = param2Vec(ip2);
+            
+            nLLMat{icomp}(ip1,ip2) = nLL_approx_vectorized( modelname, [temptheta(1:end-1) 0 temptheta(end)], binningfn, nnew_part, nold_part);
+        end
+    end
+    
+end
+
+% plot the nLLMats
+figure;
+clims = [min(min(cell2mat(nLLMat))) max(max(cell2mat(nLLMat)))];
+for icomp = 1:nComps
+    idx_param1 = compMat(icomp,1);
+    idx_param2 = compMat(icomp,2);
+    temptheta = theta;
+    
+    param1Vec = linspace(plb(idx_param1),pub(idx_param1),nn);
+    param2Vec = linspace(plb(idx_param2),pub(idx_param2),nn);
+    
+    if sum(strcmp(modelname,{'FP','REM'})) && idx_param1 == 1; 
+        param1Vec = [1 10:10:50];
+    end
+    subplot(nParams,nParams,nParams*(idx_param1-1)+idx_param2-1); hold off
+    imagesc(param1Vec,param2Vec,nLLMat{icomp},clims); hold on
+    plot(theta(idx_param1),theta(idx_param2),'r*');
+    defaultplot
+end
+%% plot 2D likelihood landscape of one parameter pair for all subjects
 
