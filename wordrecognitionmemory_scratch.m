@@ -111,7 +111,7 @@ end
 clear
 
 modelname = 'FP';
-binningfn = 3;
+binningfn = 4  ;
 subjidVec = [1:14];
 nSubj = length(subjidVec);
 MVec = [1:65 70:5:90 100 110 120];
@@ -579,7 +579,7 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 %  clear all
 
 modelname = 'FP';
-binningfn = 4;
+binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = [1:14];
 
