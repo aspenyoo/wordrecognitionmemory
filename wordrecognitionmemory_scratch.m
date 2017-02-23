@@ -110,15 +110,16 @@ end
 %% separate jobs for each person
 clear
 
-modelname = 'FP';
-binningfn = 4  ;
+modelname = 'REM';
+binningfn = 3;
 subjidVec = [1:14];
 nSubj = length(subjidVec);
-MVec = [1:65 70:5:90 100 110 120];
+MVec = [1:50 55:5:65 70:10:120 200];
+% MVec = [1:65 70:5:90 100 110 120];
 nMs = length(MVec);
 filepath = 'model/4_fitdata/';
-approxTime = linspace(.22*1000/3600,4.61*1000/3600,nMs);
-maxTime = 10;
+approxTime = MVec;%linspace(.22*1000/3600,4.61*1000/3600,nMs);
+maxTime = 500;
 nJobs = [];
 nStartVals = 10;
 
@@ -578,8 +579,8 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 % ======================================================
 %  clear all
 
-modelname = 'FP';
-binningfn = 3;
+modelname = 'REM';
+binningfn = 4;
 optimMethod = 'patternbayes';
 subjids = [1:14];
 
