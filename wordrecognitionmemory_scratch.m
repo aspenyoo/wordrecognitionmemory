@@ -111,7 +111,7 @@ end
 clear
 
 modelname = 'FP';
-binningfn = 3;
+binningfn = 4  ;
 subjidVec = [1:14];
 nSubj = length(subjidVec);
 MVec = [1:65 70:5:90 100 110 120];
@@ -143,8 +143,8 @@ end
 %% create joblist
 
 nStartVals = 10;
-esttimeVec = linspace(0.08,8,100);
-jobnumVec = repmat([70:5:90],1,nStartVals);
+esttimeVec = linspace(0.08,8,120);
+jobnumVec = repmat([55:5:70 80:10:120],1,nStartVals);
 esttimeVec = esttimeVec(jobnumVec);
 maxTime = 36;
 filepath = 'model/4_fitdata/';
@@ -154,7 +154,7 @@ filepath = 'model/4_fitdata/';
 %     create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 % end
 
-jobfilename = [filepath 'joblist_70_5_90.txt'];
+jobfilename = [filepath 'joblist_55_120.txt'];
 create_joblist(jobfilename, jobnumVec, esttimeVec, maxTime);
 
 %% % % % % % % % % % % % % % % % % % % % % % % % % % % 
@@ -579,7 +579,7 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 %  clear all
 
 modelname = 'FP';
-binningfn = 4;
+binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = [1:14];
 
