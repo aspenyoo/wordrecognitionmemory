@@ -869,11 +869,11 @@ std(rho)/sqrt(nSubj)
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 clear all
 
-mVec = [1:65 70:5:90];
+mVec = [1:50];
 nM = length(mVec);
 subjVec = 1:14;
 nSubj = length(subjVec);
-modelVec = {'FP3','FP4'};
+modelVec = {'FP3','FP4','REM};
 nModels = length(modelVec);
 
 bestnLL = struct;
@@ -893,15 +893,19 @@ for imodel = 1:nModels;
    
 end
 
+
 for imodel = 1:nModels;
     model = modelVec{imodel};
     
+    figure
     % get posteriors
     postt = -sum(bestnLL.(model));%./(14*300);
 %     postt = exp(postt);
 %     postt = postt./sum(postt);
     posterior.(model) = postt;
-    plot(postt); pause
+    plot(postt,'k-'); 
+    title(model);
+    defaultplot
 end
 
 %%

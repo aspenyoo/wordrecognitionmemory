@@ -4,7 +4,7 @@
 
 clear all
 modelname = 'FP3';
-MVec = [1:65 70:5:90];
+MVec = [1:50];
 nMs = length(MVec);
 Mcol = 1;       % column with the M listed
 sigmacol = 2;   % column with the sigmas listed
@@ -35,7 +35,7 @@ for isubj = 1:nSubj;
     
     % find bestfitline
     E_chi = @(x) x*sqrt(2)*(gamma((MVec+1)/2)./gamma(MVec/2));
-    costfunc = @(x) abs(sum(sigmaVec(isubj,:) - E_chi(x)));
+    costfunc = @(x) sum(abs(sigmaVec(isubj,:) - E_chi(x)));
     [sigmatilde(isubj)] = fminsearch(costfunc,1);
     
     % plot data
