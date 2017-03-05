@@ -2,17 +2,50 @@
 clear all
 
 figure;
-modelname = 'FP';
-binningfn = 3;
+modelname = 'REM';
+binningfn = 4;
 isubj = 3;
 nS = 50;
 nX = 300;
 nTimes = 15;
+realtheta = 0;
 
-load('subjdata.mat')
 load(['paramfit_patternbayes_' modelname num2str(binningfn) '.mat'])
-theta = bestFitParam(isubj,:);
-% theta = [30 3 2 6 .4 0 3];
+switch modelname
+    case 'FP'
+        %  M, sigma
+        plb = [1 1e-3 ];
+        pub = [50 3 ];
+    case 'REM'
+        %  M g ustar c m
+        plb = [1 1e-3 1e-3 1e-3 1];
+        pub = [50 1 1 1 15];
+end
+% setting binnfn parameters
+switch binningfn
+    case 3      % power law
+        % a, b, gamma
+        plb = [plb 0 -10 -5];
+        pub = [pub 10 10 5];
+    case 4 % weibull binning
+        % scale, shift, a, b
+        plb = [plb 0 0 0 -3];
+        pub = [pub 10 10 3 3];
+end
+% d0, sigma_mc
+plb = [plb -3 1e-6];
+pub = [pub 3 3];
+
+if realtheta
+    theta = bestFitParam(isubj,:);
+else
+    theta = (pub-plb).*rand(1,length(plb))+plb;
+    theta(1) = round(theta(1));
+    % theta = [30 3 2 6 .4 0 3];
+end
+
+% subject data
+load('subjdata.mat')
 nnew_part = nNew_part(isubj,:);
 nold_part = nOld_part(isubj,:);
 nConf = 20;
