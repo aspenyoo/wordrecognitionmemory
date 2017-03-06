@@ -2,7 +2,7 @@
 clear all
 
 figure;
-modelname = 'REM';
+modelname = 'FP';
 binningfn = 3;
 isubj = 3;
 nS = 50;
