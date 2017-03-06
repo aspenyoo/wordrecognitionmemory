@@ -3,7 +3,7 @@ clear all
 
 figure;
 modelname = 'REM';
-binningfn = 4;
+binningfn = 3;
 isubj = 3;
 nS = 50;
 nX = 300;
