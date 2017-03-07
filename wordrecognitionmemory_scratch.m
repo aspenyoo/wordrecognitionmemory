@@ -87,7 +87,7 @@ binningfnVec = [3 4];
 
 nModels = length(modelVec);
 nBinningfns = length(binningfnVec);
-subjidVec = [15:36];
+subjidVec = 1:14;%[15:36];
 nSubj = length(subjidVec);
 
 
@@ -110,8 +110,8 @@ end
 %% separate jobs for each person
 clear
 
-modelname = 'REM';
-binningfn = 3;
+modelname = 'FP';
+binningfn = 4;
 subjidVec = [1:14];
 nSubj = length(subjidVec);
 MVec = [1:50 55:5:65 70:10:120 200];
@@ -870,21 +870,22 @@ std(rho)/sqrt(nSubj)
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 clear all
 
-mVec = [1:50];
+% mVec = [1:50 60:10:100 200];
+mVec = [1:50 55:5:65 70:10:120 200];
 nM = length(mVec);
 subjVec = 1:14;
 nSubj = length(subjVec);
-modelVec = {'FP3','FP4','REM};
+modelVec = {'REM3','REM4'};
 nModels = length(modelVec);
 
 bestnLL = struct;
 parameterestimates = struct;
-for imodel = 1:nModels;
-    model = modelVec{imodel};
+for imodel = 1:nModels
+    model = modelVec{imodel}
     
     bestnLL.(model) = nan(nSubj,nM);
     parameterestimates.(model) = cell(1,nM);
-    for iM = 1:nM;
+    for iM = 1:nM
         M = mVec(iM)
         
         [bestFitParam, nLL_est] = getbestfitparams(model(1:end-1),str2double(model(end)),subjVec,[],[1; M; M]);
@@ -904,7 +905,7 @@ for imodel = 1:nModels;
 %     postt = exp(postt);
 %     postt = postt./sum(postt);
     posterior.(model) = postt;
-    plot(postt,'k-'); 
+    plot(mVec,postt,'ko'); 
     title(model);
     defaultplot
 end
@@ -1090,9 +1091,9 @@ clear all
 load('allmodels_fits.mat')
 model = 'FP3';
 
-for isubj = 1:14;
+for isubj = 1:14
     subplot(4,4,isubj);
-    plot(1:50,bestnLL.(model)(isubj,:),'ko')
+    plot(mVec,bestnLL.(model)(isubj,:),'ko')
     defaultplot
 end
 
