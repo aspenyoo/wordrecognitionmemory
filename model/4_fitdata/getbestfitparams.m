@@ -1,4 +1,4 @@
-function [bestFitParam, nLL_est] = getbestfitparams(modelname,binningfn,subjids,nStartVals,paramrange,filepath)
+function [bestFitParam, nLL_est, allparams, allnLLs] = getbestfitparams(modelname,binningfn,subjids,nStartVals,paramrange,filepath)
 % gets the best fitting parameters from txt file across subjects and
 % compiles it into a .mat file
 % 
@@ -12,7 +12,7 @@ if nargin < 4; nStartVals = []; end
 if nargin < 5; paramrange = []; end
 if nargin < 6; filepath = ['model' filesep '4_fitdata' filesep 'BPSfits' filesep]; end
 
-Mmax = 50;
+Mmax = 200;
 
 switch modelname
     case 'UVSD'
@@ -69,6 +69,9 @@ for isubj = 1:nSubj
     
     bestdata(isubj,:) = datasorted(1,:);
     
+    randidx = randperm(size(datasorted,1));
+    allparams{isubj} = datasorted(randidx,1:nParams);
+    allnLLs{isubj} = datasorted(randidx,nLLcol);
 end
 
 bestFitParam = bestdata(:,1:nParams);

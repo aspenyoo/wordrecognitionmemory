@@ -141,7 +141,7 @@ end
 
 
 subjid = 4;
-for imodel = 1:nModels;
+for imodel = 1:nModels
     fullmodelname = fullmodelnameVec{imodel};
     
     % load in information
@@ -164,3 +164,37 @@ for isubj = 1:length(subjids);
     fig_qualtrends(subjid)
     savefig(['qualtrends_subj' num2str(subjid) '.fig'])
 end
+
+%% plot nLL summed across subjects for each nStartVals
+clear all
+
+modelname = 'REM';
+binningfn = 4;
+subjids = 1:14;
+MVec = [1:50 60:10:120 200];
+nMs = length(MVec);
+nStartVals = 9;
+
+for iM = 1:nMs
+    M = MVec(iM)
+    paramrange = [1; M; M];
+    [~,~, allparams{iM}, allnLLs{iM}] = getbestfitparams(modelname,binningfn,subjids,nStartVals,paramrange);
+    nLLsMat{iM} = cell2mat(allnLLs{iM});
+end
+
+blah = cell2mat(cellfun(@(x) sum(x,2),nLLsMat,'UniformOutput',false));
+
+figure;
+plot(MVec,blah,'Color',0.7*ones(1,3));
+hold on;
+plot(MVec,median(blah),'k-','LineWidth',2)
+defaultplot
+
+figure;
+plot(MVec,blah);
+defaultplot
+
+figure;
+plot(MVec,blah,'.');
+defaultplot
+
