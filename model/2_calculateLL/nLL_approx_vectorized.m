@@ -1,4 +1,4 @@
-function [ varargout ] = nLL_approx_vectorized( modelname, theta, binningfn, nnew_part, nold_part, fixparams, nX, nS, nConf )
+function [ varargout ] = nLL_approx_vectorized( modelname, theta, binningfn, nnew_part, nold_part, logflag, fixparams, nX, nS, nConf )
 % nLL_approx calculates the negative log likelihood using an approximation
 % method
 %
@@ -24,12 +24,13 @@ function [ varargout ] = nLL_approx_vectorized( modelname, theta, binningfn, nne
 %
 % Aspen Yoo - Nov 30, 2016
 
-if nargin < 6; fixparams = []; end
-if nargin < 7; nX = 30; end
-if nargin < 8; nS = 50; end
-if nargin < 9; nConf = 20; end
+if nargin < 7; fixparams = []; end
+if nargin < 8; nX = 300; end
+if nargin < 9; nS = 50; end
+if nargin < 10; nConf = 20; end
 
-rng('shuffle')
+
+theta(logflag) = exp(theta(logflag)); % exponentiating the appropriate free paraemters
 
 % if theta has fixed parameters, adjust accordingly
 if ~isempty(fixparams)

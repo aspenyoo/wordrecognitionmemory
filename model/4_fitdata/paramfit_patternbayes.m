@@ -1,4 +1,4 @@
-function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelname, binningfn, nnew_part, nold_part, fixparams,nStartVals, nConf)
+function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelname, binningfn, nnew_part, nold_part, fixparams, nStartVals, nConf)
 %
 % paramfit_patternbayes(MODELNAME) uses bayesian patternsearch (one of Luigi
 % Acerbi's optimization algorithms) to find the best fit parameters (and
@@ -30,7 +30,7 @@ function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelna
 if nargin < 5; fixparams = []; end
 if nargin < 6; nStartVals = 1; end
 if nargin < 7; nConf = 20; end
-nX = 30;
+nX = 300;
 nS = 50;
 
 % random number generator
@@ -52,7 +52,15 @@ startTheta = genStartTheta;
 bfp = nan(size(startTheta));
 nll = nan(nStartVals,1); exitflag = nll;
 for istartval = 1:nStartVals
-    obj_func = @(x) nLL_approx_vectorized(modelname, x, binningfn, nnew_part, nold_part, fixparams, nX, nS, nConf );
+    if ~isempty(fixparams);
+        if fixparams(1,1) == 1; % if M is a fixed parameter
+            obj_func = @(x) nLL_approx_vectorized(modelname, x, binningfn, nnew_part, nold_part, logflag, fixparams, nX, nS, nConf );
+        else
+            obj_func = @(x) nLL_approx_vectorized_Minterp(modelname, x, binningfn, nnew_part, nold_part, logflag, fixparams, nX, nS, nConf );
+        end
+    else
+        obj_func = @(x) nLL_approx_vectorized_Minterp(modelname, x, binningfn, nnew_part, nold_part, logflag, fixparams, nX, nS, nConf );
+    end
     [bfp(istartval,:) ,nll(istartval), exitflag(istartval), outputt{istartval}] = bps(obj_func,startTheta(istartval,:),lb,ub,plb,pub,options);
 end
 
@@ -82,21 +90,24 @@ end
             case 'FP'
                 %  M, sigma
                 lb = [1 1e-3];
-                ub = [100 6 ];
+                ub = [30 6 ];
                 plb = [1 1e-3 ];
-                pub = [50 3 ];
+                pub = [30 3 ];
+                logflag = [1 1];
             case 'UVSD'
                 % mu, sigma
                 lb = [0 1e-3];
                 ub = [10 10];
                 plb = [0 1e-3];
                 pub = [2 5];
+                logflag = [0 1];
             case 'REM'
                 %  M g ustar c m
                 lb = [ 1 1e-3 1e-3 1e-3 1];
-                ub = [50 1 1 1 50];
+                ub = [30 1 1 1 50];
                 plb = [1 1e-3 1e-3 1e-3 1];
-                pub = [50 1 1 1 15];
+                pub = [30 1 1 1 15];
+                logflag = [1 0 0 0 0];
         end
 
         % setting binnfn parameters
@@ -108,24 +119,28 @@ end
                 ub = [ub 10];
                 plb = [plb 1e-3];
                 pub = [pub 5];
+                logflag = [logflag 0];
             case 2      % log
                 % a, b
                 lb = [lb 0 -100];
                 ub = [ub 100 100];
                 plb = [plb 0 -10];
                 pub = [pub 10 10];
+                logflag = [logflag 0 0];
             case 3      % power law
                 % a, b, gamma
                 lb = [lb 0 -100 -30];
                 ub = [ub 100 100 30];
                 plb = [plb 0 -10 -5];
                 pub = [pub 10 10 5];
+                logflag = [logflag 0 0 0];
             case 4 % weibull binning
                 % scale, shift, a, b
                 lb = [lb 0 0 0 -10];
                 ub = [ub 10 10 10 10];
                 plb = [plb 0 0 0 -3];
                 pub = [pub 10 10 3 3];
+                logflag = [logflag 0 0 0 0];
         end
         
         % d0, sigma_mc
@@ -133,20 +148,23 @@ end
         ub = [ub 30 10];
         plb = [plb -3 1e-6];
         pub = [pub 3 3];
+        logflag = [logflag 0 1];
 
-        starttheta = [bsxfun(@plus,randi(pub(1)-plb(1),nStartVals,1),plb(1)) bsxfun(@plus,bsxfun(@times,rand(nStartVals,size(lb,2)-1),pub(2:end)-plb(2:end)),plb(2:end))];
-        if strcmp(modelname,'UVSD')
-            starttheta(:,1) = rand(size(starttheta,1),1)*pub(1);
-        end
-        
         %deleting fix parameter values
         if ~isempty(fixparams)
-            starttheta(:,fixparams(1,:)) = [];
             lb(fixparams(1,:)) = [];
             ub(fixparams(1,:)) = [];
             plb(fixparams(1,:)) = [];
             pub(fixparams(1,:)) = [];
+            logflag(fixparams(1,:)) = [];
         end
+        logflag = logical(logflag);
         
+        lb(logflag) = log(lb(logflag));
+        ub(logflag) = log(ub(logflag));
+        plb(logflag) = log(plb(logflag));
+        pub(logflag) = log(pub(logflag));
+        starttheta = bsxfun(@plus,bsxfun(@times,rand(nStartVals,size(lb,2)),pub-plb),plb);
+ 
     end
 end
