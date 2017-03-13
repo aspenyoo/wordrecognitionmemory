@@ -2,13 +2,13 @@
 clear all
 
 figure;
-modelname = 'FP';
+modelname = 'REM';
 binningfn = 3;
-isubj = 3;
+isubj = 10;
 nS = 50;
-nX = 300;
-nTimes = 15;
-realtheta = 0;
+nX = 150;
+nTimes = 1;
+realtheta = 1;
 
 load(['paramfit_patternbayes_' modelname num2str(binningfn) '.mat'])
 switch modelname
@@ -139,14 +139,6 @@ for itimes = 1:nTimes;
                     
                     [d_new, d_old(:,iX)] = calculate_d_FP(M, sigma, nS, Nnew, Nold, SNew, SOld, X);
                     d_newtotal(:,iX) = d_new;
-                case 'FPheurs'
-                    X = randn(Nold, M)*sqrt(sigma^2+1);
-                    SNew = randn(Nnew*nS,M);
-                    SOld = (repmat(X,[nS 1])/sigma^2)/(1/sigma^2 + 1) + randn(Nold*nS,M)*(1/sqrt(1/sigma^2 + 1));
-                    
-                    d_new = squeeze(-min(sum((permute(repmat(SNew,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nnew*nS])).^2,2),[],1));
-                    d_old(:,iX) = squeeze(-min(sum((permute(repmat(SOld,[1,1,Nold]), [3,2,1])-repmat(X,[1,1,Nold*nS])).^2,2),[],1));
-                    d_newtotal(:,iX) = d_new;
                 case 'REM'
                     X = binornd(1,1-p0,[Nold M]).*(geornd(g,[Nold M])+1);
                     SNew = geornd(g,[Nnew*nS M])+1; % new words
@@ -187,9 +179,10 @@ for itimes = 1:nTimes;
                 conf(d_new_sign<0) = nConf+1 - conf(d_new_sign<0);
                 newHist = histc(conf,1:nConf); % histogram
             end
+            newHist = newHist./sum(newHist);
             newHisttotal(iX,:) = newHist'; % in case you want nnew_part
             
-            pold = lapse/nConf + (1-lapse)*(newHist/sum(newHist));
+            pold = lapse/nConf + (1-lapse)*(newHist);
             LL_new(iX) = nnew_part*log(pold);
         end
         
@@ -238,9 +231,9 @@ for itimes = 1:nTimes;
         pold = lapse/nConf + (1-lapse)*(curroldHist/sum(curroldHist));
         
         LL_old(iX) = nold_part*log(pold);
-        LL_new(iX) = max(LL_new(1:iX)) + log(mean(exp(LL_new(1:iX)-max(LL_new(1:iX))))); % average over X
+        LL_neww(iX) = max(LL_new(1:iX)) + log(mean(exp(LL_new(1:iX)-max(LL_new(1:iX))))); % average over X
     end
-    finalLL = LL_new + LL_old;
+    finalLL = LL_neww + LL_old;
     
     hold on
     % plot(LL_old,'ro')
@@ -257,3 +250,53 @@ plot(MEAN,'Color',aspencolors('booger'));
 defaultplot
 xlabel('number of X samples')
 ylabel('LL')
+
+
+%%
+for iX = 1:nX
+    curroldHist = sum(oldHist(1:Nold*iX,:))';
+    newoldsamps(iX,:) = sum(oldHist(Nold*(iX-1)+1:Nold*iX,:))';
+    oldHisttotal(iX,:) = lapse/nConf + (1-lapse)*(curroldHist/sum(curroldHist));
+    
+end
+newoldsamps = bsxfun(@rdivide,newoldsamps,sum(newoldsamps,2));
+
+pnew_part = nnew_part./sum(nnew_part);
+pold_part = nold_part./sum(nold_part);
+for ihist = 1:nX; 
+    
+    figure(1);
+    clf;
+    plot(finalLL,'Color',0.7*ones(1,3)); 
+    hold on;
+    plot([ihist ihist],[min(finalLL) max(finalLL)],'r:')
+    defaultplot
+    xlabel('number of X samples')
+    ylabel('LL')
+
+
+    figure(2);
+    clf;
+    % new stuff
+    subplot(1,2,1)
+    plot(pnew_part); 
+    hold on; 
+    plot(newHisttotal(1:ihist-1,:)','Color',0.7*ones(1,3)); 
+    plot(newHisttotal(ihist,:),'k-','LineWidth',2); 
+    ylim([0 0.6]); 
+    title(['sample ' num2str(ihist) '. curr LL '  num2str(LL_new(ihist)) ', ave ' num2str(LL_neww(ihist))]);
+    defaultplot;
+    
+    % old stuff
+    subplot(1,2,2)
+    plot(pold_part); 
+    hold on; 
+    plot(newoldsamps(1:ihist-1,:)','Color',0.7*ones(1,3)); 
+    plot(newoldsamps(ihist,:),'k-','LineWidth',2); 
+    plot(oldHisttotal(ihist,:),'r:'); 
+    ylim([0 0.6]); 
+    title([num2str(ihist) ': LL ' num2str(LL_old(ihist))]);
+    
+    defaultplot;
+    pause; 
+end
