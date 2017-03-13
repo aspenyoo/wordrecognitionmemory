@@ -110,8 +110,8 @@ end
 %% separate jobs for each person
 clear
 
-modelname = 'FP';
-binningfn = 4;
+modelname = 'REM';
+binningfn = 3;
 subjidVec = [1:14];
 nSubj = length(subjidVec);
 MVec = [1:50 55:5:65 70:10:120 200];
