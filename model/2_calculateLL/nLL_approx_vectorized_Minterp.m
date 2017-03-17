@@ -2,6 +2,7 @@ function nLL = nLL_approx_vectorized_Minterp(modelname, theta, binningfn, nnew_p
 % calculates the log-likelihood of a paarameter combination with a
 % non-integer M value. 
 % used in paramfit_patternbayes
+if nargin < 10; nConf = 20; end
 
 if ~isempty(fixparams); assert(fixparams(1,1) ~= 1);end
 
