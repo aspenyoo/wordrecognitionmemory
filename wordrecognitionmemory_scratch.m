@@ -362,26 +362,24 @@ ylabel('Proportion Correct')
 %% check variance of LL estimates
 % clear
 
-nSamples = 10;
-modelname = 'REM';
-binningfn = 1;
-memstrengthvar = 0;
-optimMethod = 'patternbayes';
-subjid = 2;
+modelname = 'FP';
+binningfn = 4;
+nSubjs = 14;
 
 % get best fit parameters and subject data
-[nnew_part, nold_part] = loadsubjdata(subjid,modelname);
+
 % load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
 
-nLLVec = nan(1,nSamples); timeVec = nan(1,nSamples);
-for isamp = 1:nSamples
-    isamp
-    t0 = GetSecs;
-    nLLVec(isamp) = nLL_approx_vectorized(modelname,bestFitParam(subjid,:),binningfn,memstrengthvar,nnew_part,nold_part,[],30,50);
-    timeVec(isamp) = GetSecs - t0;
+nLLVec2 = nan(nSubjs,1);
+for isubj = 1:nSubjs;
+    isubj
+    [nnew_part, nold_part] = loadsubjdata(isubj,modelname);
+
+    nLLVec2(isubj) = nLL_approx_vectorized_Minterp(modelname,bestFitParam(isubj,:),binningfn,nnew_part,nold_part);
+
 end
 
-nLLVec
+[blah nLLVec2]
 
 %% % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % model comparison
@@ -577,10 +575,10 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 %% =====================================================
 %       DOING STUFF WITH FIT PARAMETERS
 % ======================================================
-%  clear all
+ clear all
 
 modelname = 'REM';
-binningfn = 4;
+binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = [1:14];
 
@@ -598,7 +596,7 @@ load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
 
 %% plot best fit parameters
 subjids = [1:14];
-plotparamfits(modelname,bestFitParam(subjids,:),binningfn, 20, 0, subjids, [ 1 0 0 0])
+plotparamfits(modelname,bestFitParam(subjids,:),binningfn, 20, 0, subjids, [ 1 1 1 0])
 
 %% calculate pnew and pold and save in file for ronald
 load('subjdata.mat')

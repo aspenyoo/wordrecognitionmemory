@@ -52,14 +52,13 @@ switch binningfn
         nParams = nParams + 6;
 end
 
-nX = 30; nS = 50;
 % getting simulated data
 if any(selectiveplot(1:2))
     pNew_est = nan(nSubj,20); pOld_est = pNew_est;
     for isubjnum = 1:nSubj
         
         subjnum(isubjnum)
-        [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = nLL_approx_vectorized(modelname, bestFitParam(isubjnum,:), binningfn, nNew_part(isubjnum,:), nOld_part(isubjnum,:), [], nX, nS, nConf );
+        [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = nLL_approx_vectorized(modelname, bestFitParam(isubjnum,:), binningfn, nNew_part(isubjnum,:), nOld_part(isubjnum,:));
     end
 end
 
@@ -149,12 +148,12 @@ if (selectiveplot(1))
     set(gcf,'CurrentAxes',h)
     hXlabel = text(.45,0.05,'Bin Number');
     % legend
-%     hLegend  = legend(...
-%         [sNew, sOld, fNew, fOld],...
-%         'New Words (participant)'       ,...
-%         'Old Words (participant)'       ,...
-%         'New Words (estimated)'         ,...
-%         'Old Words (estimated)'         );
+    hLegend  = legend(...
+        [sNew, sOld, fNew, fOld],...
+        'New Words (participant)'       ,...
+        'Old Words (participant)'       ,...
+        'New Words (estimated)'         ,...
+        'Old Words (estimated)'         );
     
     
     % label aesthetics
@@ -263,7 +262,7 @@ if (selectiveplot(3))
         isubj = subjnum(isubjnum);
         subplot(subplotsize,subplotsize,isubjnum);
         
-        [centers_new, counts_new, centers_old, counts_old, confBounds] = nLL_approx_vectorized( modelname, bestFitParam(isubjnum,:), binningfn, nNew_part(isubj,:), nOld_part(isubj,:), [], nX, nS, nConf );
+        [centers_new, counts_new, centers_old, counts_old, confBounds] = nLL_approx_vectorized( modelname, bestFitParam(isubjnum,:), binningfn, nNew_part(isubj,:), nOld_part(isubj,:));
         
         % plots
         subplot(subplotsize,subplotsize,isubjnum); hold on;
