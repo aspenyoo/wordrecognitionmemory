@@ -575,9 +575,9 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 %% =====================================================
 %       DOING STUFF WITH FIT PARAMETERS
 % ======================================================
- clear all
+clear all
 
-modelname = 'REM';
+modelname = 'FP';
 binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = [1:14];
@@ -587,9 +587,26 @@ for isubj = subjids
     removetxtspaces(modelname,binningfn,isubj);
 end
 
+%% rename a file to another file name
+
+newfileidentifier = [modelname num2str(binningfn) '_freed0'];
+filepath = 'model/4_fitdata/BPSfits';
+filename = [ filepath '/paramfit_patternbayes_' modelname num2str(binningfn) '.mat'];
+fileinfo = whos('-file',filename);
+
+% load file
+load(filename);
+
+% delete this file
+delete(filename)
+
+% resave under a new name
+save([filepath '/paramfit_patternbayes_' newfileidentifier '.mat'],fileinfo.name)
+
 %% get MLE parameter estimates
 nStartVals = 10;
-getbestfitparams(modelname,binningfn,subjids,nStartVals)
+paramrange = [];
+getbestfitparams(modelname,binningfn,subjids,nStartVals,paramrange)
 
 %% load MLE parameter estimates
 load(['paramfit_' optimMethod '_' modelname num2str(binningfn) '.mat'])
