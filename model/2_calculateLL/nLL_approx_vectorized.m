@@ -23,13 +23,30 @@ function [ varargout ] = nLL_approx_vectorized( modelname, theta, binningfn, nne
 % NLL: negative log likelihood
 %
 % Aspen Yoo - Nov 30, 2016
-
+if nargin < 6; 
+    switch modelname
+        case 'FP'
+            logflag = [1 1];
+        case 'REM'
+            logflag = [1 0 0 0 0];
+        case 'UVSD'
+            logflag = [0 1];
+    end
+    switch binningfn
+        case 3 % power law
+            logflag = [logflag 0 0 0];
+        case 4 % cumulative weibull
+            logflag = [logflag 0 0 0 0];
+    end
+    logflag = [logflag 0 1];
+    logflag = logical(logflag);
+end
 if nargin < 7; fixparams = []; end
 if nargin < 8; nX = 300; end
 if nargin < 9; nS = 50; end
 if nargin < 10; nConf = 20; end
 
-
+if ~isempty(fixparams) && (nargin < 6); logflag(fixparams(1,:)) = [];end
 theta(logflag) = exp(theta(logflag)); % exponentiating the appropriate free paraemters
 
 % if theta has fixed parameters, adjust accordingly
@@ -87,10 +104,10 @@ else % if FP, FPheurs, or REM
     % parameter names
     switch modelname
         case {'FP','FPheurs'}
-            M = theta(1);
+            M = round(theta(1));
             sigma = theta(2);
         case 'REM'
-            M = theta(1);                   % number of features
+            M = round(theta(1));                   % number of features
             g = theta(2);                   % probability of success (for geometric distribution)
             ustar = theta(3);               % probability of encoding something
             c = theta(4);                   % probability of encoding correct feature value
