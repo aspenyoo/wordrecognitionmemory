@@ -388,7 +388,8 @@ end
 
 clear all
 
-modelnameVec = {'FP3','FP4','UVSD3','UVSD4','REM3','REM4'};
+% modelnameVec = {'FP3','FP4','UVSD3','UVSD4','REM3','REM4'};
+modelnameVec = {'FP3','FP3_freed0','FP4','FP4_freed0','REM3','REM3_freed0','REM4','REM4_freed0'};
 optimMethod = 'patternbayes';
 nModels = length(modelnameVec);
 nSubj = 14;
@@ -577,7 +578,7 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 % ======================================================
 clear all
 
-modelname = 'REM';
+modelname = 'FP';
 binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = [1:14];
@@ -605,7 +606,7 @@ save([filepath '/paramfit_patternbayes_' newfileidentifier '.mat'],fileinfo.name
 
 %% get MLE parameter estimates
 nStartVals = 10;
-paramrange = [9;0;0];
+paramrange = [9; 0; 0];
 getbestfitparams(modelname,binningfn,subjids,nStartVals,paramrange)
 
 %% load MLE parameter estimates
@@ -970,9 +971,29 @@ nLL = cell2mat(nLL);
 %% calculate IQRs of parameters for each model
 clear
 
-model = 'REM4';
+model = 'REM3'
+modelname = model(1:end-1);
+binningfn = str2double(model(end));
 load(['paramfit_patternbayes_' model '.mat'],'bestFitParam')
 bestFitParam = sort(bestFitParam);
+
+switch modelname
+    case 'FP'
+        logflag = [1 1];
+    case 'REM'
+        logflag = [1 0 0 0 0];
+    case 'UVSD'
+        logflag = [0 1];
+end
+switch binningfn
+    case 3 % power law
+        logflag = [logflag 0 0 0];
+    case 4 % cumulative weibull
+        logflag = [logflag 0 0 0 0];
+end
+logflag = [logflag 0 1];
+logflag = logical(logflag);
+bestFitParam(:,logflag) = exp(bestFitParam(:,logflag));
 
 percentile25 = mean(bestFitParam(3:4,:))
 percentile75 = mean(bestFitParam(10:11,:))
