@@ -21,8 +21,8 @@ if nargin < 6;
     logflag = logical(logflag);
 end
 if nargin < 7; fixparams = []; end
-if nargin < 8; nX = 300; end
-if nargin < 9; nS = 50; end
+if nargin < 8; nX = 30; end
+if nargin < 9; nS = 100; end
 if nargin < 10; nConf = 20; end
 
 if ~isempty(fixparams); assert(fixparams(1,1) ~= 1);end

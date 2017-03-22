@@ -30,8 +30,8 @@ function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelna
 if nargin < 5; fixparams = []; end
 if nargin < 6; nStartVals = 1; end
 if nargin < 7; nConf = 20; end
-nX = 300;
-nS = 50;
+nX = 30;
+nS = 100;
 
 % random number generator
 rng('shuffle');
