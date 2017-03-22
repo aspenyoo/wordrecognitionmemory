@@ -577,7 +577,7 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 % ======================================================
 clear all
 
-modelname = 'FP';
+modelname = 'REM';
 binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = [1:14];
@@ -605,7 +605,7 @@ save([filepath '/paramfit_patternbayes_' newfileidentifier '.mat'],fileinfo.name
 
 %% get MLE parameter estimates
 nStartVals = 10;
-paramrange = [];
+paramrange = [9;0;0];
 getbestfitparams(modelname,binningfn,subjids,nStartVals,paramrange)
 
 %% load MLE parameter estimates
