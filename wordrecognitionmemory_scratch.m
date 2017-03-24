@@ -412,23 +412,63 @@ refmodelidx = 2; % which column is the reference model
 modelidxVec = 1:nModels;
 modelidxVec(refmodelidx) = [];
 
-% 
-% [blah, idx] = sortrows(bsxfun(@minus,AICcMat,AICcMat(:,refmodelidx)));
-blah = bsxfun(@minus,AICcMat,AICcMat(:,refmodelidx));
-idx = 1:14;
-mean_AICcMat = mean(blah);
-sem_AICcMat = std(blah)./sqrt(size(AICcMat,1));
-median_AICcMat = median(blah);
-xx = sort(blah);
-IQR_AICcMat = [mean(xx(3:4,:)); mean(xx(10:11,:))];
+% getting difference matrix
+DeltaAICcMat = bsxfun(@minus,AICcMat,AICcMat(:,refmodelidx));
+DeltaBICMat = bsxfun(@minus,BICMat,BICMat(:,refmodelidx));
 
-bleh = bsxfun(@minus,BICMat,BICMat(:,refmodelidx));
-bleh = bleh(idx,:);
-mean_BICMat = mean(bleh);
-sem_BICMat = std(bleh)./sqrt(size(BICMat,1));
-median_BICMat = median(bleh);
-xx = sort(bleh);
-IQR_BICMat = [mean(xx(3:4,:)); mean(xx(10:11,:))];
+
+
+% mean, sem, median
+mean_AICcMat = mean(DeltaAICcMat);
+sem_AICcMat = std(DeltaAICcMat)./sqrt(size(AICcMat,1));
+median_AICcMat = median(DeltaAICcMat);
+
+mean_BICMat = mean(DeltaBICMat);
+sem_BICMat = std(DeltaBICMat)./sqrt(size(BICMat,1));
+median_BICMat = median(DeltaBICMat);
+
+% ======= bootstrapping median ==============
+% changing AIC and BIC mats to cells by model
+DeltaAICcMat = mat2cell(DeltaAICcMat,nSubj,ones(1,nModels));
+DeltaBICMat = mat2cell(DeltaBICMat,nSubj,ones(1,nModels));
+
+nSamples = 1000;
+idx025 = .025*nSamples;
+idx975 = .975*nSamples;
+
+% AICc
+AICcsamples = randi(nSubj,nSamples,nSubj*nModels);
+AICcsamples = mat2cell(AICcsamples,nSamples,nSubj*ones(1,nModels));
+blah = cellfun(@(x,y) sort(x(y),2),DeltaAICcMat,AICcsamples,'UniformOutput',false);
+samplemedians = cellfun(@(x) sort(mean(x(:,7:8),2)),blah,'UniformOutput',false);
+errorbar_AICcMat = cell2mat(cellfun(@(x) [x(idx025); x(idx975)],samplemedians,'UniformOutput',false));
+
+% BIC
+BICsamples = randi(nSubj,nSamples,nSubj*nModels);
+BICsamples = mat2cell(BICsamples,nSamples,nSubj*ones(1,nModels));
+blah = cellfun(@(x,y) sort(x(y),2),DeltaBICMat,BICsamples,'UniformOutput',false);
+samplemedians = cellfun(@(x) sort(mean(x(:,7:8),2)),blah,'UniformOutput',false);
+errorbar_BICMat = cell2mat(cellfun(@(x) [x(idx025); x(idx975)],samplemedians,'UniformOutput',false));
+
+
+DeltaAICcMat = cell2mat(DeltaAICcMat);
+DeltaBICMat = cell2mat(DeltaBICMat);
+% % [blah, idx] = sortrows(bsxfun(@minus,AICcMat,AICcMat(:,refmodelidx)));
+% blah = bsxfun(@minus,AICcMat,AICcMat(:,refmodelidx));
+% idx = 1:14;
+% mean_AICcMat = mean(blah);
+% sem_AICcMat = std(blah)./sqrt(size(AICcMat,1));
+% median_AICcMat = median(blah);
+% xx = sort(blah);
+% errorbar_AICcMat = [mean(xx(3:4,:)); mean(xx(10:11,:))];
+% 
+% bleh = bsxfun(@minus,BICMat,BICMat(:,refmodelidx));
+% bleh = bleh(idx,:);
+% mean_BICMat = mean(bleh);
+% sem_BICMat = std(bleh)./sqrt(size(BICMat,1));
+% median_BICMat = median(bleh);
+% xx = sort(bleh);
+% errorbar_BICMat = [mean(xx(3:4,:)); mean(xx(10:11,:))];
 
 %% plot model comparison
 
@@ -443,7 +483,7 @@ for imodel = 1:nModels-1
         mean_AICcMat(currmodidx)+sem_AICcMat(currmodidx) mean_AICcMat(currmodidx)+sem_AICcMat(currmodidx)],...
         0.8*ones(1,3),'EdgeColor','none')
 end
-bar(blah(:,modelidxVec)')
+bar(DeltaAICcMat(:,modelidxVec)')
 % errorbar(1:size(AICcMat,2),mean_AICcMat,sem_AICcMat);
 title('\Delta AICc')
 defaultplot
@@ -458,7 +498,7 @@ for imodel = 1:nModels-1
         mean_BICMat(currmodidx)+sem_BICMat(currmodidx) mean_BICMat(currmodidx)+sem_BICMat(currmodidx)],...
         0.8*ones(1,3),'EdgeColor','none')
 end
-bar(bleh(:,modelidxVec)')
+bar(DeltaBICMat(:,modelidxVec)')
 title('\Delta BIC')
 defaultplot
 set(gca,'XTick',1:nModels-1,'XTickLabel',modelnameVec(modelidxVec))
@@ -475,23 +515,23 @@ for imodel = 1:nModels-1
     
     % AICc average
     fill([imodel-fillamnt imodel-sideamnt imodel-sideamnt imodel-fillamnt],...
-        [IQR_AICcMat(1,currmodidx) IQR_AICcMat(1,currmodidx)...
-        IQR_AICcMat(2,currmodidx) IQR_AICcMat(2,currmodidx)],...
+        [errorbar_AICcMat(1,currmodidx) errorbar_AICcMat(1,currmodidx)...
+        errorbar_AICcMat(2,currmodidx) errorbar_AICcMat(2,currmodidx)],...
         aspencolors('salmon'),'EdgeColor','none')
     
     % BIC average
     fill([imodel+sideamnt imodel+fillamnt imodel+fillamnt imodel+sideamnt],...
-        [IQR_BICMat(1,currmodidx) IQR_BICMat(1,currmodidx)...
-        IQR_BICMat(2,currmodidx) IQR_BICMat(2,currmodidx)],...
+        [errorbar_BICMat(1,currmodidx) errorbar_BICMat(1,currmodidx)...
+        errorbar_BICMat(2,currmodidx) errorbar_BICMat(2,currmodidx)],...
         aspencolors('booger'),'EdgeColor','none')
     
     % AICc indvl
     xx = imodel - fillamnt/2 - sideamnt;
-    plot(xx,blah(:,currmodidx),'.','Color',aspencolors('berry'),'MarkerSize',10)
+    plot(xx,DeltaAICcMat(:,currmodidx),'.','Color',aspencolors('berry'),'MarkerSize',10)
     
     % BIC indvl
     xx = imodel + fillamnt/2 - sideamnt;
-    plot(xx,bleh(:,currmodidx),'.','Color',aspencolors('green'),'MarkerSize',10)
+    plot(xx,DeltaBICMat(:,currmodidx),'.','Color',aspencolors('green'),'MarkerSize',10)
     
     % median lines
     plot([imodel-fillamnt imodel-sideamnt],median_AICcMat(:,currmodidx)*ones(1,2),'Color',aspencolors('berry'))
