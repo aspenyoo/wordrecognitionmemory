@@ -23,7 +23,8 @@ function [ varargout ] = nLL_approx_vectorized( modelname, theta, binningfn, nne
 % NLL: negative log likelihood
 %
 % Aspen Yoo - Nov 30, 2016
-if nargin < 6; 
+
+if nargin < 6
     switch modelname
         case 'FP'
             logflag = [1 1];

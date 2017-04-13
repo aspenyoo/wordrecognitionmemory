@@ -15,7 +15,7 @@ y = a.*(1-exp(-(xx./lambda).^k));
 plot(xx,y);
 
 %%
-for i= 1:6;
+for i= 1:6
     subplot(2,6,i)
     xlim([1 20])
     set(gca,'XTick',[1 10 20])
@@ -23,7 +23,7 @@ end
 
 %%
 
-for i = 7:12;
+for i = 7:12
     subplot(2,6,i)
     set(gca,'YTick',0:0.05:0.2,'XTick',[1 10 20])
     xlim([1 20])
