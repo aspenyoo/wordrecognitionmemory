@@ -48,7 +48,7 @@ if nargin < 9; nS = 50; end
 if nargin < 10; nConf = 20; end
 
 if ~isempty(fixparams) && (nargin < 6); logflag(fixparams(1,:)) = [];end
-theta(logflag) = exp(theta(logflag)); % exponentiating the appropriate free paraemters
+theta(logflag) = exp(theta(logflag)); % exponentiating the appropriate free parameters
 
 % if theta has fixed parameters, adjust accordingly
 if ~isempty(fixparams)

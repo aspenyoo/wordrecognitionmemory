@@ -388,8 +388,8 @@ end
 
 clear all
 
-% modelnameVec = {'FP3','FP4','UVSD3','UVSD4','REM3','REM4'};
-modelnameVec = {'FP3','FP3_freed0','FP4','FP4_freed0','REM3','REM3_freed0','REM4','REM4_freed0'};
+modelnameVec = {'FP3','FP4','UVSD3','UVSD4','REM3','REM4'};
+% modelnameVec = {'FP3','FP3_freed0','FP4','FP4_freed0','REM3','REM3_freed0','REM4','REM4_freed0'};
 optimMethod = 'patternbayes';
 nModels = length(modelnameVec);
 nSubj = 14;
@@ -618,7 +618,7 @@ nLL_approx_vectorized( modelname, theta, binningfn, memstrengthvar, nnew_part, n
 % ======================================================
 clear all
 
-modelname = 'FP';
+modelname = 'REM';
 binningfn = 3;
 optimMethod = 'patternbayes';
 subjids = [1:14];
@@ -646,7 +646,7 @@ save([filepath '/paramfit_patternbayes_' newfileidentifier '.mat'],fileinfo.name
 
 %% get MLE parameter estimates
 nStartVals = 10;
-paramrange = [9; 0; 0];
+paramrange = []; % [9; 0; 0];
 getbestfitparams(modelname,binningfn,subjids,nStartVals,paramrange)
 
 %% load MLE parameter estimates
