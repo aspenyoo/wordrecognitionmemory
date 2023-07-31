@@ -1,4 +1,4 @@
-function [pnew, pold] = responses_uneqVar2( theta, islogbinning, cplot, dplot)
+function [pnew, pold] = simulate_uneqVar2( theta, islogbinning, cplot, dplot)
 % [pnew, pold] = function responses_uneqVar( THETA, PPLOT, RPLOT) gives
 % probability of "old" and "new" response confidences.
 % 

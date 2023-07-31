@@ -1,4 +1,4 @@
-function [ pnew, pold ] = responses_FPheurs( theta, islogbinning, cplot, dplot )
+function [ pnew, pold ] = simulate_FPheurs( theta, islogbinning, cplot, dplot )
 % gives proportion of new and old words (pnew and pold) answered in
 % particular d given theta values
 % [ pnew, pold ] = paramdist( theta ), where theta is the 3-dimensional
@@ -16,9 +16,9 @@ if nargin < 3; cplot = 0; end
 M = theta(1);
 sigma = theta(2);
 if (islogbinning); k = theta(3); else c1 = theta(3); end
-if length(theta) < 5;
+if length(theta) < 5
     L = 10;
-    if length(theta) < 4;
+    if length(theta) < 4
         if (islogbinning); d0 = 0; else c2 = 0; end
     else
         if (islogbinning); d0 = theta(4); else c2 = theta(4); end
@@ -28,9 +28,7 @@ else
     L = theta(5);
 end
 
-if M ~= floor(M)
-    assert('M must be a whole number')
-end
+assert(M == floor(M),'error: M must be a whole number')
 
 nExp = 15;           % number of experiments (different Ss)
 nRuns = 15;          % different X's per S
@@ -46,7 +44,7 @@ t0 = repmat(randn(N, M, 1, nExp), [1 1 nRuns 1]);
 % for looping over trial words (t)  nTrials (N) times.
 d_new = nan(N,nRuns,nExp);
 d_old = nan(N,nRuns,nExp);
-for i = 1:N;
+for i = 1:N
     dist1 = sqrt(sum(bsxfun(@minus,t1(i,:,:,:),X).^2,2));
     dist0 = sqrt(sum(bsxfun(@minus,t0(i,:,:,:),X).^2,2));
     
@@ -87,16 +85,16 @@ pold = oldHist/sum(oldHist);
 
 % ===== PLOTS =====
 
-if dplot == 1;
-    if cplot ==1;
+if dplot == 1
+    if cplot ==1
         subplot(2,1,1)
     end
     binningparameters = theta(3:end);
     memdistplot(d_old, d_new, binningparameters, islogbinning);
 end
 
-if cplot == 1;
-    if dplot == 1;
+if cplot == 1
+    if dplot == 1
         subplot(2,1,2)
     else
         figure;

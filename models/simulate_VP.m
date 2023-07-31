@@ -1,4 +1,4 @@
-function [ pnew, pold ] = responses_VP( theta, islogbinning, cplot, dplot )
+function [ pnew, pold ] = simulate_VP( theta, islogbinning, cplot, dplot )
 % gives proportion of new and old words (pnew and pold) answered in 
 % particular d given theta values
 % 

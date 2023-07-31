@@ -90,7 +90,7 @@ end
 %         'IconDisplayStyle','off'); % Exclude line from legend
 % end
 
-ylim([0 maxx])
+ylim([0 max(histcount)])
 defaultplot
 
 % set(  gca                         ,...
