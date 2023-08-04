@@ -1,9 +1,14 @@
-function [ varargout ] = nLL_approx_vectorized( modelname, theta, binningfn, nnew_part, nold_part, logflag, fixparams, nX, nS, nConf )
+function [ varargout ] = calc_nLL_approx_vectorized( modelname, theta, binningfn, nnew_part, nold_part, fixparams, nX, nS, logflag, nConf )
 % nLL_approx calculates the negative log likelihood using an approximation
 % method
 %
 % [nLL] = nLL_approx_vectorized(MODELNAME, THETA, ISLOGBINNING, NNEW_PART,
-% NOLD_PART) calculates the negative log p(nnew_part,nold_part|theta,model)
+%   NOLD_PART) calculates the negative log p(nnew_part,nold_part|theta,model)
+% [pnew, pold] = nLL_approx_vectorized(MODELNAME, THETA, ISLOGBINNING, NNEW_PART,
+%   NOLD_PART) gives estimated responses given theta and model
+% [centers_new, counts_new, centers_old, counts_old, confbounds] = 
+%   nLL_approx_vectorized(MODELNAME, THETA, ISLOGBINNING, NNEW_PART
+%   , NOLD_PART)calculates the negative log p(nnew_part,nold_part|theta,model)
 %
 % ===== INPUT VARIABLES =====
 % MODELNAME: 'FP','FPheurs','VP','VPheurs','uneqVar', 'REM'
@@ -23,7 +28,12 @@ function [ varargout ] = nLL_approx_vectorized( modelname, theta, binningfn, nne
 % NLL: negative log likelihood
 %
 % Aspen Yoo - Nov 30, 2016
-if nargin < 6; 
+
+
+if nargin < 6; fixparams = []; end
+if nargin < 7; nX = 300; end
+if nargin < 8; nS = 50; end
+if nargin < 9
     switch modelname
         case 'FP'
             logflag = [1 1];
@@ -41,9 +51,6 @@ if nargin < 6;
     logflag = [logflag 0 1];
     logflag = logical(logflag);
 end
-if nargin < 7; fixparams = []; end
-if nargin < 8; nX = 300; end
-if nargin < 9; nS = 50; end
 if nargin < 10; nConf = 20; end
 
 if ~isempty(fixparams) && (nargin < 6); logflag(fixparams(1,:)) = [];end
