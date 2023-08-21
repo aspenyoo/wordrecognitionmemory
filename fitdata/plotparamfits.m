@@ -29,7 +29,7 @@ gold = aspencolors('dustygold');
 greyblue = aspencolors('greyblue');
 
 switch modelname
-    case 'UVSD'
+    case {'UVSDx','UVSDd'}
         nParams = 2;
     case {'FP','FPheurs'}
         nParams = 2;
@@ -38,12 +38,12 @@ switch modelname
 end
 
 switch binningfn
-    case {0,1} % linear, logistic
-        % slope, y-int, sigma_mc
-        nParams = nParams + 3;
-    case 2     % logarithmic
-        % a, b, d0, sigma_mc
-        nParams = nParams + 4;
+%     case {0,1} % linear, logistic
+%         % slope, y-int, sigma_mc
+%         nParams = nParams + 3;
+%     case 2     % logarithmic
+%         % a, b, d0, sigma_mc
+%         nParams = nParams + 4;
     case 3      % power law
         % a, b, gamma, d0, sigma_mc
         nParams = nParams + 5;
@@ -58,7 +58,7 @@ if any(selectiveplot(1:2))
     for isubjnum = 1:nSubj
         
         subjnum(isubjnum)
-        [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = nLL_approx_vectorized(modelname, bestFitParam(isubjnum,:), binningfn, nNew_part(isubjnum,:), nOld_part(isubjnum,:));
+        [pNew_est(isubjnum,:), pOld_est(isubjnum,:)] = calc_nLL_approx_vectorized(modelname, bestFitParam(isubjnum,:), binningfn, nNew_part(isubjnum,:), nOld_part(isubjnum,:));
     end
 end
 
@@ -262,7 +262,7 @@ if (selectiveplot(3))
         isubj = subjnum(isubjnum);
         subplot(subplotsize,subplotsize,isubjnum);
         
-        [centers_new, counts_new, centers_old, counts_old, confBounds] = nLL_approx_vectorized( modelname, bestFitParam(isubjnum,:), binningfn, nNew_part(isubj,:), nOld_part(isubj,:));
+        [centers_new, counts_new, centers_old, counts_old, confBounds] = calc_nLL_approx_vectorized( modelname, bestFitParam(isubjnum,:), binningfn, nNew_part(isubj,:), nOld_part(isubj,:));
         
         % plots
         subplot(subplotsize,subplotsize,isubjnum); hold on;

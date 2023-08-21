@@ -10,14 +10,12 @@ function [bestFitParam, nLL_est, allparams, allnLLs] = getbestfitparams(modelnam
 % lower bound of that parameter, and third row is the upper bound of that parameter. 
 if nargin < 4; nStartVals = []; end
 if nargin < 5; paramrange = []; end
-if nargin < 6; filepath = ['model' filesep '4_fitdata' filesep 'BPSfits' filesep]; end
+if nargin < 6; filepath = 'fitdata/BPSfits/'; end
 
 Mmax = 200;
 
 switch modelname
-    case 'UVSD'
-        nParams = 2;
-    case {'FP','FPheurs'}
+    case {'UVSDd','UVSDx','FP','FPheurs'}
         nParams = 2;
     case 'REM'
         nParams = 5;

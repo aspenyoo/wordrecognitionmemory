@@ -29,7 +29,6 @@ function [ varargout ] = calc_nLL_approx_vectorized( modelname, theta, binningfn
 %
 % Aspen Yoo - Nov 30, 2016
 
-
 if nargin < 6; fixparams = []; end
 if nargin < 7; nX = 300; end
 if nargin < 8; nS = 50; end
@@ -39,7 +38,7 @@ if nargin < 9
             logflag = [1 1];
         case 'REM'
             logflag = [1 0 0 0 0];
-        case 'UVSD'
+        case {'UVSDx','UVSDd'}
             logflag = [0 1];
     end
     switch binningfn
@@ -68,22 +67,22 @@ if ~isempty(fixparams)
 end
 
 switch modelname
-    case {'FP','FPheurs','UVSD'}
+    case {'FP','FPheurs','UVSDx','UVSDd'}
         nParams = 2;
     case 'REM'
         nParams = 5;
 end
 switch binningfn
-    case 0
-        slope = theta(end-2);
-        nParams = nParams + 3;
-    case 1
-        k = theta(end-2);
-        nParams = nParams + 3;
-    case 2 % logarithmic
-        a = theta(end-3);
-        b = theta(end-2);
-        nParams = nParams + 4;
+%     case 0
+%         slope = theta(end-2);
+%         nParams = nParams + 3;
+%     case 1
+%         k = theta(end-2);
+%         nParams = nParams + 3;
+%     case 2 % logarithmic
+%         a = theta(end-3);
+%         b = theta(end-2);
+%         nParams = nParams + 4;
     case 3 % power law
         a = theta(end-4);
         b = theta(end-3);
@@ -99,9 +98,14 @@ end
 d0 = theta(end-1);
 sigma_mc = theta(end);
 
-if strcmp(modelname,'UVSD') % if uneqVar
-    [pnew, pold, confbounds] = responses_uneqVar(theta, binningfn);
+if strcmp(modelname,'UVSDd') % if uneqVar
+    [pnew, pold, confbounds] = responses_UVSDd(theta, binningfn);
     nLL = -sum(log(pnew).*nnew_part) - sum(log(pold).*nold_part);
+    
+elseif strcmp(modelname,'UVSDx') % if uneqVar
+    [pnew, pold, confbounds] = responses_UVSDx(theta, binningfn);
+    nLL = -sum(log(pnew).*nnew_part) - sum(log(pold).*nold_part);
+
 else % if FP, FPheurs, or REM
     
     % stuff that doesn't depend on model, mapping, or memstrengthvar
@@ -179,11 +183,11 @@ else % if FP, FPheurs, or REM
         
         % non-rounded confidence values
         switch binningfn
-            case 0 % linear
-                conf = slope.*q + d0;
-            case 1 % logistic
-            case 2 % logarithmic
-                conf = a.*log(q) + b;
+%             case 0 % linear
+%                 conf = slope.*q + d0;
+%             case 1 % logistic
+%             case 2 % logarithmic
+%                 conf = a.*log(q) + b;
             case 3 % power law
                 conf = a.*((q.^gamma - 1)./gamma) + b;
             case 4 % weibull
@@ -215,11 +219,11 @@ else % if FP, FPheurs, or REM
     
     % non-rounded confidence values
     switch binningfn
-        case 0 % linear
-            conf = slope.*q + d0;
-        case 1 % logistic
-        case 2 % logarithmic
-            conf = a.*log(q) + b;
+%         case 0 % linear
+%             conf = slope.*q + d0;
+%         case 1 % logistic
+%         case 2 % logarithmic
+%             conf = a.*log(q) + b;
         case 3 % power law
             conf = a.*((q.^gamma - 1)./gamma) + b;
         case 4 % weibull
@@ -251,24 +255,34 @@ switch nargout
     case 1
         varargout = {nLL};
     case 2
-        if ~strcmp(modelname,'UVSD')
+        if ~strcmp(modelname,'UVSDx') && ~strcmp(modelname,'UVSDd')
             pnew = sum(newHisttotal)/sum(newHisttotal(:));
         end
         varargout = {pnew, pold};
     case 5
         nBins = 50;
         
-        if strcmp(modelname,'UVSD')
-            nSamples = 10000;
-            
-            mu_old = theta(1);
-            sigma_old = theta(2);
-            
-            old_samples = mu_old + randn(1,nSamples).*sigma_old;
-            new_samples = randn(1,nSamples);
-            d_newtotal = -log(sigma_old) - 1/2.*( ((new_samples-mu_old).^2)./sigma_old.^2 - new_samples.^2);
-            d_old = -log(sigma_old) - 1/2.*( ((old_samples-mu_old).^2)./sigma_old.^2 - old_samples.^2);
-            
+        switch modelname
+            case 'UVSDx'
+                nSamples = 10000;
+                
+                mu_old = theta(1);
+                sigma_old = theta(2);
+                
+                old_samples = mu_old + randn(1,nSamples).*sigma_old;
+                new_samples = randn(1,nSamples);
+                d_newtotal = -log(sigma_old) - 1/2.*( ((new_samples-mu_old).^2)./sigma_old.^2 - new_samples.^2);
+                d_old = -log(sigma_old) - 1/2.*( ((old_samples-mu_old).^2)./sigma_old.^2 - old_samples.^2);
+                
+            case 'UVSDd'
+                nSamples = 10000;
+                
+                mu_old = theta(1);
+                sigma_old = theta(2);
+                d0 = theta(end-1);
+                
+                d_old = mu_old + randn(1,nSamples).*sigma_old + d0;
+                d_newtotal = randn(1,nSamples)+d0;
         end
         %
         %             x = linspace(min([0 mu_old]-nSDs.*[1 sigma_old]),max([0 mu_old]+nSDs.*[1 sigma_old]),nSamples);
@@ -294,15 +308,15 @@ switch nargout
         
         
         switch binningfn
-            case 0 % linear
-                binvalues = 1.5:(nConf-0.5);
-                confbounds = (binvalues-nConf/2-0.5)./shape - d0;
-            case 1 % logistic
-                binvalues = 1.5:(nConf-0.5);
-                confbounds = -shape.*log((nConf+0.5)./(binvalues-0.5)-1);
-            case 2 % logarithmic
-                binvalues = 1.5:(nConf/2 -0.5);
-                confbounds = exp((binvalues-b)./a);
+%             case 0 % linear
+%                 binvalues = 1.5:(nConf-0.5);
+%                 confbounds = (binvalues-nConf/2-0.5)./shape - d0;
+%             case 1 % logistic
+%                 binvalues = 1.5:(nConf-0.5);
+%                 confbounds = -shape.*log((nConf+0.5)./(binvalues-0.5)-1);
+%             case 2 % logarithmic
+%                 binvalues = 1.5:(nConf/2 -0.5);
+%                 confbounds = exp((binvalues-b)./a);
             case 3 % power law
                 binvalues = 1.5:(nConf/2 -0.5);
                 tempp = gamma.*(binvalues -b)./a + 1;

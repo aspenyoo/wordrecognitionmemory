@@ -6,7 +6,7 @@ function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelna
 % data.
 %
 % ===== INPUT VARIABLES =====
-% MODELNAME: 'FP','VP','VPheurs',or 'UVSD', or 'REM'
+% MODELNAME: 'FP','VP','VPheurs','UVSDd','UVSDx', or 'REM'
 % BINNINGFN: 0: linear, 1: logistic, 2: log, 3: power, 4: weibull
 % NNEW_PART: 1x20 vector of responses for new distribution (total 150)
 % NOLD_PART: 1x20 vector of responses for old distribution (total 150)
@@ -24,7 +24,7 @@ function [bestFitParam, nLL, startTheta, Output] = paramfit_patternbayes(modelna
 % when investigating if fminsearch is exploring very far or staying local).
 %
 %
-% Aspen Yoo -- January 28, 2016
+% Aspen Yoo -- August 28, 2023
 %
 
 if nargin < 5; fixparams = []; end
@@ -34,9 +34,9 @@ nX = 300;
 nS = 50;
 
 % random number generator
-rng('shuffle');
+rng(0);
 
-options = bps('defaults');              % Default options
+options = bads('defaults');              % Default options
 options.UncertaintyHandling = 1;        % Activate noise handling
 options.NoiseSize = 1;                  % Estimated noise magnitude
 
@@ -48,20 +48,22 @@ options.NoiseSize = 1;                  % Estimated noise magnitude
 %         fixparams = [1; M];
 %     end
 
-startTheta = genStartTheta;
+[startTheta,lb,ub,plb,pub,logflag] = genStartTheta;
 bfp = nan(size(startTheta));
 nll = nan(nStartVals,1); exitflag = nll;
 for istartval = 1:nStartVals
-    if ~isempty(fixparams)
-        if fixparams(1,1) == 1 % if M is a fixed parameter
+    switch modelname
+        case {'UVSDd','UVSDx'}
             obj_func = @(x) calc_nLL_approx_vectorized(modelname, x, binningfn, nnew_part, nold_part, fixparams, nX, nS, logflag, nConf );
-        else
+        otherwise
             obj_func = @(x) calc_nLL_approx_vectorized_Minterp(modelname, x, binningfn, nnew_part, nold_part, fixparams, nX, nS, logflag, nConf );
-        end
-    else
-        obj_func = @(x) calc_nLL_approx_vectorized_Minterp(modelname, x, binningfn, nnew_part, nold_part, fixparams, nX, nS, logflag, nConf );
+            try
+                if fixparams(1,1) == 1 % if M is a fixed parameter
+                    obj_func = @(x) calc_nLL_approx_vectorized(modelname, x, binningfn, nnew_part, nold_part, fixparams, nX, nS, logflag, nConf );
+                end
+            end
     end
-    [bfp(istartval,:) ,nll(istartval), exitflag(istartval), outputt{istartval}] = bps(obj_func,startTheta(istartval,:),lb,ub,plb,pub,options);
+    [bfp(istartval,:) ,nll(istartval), exitflag(istartval), outputt{istartval}] = bads(obj_func,startTheta(istartval,:),lb,ub,plb,pub,[],options);
 end
 
 nll(exitflag < 0) = Inf;
@@ -85,7 +87,7 @@ end
 
 % generate x0 (starting theta) uniformly from plausible lower and upper
 % bounds
-    function [starttheta] = genStartTheta
+    function [starttheta,lb,ub,plb,pub,logflag] = genStartTheta
         
         % getting model specific parameters
         switch modelname
@@ -96,7 +98,7 @@ end
                 plb = [1 1e-3 ];
                 pub = [30 3 ];
                 logflag = [1 1];
-            case 'UVSD'
+            case {'UVSDx','UVSDd'}
                 % mu, sigma
                 lb = [0 1e-3];
                 ub = [10 10];

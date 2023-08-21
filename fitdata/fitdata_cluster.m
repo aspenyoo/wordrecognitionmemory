@@ -14,7 +14,7 @@ else
 end
 
 
-filepath = 'wordrecognitionmemory/model/4_fitdata/BPSfits/';
+filepath = 'fitdata/BPSfits/';
 
 % ===== INPUT VARIABLES =====
 % ISUBJ: number of subject fitting. can also enter isubj and fixedM as a
@@ -25,7 +25,7 @@ filepath = 'wordrecognitionmemory/model/4_fitdata/BPSfits/';
 %            1 x (number of different Ms) if 'patternbayes'
 
 switch testmodelname
-    case {'UVSD','FP','FPheurs'}
+    case {'UVSDx','UVSDd','FP','FPheurs'}
         nParams = 2;
     case {'VP','VPheurs'}
         nParams = 3;

@@ -8,7 +8,7 @@ if nargin < 6;
             logflag = [1 1];
         case 'REM'
             logflag = [1 0 0 0 0];
-        case 'UVSD'
+        case {'UVSDx','UVSDd'}
             logflag = [0 1];
     end
     switch binningfn
