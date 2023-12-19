@@ -70,18 +70,19 @@ for iM = 1:nMs
     for istartval = 1:nStartVals
         istartval
         
-        filename = [filepath 'paramfit_patternbayes_' testmodelname num2str(binningfn) '_subj' num2str(isubj) '.txt'];
-        if isubj > 14
-            filename = [filepath 'modelrecovery_patternbayes_' testmodelname num2str(binningfn) '_' truemodelname 'subj' num2str(isubj) '.txt'];
+        try
+            filename = [filepath 'paramfit_patternbayes_' testmodelname num2str(binningfn) '_subj' num2str(isubj) '.txt'];
+            if isubj > 14
+                filename = [filepath 'modelrecovery_patternbayes_' testmodelname num2str(binningfn) '_' truemodelname 'subj' num2str(isubj) '.txt'];
+            end
+            
+            [bestFitParam, nLL_est, startTheta, outputt] = paramfit_patternbayes(testmodelname, binningfn, nnew_part, nold_part, fixparam ,1);
+            fileID = fopen(filename,permission);
+            A1 = [bestFitParam, nLL_est, startTheta, outputt.fsd];
+            fprintf(fileID, formatSpec, A1); % save stuff in txt file
+            disp('saved')
+            fclose(fileID);
         end
-        
-        [bestFitParam, nLL_est, startTheta, outputt] = paramfit_patternbayes(testmodelname, binningfn, nnew_part, nold_part, fixparam ,1);
-        fileID = fopen(filename,permission);
-        A1 = [bestFitParam, nLL_est, startTheta, outputt.fsd];
-        fprintf(fileID, formatSpec, A1); % save stuff in txt file
-        disp('saved')
-        fclose(fileID);
-                
     end
 end
 

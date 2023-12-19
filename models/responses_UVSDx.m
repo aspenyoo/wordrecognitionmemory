@@ -39,6 +39,7 @@ switch binningfn
         a = theta(end-4);
         b = theta(end-3);
         gamma = theta(end-2);
+        if ~gamma; gamma = eps; end
         nParams = 7;
     case 4              % weibull mapping
         scale = theta(end-5);
@@ -59,8 +60,14 @@ if ~(sigma_mc)
     % x: value of gaussian distribution
     x = linspace(min([0 mu_old]-nSDs.*[1 sigma_old]),max([0 mu_old]+nSDs.*[1 sigma_old]),nSamples);
     
+    % calculate confidence bounds
+    fun_d = @(x) -log(sigma_old) - 1/2.*( ((x-mu_old).^2)./sigma_old.^2 - x.^2) + d0;
+    
+    
+    
+    
     % y: value of sample from metacognitive noise distribution
-    y = linspace(-nSDs.*sigma_mc,nSDs.*sigma_mc,nSamples);
+%     y = linspace(-nSDs.*sigma_mc,nSDs.*sigma_mc,nSamples);
     
     % calculate probability distribution
     pold_x = normpdf(x,mu_old,sigma_old);
